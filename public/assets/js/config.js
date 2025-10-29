@@ -1,6 +1,6 @@
 // public/assets/js/config.js
 const API_CONFIG = {
-  baseURL: 'http://localhost:3000/api',
+  baseURL: 'api.fleemaster.com/api',
   timeout: 30000,
 };
 
