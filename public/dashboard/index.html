@@ -1,0 +1,1722 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FleetMaster - لوحة التحكم</title>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #667eea;
+            --primary-dark: #5568d3;
+            --primary-light: #f0f3ff;
+            --secondary: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --dark: #1e293b;
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
+            --gray-600: #475569;
+            --sidebar-width: 280px;
+            --topbar-height: 70px;
+            --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: var(--gray-50);
+            color: var(--dark);
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: white;
+            border-left: 1px solid var(--gray-200);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            right: 0;
+            top: 0;
+            height: 100vh;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--gradient);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .logo-icon svg {
+            width: 26px;
+            height: 26px;
+            stroke-width: 2.5;
+        }
+
+        .logo-text {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--dark);
+        }
+
+        .company-name {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            margin-top: 2px;
+            font-weight: 600;
+        }
+
+        /* Navigation */
+        .nav-menu {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem 0.75rem;
+        }
+
+        .nav-menu::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .nav-menu::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .nav-menu::-webkit-scrollbar-thumb {
+            background: var(--gray-300);
+            border-radius: 10px;
+        }
+
+        .nav-section {
+            margin-bottom: 2rem;
+        }
+
+        .nav-section-title {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--gray-400);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 0 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0.75rem 1rem;
+            margin-bottom: 4px;
+            border-radius: 10px;
+            color: var(--gray-600);
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .nav-item .icon {
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .nav-item .icon svg {
+            width: 20px;
+            height: 20px;
+            stroke-width: 2;
+        }
+
+        .nav-item:hover {
+            background: var(--gray-100);
+            color: var(--primary);
+        }
+
+        .nav-item.active {
+            background: var(--primary-light);
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .nav-item.active .icon svg {
+            stroke-width: 2.5;
+        }
+
+        /* Sidebar Footer */
+        .sidebar-footer {
+            padding: 1rem;
+            border-top: 1px solid var(--gray-200);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0.75rem;
+            background: var(--gray-50);
+            border-radius: 12px;
+            margin-bottom: 0.75rem;
+        }
+
+        .user-avatar {
+            width: 42px;
+            height: 42px;
+            background: var(--gradient);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 800;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        .user-info h4 {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 2px;
+        }
+
+        .user-info p {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            background: var(--secondary);
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .logout-btn {
+            width: 100%;
+            padding: 0.75rem;
+            background: white;
+            border: 2px solid var(--gray-200);
+            border-radius: 10px;
+            color: var(--gray-600);
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        .logout-btn svg {
+            width: 18px;
+            height: 18px;
+            stroke-width: 2;
+        }
+
+        .logout-btn:hover {
+            background: #fef2f2;
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-right: var(--sidebar-width);
+            min-height: 100vh;
+        }
+
+        .top-bar {
+            height: var(--topbar-height);
+            background: white;
+            border-bottom: 1px solid var(--gray-200);
+            padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        .page-title-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .page-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-light);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .page-icon svg {
+            width: 22px;
+            height: 22px;
+            stroke: var(--primary);
+            stroke-width: 2;
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--dark);
+        }
+
+        .top-bar-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-box input {
+            padding: 0.6rem 1rem 0.6rem 2.5rem;
+            border: 2px solid var(--gray-200);
+            border-radius: 10px;
+            font-size: 0.9rem;
+            width: 280px;
+            transition: all 0.2s ease;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--primary);
+            width: 320px;
+        }
+
+        .search-box svg {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 18px;
+            height: 18px;
+            stroke: var(--gray-400);
+        }
+
+        .notification-btn {
+            position: relative;
+            width: 40px;
+            height: 40px;
+            background: var(--gray-100);
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .notification-btn:hover {
+            background: var(--primary-light);
+        }
+
+        .notification-btn svg {
+            width: 20px;
+            height: 20px;
+            stroke: var(--gray-600);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -4px;
+            left: -4px;
+            width: 20px;
+            height: 20px;
+            background: var(--danger);
+            color: white;
+            border-radius: 50%;
+            font-size: 0.7rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid white;
+        }
+
+        /* Content Area */
+        .content-area {
+            padding: 2rem;
+        }
+
+        #main-content {
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Welcome Card */
+        .welcome-card {
+            background: var(--gradient);
+            border-radius: 20px;
+            padding: 2.5rem;
+            color: white;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .welcome-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="2" fill="white" opacity="0.1"/></svg>');
+            animation: float 20s linear infinite;
+        }
+
+        .welcome-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .welcome-card h2 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+
+        .welcome-card p {
+            font-size: 1.1rem;
+            opacity: 0.95;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 1.75rem;
+            border: 1px solid var(--gray-200);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--gradient);
+            transform: scaleX(0);
+            transform-origin: right;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+        }
+
+        .stat-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--primary-light);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stat-icon svg {
+            width: 24px;
+            height: 24px;
+            stroke: var(--primary);
+            stroke-width: 2;
+        }
+
+        .stat-card:nth-child(2) .stat-icon {
+            background: #f0fdfa;
+        }
+
+        .stat-card:nth-child(2) .stat-icon svg {
+            stroke: var(--secondary);
+        }
+
+        .stat-card:nth-child(3) .stat-icon {
+            background: #fef3c7;
+        }
+
+        .stat-card:nth-child(3) .stat-icon svg {
+            stroke: var(--warning);
+        }
+
+        .stat-card:nth-child(4) .stat-icon {
+            background: #fef2f2;
+        }
+
+        .stat-card:nth-child(4) .stat-icon svg {
+            stroke: var(--danger);
+        }
+
+        .stat-trend {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
+
+        .stat-trend.up {
+            background: #d1fae5;
+            color: var(--secondary);
+        }
+
+        .stat-trend.down {
+            background: #fee2e2;
+            color: var(--danger);
+        }
+
+        .stat-trend svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .stat-body h3 {
+            font-size: 0.85rem;
+            color: var(--gray-500);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--dark);
+            line-height: 1;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            background: white;
+            border-radius: 16px;
+            padding: 1.75rem;
+            border: 1px solid var(--gray-200);
+            margin-bottom: 2rem;
+        }
+
+        .quick-actions h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .quick-actions h3 svg {
+            width: 20px;
+            height: 20px;
+            stroke: var(--primary);
+        }
+
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+        }
+
+        .action-btn {
+            padding: 1.25rem;
+            background: var(--gray-50);
+            border: 2px solid var(--gray-200);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            text-decoration: none;
+            color: var(--dark);
+        }
+
+        .action-btn:hover {
+            background: var(--primary-light);
+            border-color: var(--primary);
+            transform: translateY(-3px);
+        }
+
+        .action-btn-icon {
+            width: 40px;
+            height: 40px;
+            background: white;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.75rem;
+        }
+
+        .action-btn-icon svg {
+            width: 22px;
+            height: 22px;
+            stroke: var(--primary);
+            stroke-width: 2;
+        }
+
+        .action-btn-text {
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(100%);
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-right: 0;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .actions-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .search-box input {
+                width: 200px;
+            }
+
+            .search-box input:focus {
+                width: 240px;
+            }
+
+            .content-area {
+                padding: 1.5rem;
+            }
+
+            .top-bar {
+                padding: 0 1.5rem;
+            }
+        }
+
+        /* Company Header Card */
+        .company-header-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            border-right: 4px solid var(--primary);
+        }
+
+        .company-header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+        }
+
+        .company-info-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .company-icon-wrapper {
+            width: 60px;
+            height: 60px;
+            background: var(--gradient);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .company-icon-wrapper svg {
+            width: 32px;
+            height: 32px;
+            stroke: white;
+            stroke-width: 2;
+        }
+
+        .company-details h2 {
+            color: var(--dark);
+            margin-bottom: 6px;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .company-details p {
+            color: var(--gray-500);
+            font-size: 0.875rem;
+        }
+
+        .company-details p span {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        /* Date Controls */
+        .date-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .date-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--gray-50);
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            border: 1px solid var(--gray-200);
+        }
+
+        .date-input-wrapper svg {
+            width: 18px;
+            height: 18px;
+            stroke: var(--gray-500);
+        }
+
+        .date-input-wrapper span {
+            font-size: 0.875rem;
+            color: var(--gray-500);
+            font-weight: 600;
+        }
+
+        .date-input-wrapper input {
+            border: 1px solid var(--gray-200);
+            padding: 0.375rem 0.75rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--dark);
+            cursor: pointer;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        .action-btn-mini {
+            padding: 0.625rem 1.25rem;
+            border: 1px solid var(--gray-200);
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s ease;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        .action-btn-mini svg {
+            width: 16px;
+            height: 16px;
+            stroke-width: 2;
+        }
+
+        .action-btn-mini:hover {
+            background: var(--primary-light);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        /* Stat Card Variations */
+        .stat-icon-blue {
+            background: #eff6ff !important;
+        }
+
+        .stat-icon-blue svg {
+            stroke: #3b82f6 !important;
+        }
+
+        .stat-icon-purple {
+            background: #f5f3ff !important;
+        }
+
+        .stat-icon-purple svg {
+            stroke: #8b5cf6 !important;
+        }
+
+        .stat-icon-cyan {
+            background: #ecfeff !important;
+        }
+
+        .stat-icon-cyan svg {
+            stroke: #06b6d4 !important;
+        }
+
+        .stat-icon-green {
+            background: #f0fdf4 !important;
+        }
+
+        .stat-icon-green svg {
+            stroke: #10b981 !important;
+        }
+
+        .stat-icon-yellow {
+            background: #fef3c7 !important;
+        }
+
+        .stat-icon-yellow svg {
+            stroke: #f59e0b !important;
+        }
+
+        .stat-icon-red {
+            background: #fef2f2 !important;
+        }
+
+        .stat-icon-red svg {
+            stroke: #ef4444 !important;
+        }
+
+        .stat-meta {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            margin-top: 0.5rem;
+        }
+
+        .stat-meta span {
+            font-weight: 600;
+            color: #8b5cf6;
+        }
+
+        /* Performance Table Card */
+        .performance-table-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .table-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+
+        .table-header h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .table-header h2 svg {
+            width: 22px;
+            height: 22px;
+            stroke: var(--primary);
+        }
+
+        .table-period {
+            font-size: 0.875rem;
+            color: var(--gray-500);
+            font-weight: 600;
+        }
+
+        .table-loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--gray-500);
+        }
+
+        .table-loading p {
+            margin-top: 1rem;
+            font-weight: 600;
+        }
+
+        /* Table Styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+        }
+
+        thead {
+            background: var(--gray-50);
+        }
+
+        th {
+            padding: 1rem 0.75rem;
+            text-align: center;
+            font-weight: 700;
+            color: var(--gray-600);
+            font-size: 0.8125rem;
+            border-bottom: 2px solid var(--gray-200);
+            white-space: nowrap;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        th:first-child {
+            text-align: right;
+        }
+
+        td {
+            padding: 1rem 0.75rem;
+            border-bottom: 1px solid var(--gray-100);
+            color: var(--gray-700);
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        td:first-child {
+            text-align: right;
+        }
+
+        tbody tr {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        tbody tr:hover {
+            background: var(--gray-50);
+        }
+
+        .driver-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            height: 100%;
+        }
+
+        .driver-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .driver-details {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: right;
+        }
+
+        .driver-name {
+            font-weight: 700;
+            font-size: 0.875rem;
+            line-height: 1.3;
+            margin-bottom: 2px;
+            color: var(--dark);
+        }
+
+        .driver-phone {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            line-height: 1.3;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 0.375rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .status-online {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-offline {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .metric-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem 0.875rem;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.8125rem;
+            line-height: 1;
+            min-width: 60px;
+        }
+
+
+        .metric-badge.metric-danger {
+    background: #fee;
+    color: #dc2626;
+    border: 1px solid #fca5a5;
+}
+
+.metric-badge.metric-success {
+    background: #d1fae5;
+    color: #059669;
+    border: 1px solid #6ee7b7;
+}
+
+.metric-badge.metric-warning {
+    background: #fef3c7;
+    color: #d97706;
+    border: 1px solid #fcd34d;
+}
+
+        .metric-orders {
+            background: #ede9fe;
+            color: #6d28d9;
+        }
+
+        .metric-delivery {
+            background: #cffafe;
+            color: #0e7490;
+        }
+
+        .metric-tips {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .metric-bonuses {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .metric-penalties {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .metric-neutral {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(100%);
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-right: 0;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .company-header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .date-controls {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .actions-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .search-box input {
+                width: 200px;
+            }
+
+            .search-box input:focus {
+                width: 240px;
+            }
+
+            .content-area {
+                padding: 1.5rem;
+            }
+
+            .top-bar {
+                padding: 0 1.5rem;
+            }
+
+            table {
+                font-size: 0.75rem;
+            }
+
+            th, td {
+                padding: 0.75rem 0.5rem;
+            }
+
+            .driver-avatar {
+                width: 32px;
+                height: 32px;
+                font-size: 0.875rem;
+            }
+
+            .date-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .date-input-wrapper {
+                justify-content: space-between;
+            }
+        }
+
+        /* Loading State */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--gray-200);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+    
+    <!-- CSS Files (Optional - for page-specific styles) -->
+    <link rel="stylesheet" href="./assets/css/main.css">
+    <link rel="stylesheet" href="./assets/css/forms.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <i data-lucide="truck"></i>
+                    </div>
+                    <div>
+                        <div class="logo-text">FleetMaster</div>
+                        <div class="company-name" id="company-name-sidebar">جاري التحميل...</div>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="nav-menu">
+                <div class="nav-section">
+                    <div class="nav-section-title">القائمة الرئيسية</div>
+                    <a class="nav-item active" onclick="showPage('dashboard')" data-page="dashboard">
+                        <span class="icon"><i data-lucide="layout-dashboard"></i></span>
+                        <span>لوحة التحكم</span>
+                    </a>
+                    <a class="nav-item" onclick="showPage('drivers')" data-page="drivers">
+                        <span class="icon"><i data-lucide="users"></i></span>
+                        <span>المناديب</span>
+                    </a>
+                    <a class="nav-item" onclick="showPage('orders')" data-page="orders">
+                        <span class="icon"><i data-lucide="package"></i></span>
+                        <span>الطلبات</span>
+                    </a>
+                    <a class="nav-item" onclick="showPage('reports')" data-page="reports">
+                        <span class="icon"><i data-lucide="bar-chart-3"></i></span>
+                        <span>التقارير</span>
+                    </a>
+                    <a class="nav-item" onclick="showPage('payroll')" data-page="payroll">
+                        <span class="icon"><i data-lucide="wallet"></i></span>
+                        <span>إدارة الرواتب</span>
+                    </a>
+                    <a class="nav-item" onclick="showPage('cash-management')" data-page="cash-management">
+                        <span class="icon"><i data-lucide="banknote"></i></span>
+                        <span>إدارة الكاش</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">النظام</div>
+                    <a class="nav-item" onclick="showPage('settings')" data-page="settings">
+                        <span class="icon"><i data-lucide="settings"></i></span>
+                        <span>الإعدادات</span>
+                    </a>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <div class="user-avatar" id="user-avatar">م</div>
+                    <div class="user-info">
+                        <h4 id="user-name">مدير العمليات</h4>
+                        <p><span class="status-indicator"></span> متصل الآن</p>
+                    </div>
+                    </div>
+                <button id="logoutBtn" class="logout-btn">
+                    <i data-lucide="log-out"></i>
+                    تسجيل الخروج
+                </button>
+<script>
+const logoutBtn = document.getElementById('logoutBtn');
+if (logoutBtn) {
+  logoutBtn.addEventListener('click', async () => {
+    if (confirm('هل أنت متأكد من تسجيل الخروج؟')) {
+      try {
+        await API.logout();
+        window.location.href = '/login.html';
+      } catch (error) {
+        console.error('❌ Logout error:', error);
+        alert('حدث خطأ أثناء تسجيل الخروج');
+      }
+    }
+  });
+} else {
+  console.error('❌ Logout button not found!');
+}
+    </script>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="top-bar">
+                <div class="page-title-wrapper">
+                    <div class="page-icon" id="page-icon">
+                        <i data-lucide="layout-dashboard"></i>
+                    </div>
+                    <h1 class="page-title" id="page-title">لوحة التحكم</h1>
+                </div>
+
+                
+            </div>
+
+            <!-- Dynamic Content Area -->
+            <div class="content-area">
+                <div id="main-content">
+                    <!-- Company Header with Date Filter -->
+                    <div class="company-header-card">
+                        <div class="company-header-content">
+                            <div class="company-info-wrapper">
+                                <div class="company-icon-wrapper">
+                                    <i data-lucide="building-2"></i>
+                                </div>
+                                <div class="company-details">
+                                    <h2 id="company-name">جاري التحميل...</h2>
+                                    <p>Company ID: <span id="company-id">--</span></p>
+                                </div>
+                            </div>
+                            
+                            <!-- Date Picker -->
+                            <div class="date-controls">
+                                <div class="date-input-wrapper">
+                                    <i data-lucide="calendar"></i>
+                                    <span>التاريخ:</span>
+                                    <input type="date" id="selected-date" onchange="changeDate()">
+                                </div>
+                                
+                                <button class="action-btn-mini" onclick="setToday()">
+                                    <i data-lucide="calendar-days"></i>
+                                    <span>اليوم</span>
+                                </button>
+                                
+                                <button class="action-btn-mini" onclick="refreshData()">
+                                    <i data-lucide="refresh-cw"></i>
+                                    <span>تحديث</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stats Cards -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <div class="stat-icon stat-icon-blue">
+                                    <i data-lucide="users"></i>
+                                </div>
+                            </div>
+                            <div class="stat-body">
+                                <h3>إجمالي المناديب</h3>
+                                <div class="stat-value" id="total-drivers">0</div>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <div class="stat-icon stat-icon-purple">
+                                    <i data-lucide="package"></i>
+                                </div>
+                            </div>
+                            <div class="stat-body">
+                                <h3>إجمالي الطلبات</h3>
+                                <div class="stat-value" id="total-orders">0</div>
+                                <div class="stat-meta">
+                                    متوسط: <span id="avg-orders">0</span> طلب/مندوب
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <div class="stat-icon stat-icon-cyan">
+                                    <i data-lucide="truck"></i>
+                                </div>
+                            </div>
+                            <div class="stat-body">
+                                <h3>إجمالي سعر التوصيل</h3>
+                                <div class="stat-value" id="total-delivery">0 ر.س</div>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <div class="stat-icon stat-icon-green">
+                                    <i data-lucide="coins"></i>
+                                </div>
+                            </div>
+                            <div class="stat-body">
+                                <h3>إجمالي الإكراميات</h3>
+                                <div class="stat-value" id="total-tips">0 ر.س</div>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <div class="stat-icon stat-icon-yellow">
+                                    <i data-lucide="gift"></i>
+                                </div>
+                            </div>
+                            <div class="stat-body">
+                                <h3>إجمالي المكافآت</h3>
+                                <div class="stat-value" id="total-bonuses">0 ر.س</div>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <div class="stat-icon stat-icon-red">
+                                    <i data-lucide="alert-triangle"></i>
+                                </div>
+                            </div>
+                            <div class="stat-body">
+                                <h3>إجمالي الغرامات</h3>
+                                <div class="stat-value" id="total-penalties">0 ر.س</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Performance Table -->
+                    <div class="performance-table-card">
+                        <div class="table-header">
+                            <h2>
+                                <i data-lucide="bar-chart-3"></i>
+                                أداء المناديب التفصيلي
+                            </h2>
+                            <div class="table-period" id="table-period-info">اليوم</div>
+                        </div>
+                        <div id="performance-table-content">
+                            <div class="table-loading">
+                                <div class="spinner"></div>
+                                <p>جاري تحميل البيانات...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../assets/js/main.js"></script>
+    <script src="../assets/js/api.js"></script>
+    <script src="../assets/js/navigation.js"></script>
+    <script src="../assets/js/jahez.js"></script>
+    <script src="../assets/js/drivers.js"></script>
+
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        // Dashboard Content JavaScript
+        let selectedDate = new Date().toISOString().split('T')[0];
+
+        window.formatNumber = function(num) {
+            return new Intl.NumberFormat('ar-SA').format(num || 0);
+        };
+
+        window.formatCurrency = function(amount) {
+            return new Intl.NumberFormat('ar-SA', { 
+                minimumFractionDigits: 0, 
+                maximumFractionDigits: 2 
+            }).format(amount || 0) + ' ر.س';
+        };
+
+        window.formatDate = function(dateStr) {
+            const date = new Date(dateStr);
+            return new Intl.DateTimeFormat('ar-SA', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            }).format(date);
+        };
+
+        window.setToday = function() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('selected-date').value = today;
+            selectedDate = today;
+            document.getElementById('table-period-info').textContent = 'اليوم - ' + formatDate(today);
+            refreshData();
+        };
+
+        window.changeDate = function() {
+            selectedDate = document.getElementById('selected-date').value;
+            const displayDate = formatDate(selectedDate);
+            const today = new Date().toISOString().split('T')[0];
+            
+            if (selectedDate === today) {
+                document.getElementById('table-period-info').textContent = 'اليوم - ' + displayDate;
+            } else {
+                document.getElementById('table-period-info').textContent = displayDate;
+            }
+            
+            refreshData();
+        };
+
+       window.loadCompanyInfo = async function() {
+    try {
+        console.log('🏢 Loading company...');
+        const result = await API.getCompanyInfo();
+        
+        if (result.success && result.company) {
+            document.getElementById('company-name').textContent = result.company.name || 'غير محدد';
+            document.getElementById('company-id').textContent = result.company.company_id || '--';
+        }
+    } catch (error) {
+        console.error('❌ Error:', error);
+    }
+};
+window.loadDriversPerformance = async function() {
+    try {
+        console.log('📊 Loading performance for date:', selectedDate);
+        
+        const finResult = await API.getDriverFinancialsByDate(null, selectedDate, selectedDate);
+        const ordersResult = await API.getDriverOrders(null, selectedDate, selectedDate);
+        
+        console.log('📦 Financial:', finResult);
+        console.log('📦 Orders:', ordersResult);
+
+        // ✅ التصحيح: finResult.financials بدلاً من finResult.drivers
+        if (finResult.success && finResult.financials) {
+            const driversMap = new Map();
+            
+            // ✅ التصحيح: finResult.financials بدلاً من finResult.drivers
+            finResult.financials.forEach(d => {
+                driversMap.set(d.driver_id, {
+                    ...d,
+                    total_orders: 0,
+                    total_delivery: parseFloat(d.total_delivery) || 0
+                });
+            });
+            
+            if (ordersResult.success && ordersResult.data) {
+                ordersResult.data.forEach(od => {
+                    if (driversMap.has(od.driver_id)) {
+                        const driver = driversMap.get(od.driver_id);
+                        driver.total_orders = parseInt(od.orders_count) || 0;
+                    }
+                });
+            }
+            
+            const mergedDrivers = Array.from(driversMap.values());
+            mergedDrivers.sort((a, b) => (b.total_orders || 0) - (a.total_orders || 0));
+            
+            let totalTips = 0, totalBonuses = 0, totalPenalties = 0, totalOrders = 0, totalDelivery = 0;
+            mergedDrivers.forEach(d => {
+                totalTips += parseFloat(d.total_tips) || 0;
+                totalBonuses += parseFloat(d.total_bonuses) || 0;
+                totalPenalties += parseFloat(d.total_penalties) || 0;
+                totalOrders += parseInt(d.total_orders) || 0;
+                totalDelivery += parseFloat(d.total_delivery || d.delivery_price) || 0;
+            });
+            
+            const avgOrders = mergedDrivers.length > 0 ? Math.round(totalOrders / mergedDrivers.length) : 0;
+            
+            document.getElementById('total-drivers').textContent = formatNumber(mergedDrivers.length);
+            document.getElementById('total-orders').textContent = formatNumber(totalOrders);
+            document.getElementById('avg-orders').textContent = formatNumber(avgOrders);
+            document.getElementById('total-delivery').textContent = formatCurrency(totalDelivery);
+            document.getElementById('total-tips').textContent = formatCurrency(totalTips);
+            document.getElementById('total-bonuses').textContent = formatCurrency(totalBonuses);
+            document.getElementById('total-penalties').textContent = formatCurrency(totalPenalties);
+            
+            const html = `
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="min-width: 180px;">المندوب</th>
+                                <th>Driver ID</th>
+                                <th>الحالة</th>
+                                <th>الطلبات</th>
+                                <th>سعر التوصيل</th>
+                                <th>الإكراميات</th>
+                                <th>المكافآت</th>
+                                <th>الغرامات</th>
+                                <th>النقد</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${mergedDrivers.map((d, index) => `
+                                <tr>
+                                    <td>
+                                        <div class="driver-info">
+                                            <div class="driver-avatar">${d.name ? d.name.charAt(0) : '?'}</div>
+                                            <div class="driver-details">
+                                                <div class="driver-name">${d.name || 'غير محدد'}</div>
+                                                <div class="driver-phone">${d.phone || 'غير متوفر'}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td><code style="background: #f1f5f9; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 600; color: #475569;">${d.driver_id || 'N/A'}</code></td>
+                                    <td><span class="status-badge ${d.online ? 'status-online' : 'status-offline'}">${d.online ? '🟢 متصل' : '⚫ غير متصل'}</span></td>
+                                    <td><span class="metric-badge metric-orders">${formatNumber(d.total_orders || 0)}</span></td>
+                                    <td><span class="metric-badge metric-delivery">${formatCurrency(d.total_delivery || d.delivery_price || 0)}</span></td>
+                                    <td><span class="metric-badge metric-tips">${formatCurrency(d.total_tips || 0)}</span></td>
+                                    <td><span class="metric-badge metric-bonuses">${formatCurrency(d.total_bonuses || 0)}</span></td>
+                                    <td><span class="metric-badge metric-penalties">${formatCurrency(d.total_penalties || 0)}</span></td>
+                                    <td><span class="metric-badge metric-neutral">${formatCurrency(d.total_cash || 0)}</span></td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            document.getElementById('performance-table-content').innerHTML = html;
+            console.log('✅ Table rendered with', mergedDrivers.length, 'drivers');
+        } else {
+            console.log('⚠️ No financial data found');
+            document.getElementById('performance-table-content').innerHTML = '<div style="text-align:center;padding:60px;">📭 لا توجد بيانات</div>';
+        }
+    } catch (error) {
+        console.error('❌ Error:', error);
+        document.getElementById('performance-table-content').innerHTML = '<div style="text-align:center;padding:60px;">❌ خطأ في التحميل</div>';
+    }
+};
+      
+
+        window.refreshData = function() {
+            console.log('🔄 Refreshing for date:', selectedDate);
+            document.getElementById('performance-table-content').innerHTML = '<div class="table-loading"><div class="spinner"></div><p>جاري تحميل البيانات...</p></div>';
+            setTimeout(() => {
+                loadCompanyInfo();
+                loadDriversPerformance();
+            }, 500);
+        };
+
+        // Update navigation handling
+        const originalShowPage = window.showPage;
+        window.showPage = function(page) {
+            if (originalShowPage) {
+                originalShowPage(page);
+            }
+            
+            // Update active nav item
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.getAttribute('data-page') === page) {
+                    item.classList.add('active');
+                }
+            });
+
+            // Update page title and icon
+            const pageConfig = {
+                'dashboard': { title: 'لوحة التحكم', icon: 'layout-dashboard' },
+                'drivers': { title: 'المناديب', icon: 'users' },
+                'orders': { title: 'الطلبات', icon: 'package' },
+                'reports': { title: 'التقارير', icon: 'bar-chart-3' },
+                'payroll': { title: 'إدارة الرواتب', icon: 'wallet' },
+                'cash-management': { title: 'إدارة الكاش', icon: 'banknote' },
+                'settings': { title: 'الإعدادات', icon: 'settings' }
+            };
+
+            const config = pageConfig[page] || pageConfig['dashboard'];
+            document.getElementById('page-title').textContent = config.title;
+            document.getElementById('page-icon').innerHTML = `<i data-lucide="${config.icon}"></i>`;
+            
+            // Reinitialize icons
+            lucide.createIcons();
+        };
+
+        // Load user info
+        document.addEventListener('DOMContentLoaded', function() {
+            const userName = localStorage.getItem('user_name') || 'مدير العمليات';
+            const userEmail = localStorage.getItem('user_email') || '';
+            
+            document.getElementById('user-name').textContent = userName;
+            
+            // Set avatar initial
+            const initial = userName.charAt(0);
+            document.getElementById('user-avatar').textContent = initial;
+
+            // Initialize icons after DOM is ready
+            setTimeout(() => {
+                lucide.createIcons();
+            }, 100);
+
+            // Auto-load dashboard data
+            setTimeout(() => {
+                console.log('⏰ Starting auto-load...');
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('selected-date').value = today;
+                selectedDate = today;
+                document.getElementById('table-period-info').textContent = 'اليوم - ' + formatDate(today);
+                
+                loadCompanyInfo();
+                loadDriversPerformance();
+            }, 1000);
+        });
+
+        // Mobile menu toggle
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+        }
+    </script>
+
+    <script>
+// Wait for Lucide to load globally
+(function checkLucide() {
+    if (typeof lucide === 'undefined' || !lucide.createIcons) {
+        setTimeout(checkLucide, 100);
+        return;
+    }
+    console.log('✅ Lucide loaded');
+    lucide.createIcons();
+})();
+</script>
+</body>
+</html>

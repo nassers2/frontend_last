@@ -1,0 +1,492 @@
+<!-- صفحة المناديب - pages/drivers-content.html -->
+
+<div class="drivers-page">
+  <!-- Header Section -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1>🚗 إدارة المناديب</h1>
+      <p class="subtitle">عرض ومتابعة جميع مناديب التوصيل</p>
+    </div>
+    <button class="btn-primary" id="syncDriversBtn">
+      <span class="icon">🔄</span>
+      مزامنة من جاهز
+    </button>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-grid" id="driversStats">
+    <div class="stat-card stat-total">
+      <div class="stat-icon">👥</div>
+      <div class="stat-info">
+        <h3 id="totalDrivers">0</h3>
+        <p>إجمالي المناديب</p>
+      </div>
+    </div>
+    
+    <div class="stat-card stat-online">
+      <div class="stat-icon">🟢</div>
+      <div class="stat-info">
+        <h3 id="onlineDrivers">0</h3>
+        <p>متصل الآن</p>
+      </div>
+    </div>
+    
+    <div class="stat-card stat-offline">
+      <div class="stat-icon">⚫</div>
+      <div class="stat-info">
+        <h3 id="offlineDrivers">0</h3>
+        <p>غير متصل</p>
+      </div>
+    </div>
+    
+    <div class="stat-card stat-active">
+      <div class="stat-icon">✅</div>
+      <div class="stat-info">
+        <h3 id="activeDrivers">0</h3>
+        <p>نشط</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search and Filter -->
+  <div class="filters-section">
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="🔍 ابحث عن مندوب (الاسم، رقم الإقامة، الهاتف)">
+    </div>
+    <div class="filter-buttons">
+      <button class="filter-btn active" data-filter="all">الكل</button>
+      <button class="filter-btn" data-filter="online">متصل</button>
+      <button class="filter-btn" data-filter="offline">غير متصل</button>
+      <button class="filter-btn" data-filter="suspended">موقوف</button>
+    </div>
+  </div>
+
+  <!-- Drivers Grid -->
+  <div id="driversContainer" class="drivers-grid">
+    <!-- سيتم ملؤه ديناميكياً -->
+  </div>
+
+  <!-- Empty State -->
+  <div id="emptyState" class="empty-state" style="display: none;">
+    <div class="empty-icon">📦</div>
+    <h3>لا توجد بيانات</h3>
+    <p>لم يتم العثور على أي مناديب. قم بمزامنة البيانات من جاهز للبدء.</p>
+    <button class="btn-primary" onclick="document.getElementById('syncDriversBtn').click()">
+      مزامنة الآن
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div id="loadingState" class="loading-state" style="display: none;">
+    <div class="spinner"></div>
+    <p>جاري تحميل البيانات...</p>
+  </div>
+</div>
+
+<style>
+.drivers-page {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Header */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.header-content h1 {
+  font-size: 28px;
+  color: #1a1a1a;
+  margin: 0 0 5px 0;
+}
+
+.subtitle {
+  color: #666;
+  margin: 0;
+  font-size: 14px;
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.stat-card {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+
+.stat-icon {
+  font-size: 32px;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.stat-total .stat-icon { background: rgba(59, 130, 246, 0.1); }
+.stat-online .stat-icon { background: rgba(34, 197, 94, 0.1); }
+.stat-offline .stat-icon { background: rgba(156, 163, 175, 0.1); }
+.stat-active .stat-icon { background: rgba(16, 185, 129, 0.1); }
+
+.stat-info h3 {
+  font-size: 28px;
+  margin: 0;
+  color: #1a1a1a;
+  font-weight: 700;
+}
+
+.stat-info p {
+  margin: 5px 0 0 0;
+  color: #666;
+  font-size: 13px;
+}
+
+/* Filters Section */
+.filters-section {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 25px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.search-box {
+  flex: 1;
+  min-width: 250px;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 12px 20px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.search-box input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.filter-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  padding: 10px 20px;
+  border: 1px solid #e5e7eb;
+  background: white;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+  color: #666;
+  font-weight: 500;
+}
+
+.filter-btn:hover {
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
+.filter-btn.active {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+}
+
+/* Drivers Grid */
+.drivers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+/* Driver Card */
+.driver-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  transition: all 0.3s;
+  border: 2px solid transparent;
+  position: relative;
+  overflow: hidden;
+}
+
+.driver-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.12);
+  border-color: #3b82f6;
+}
+
+.driver-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: #3b82f6;
+}
+
+.driver-card.offline::before { background: #9ca3af; }
+.driver-card.suspended::before { background: #ef4444; }
+
+/* Driver Header */
+.driver-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  margin-bottom: 15px;
+}
+
+.driver-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 5px 0;
+}
+
+.driver-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.status-online {
+  background: rgba(34, 197, 94, 0.1);
+  color: #16a34a;
+}
+
+.status-offline {
+  background: rgba(156, 163, 175, 0.1);
+  color: #6b7280;
+}
+
+.status-suspended {
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+}
+
+.status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Driver Info */
+.driver-info {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: #666;
+}
+
+.info-icon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f3f4f6;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.info-content {
+  flex: 1;
+}
+
+.info-label {
+  font-size: 11px;
+  color: #9ca3af;
+  margin-bottom: 2px;
+}
+
+.info-value {
+  font-weight: 500;
+  color: #1a1a1a;
+  direction: ltr;
+  text-align: right;
+}
+
+/* Driver Footer */
+.driver-footer {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #f3f4f6;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.driver-id {
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+.driver-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.action-btn {
+  padding: 6px 12px;
+  border: none;
+  background: #f3f4f6;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s;
+  color: #666;
+}
+
+.action-btn:hover {
+  background: #e5e7eb;
+  color: #1a1a1a;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.empty-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+  opacity: 0.5;
+}
+
+.empty-state h3 {
+  font-size: 20px;
+  color: #1a1a1a;
+  margin: 0 0 10px 0;
+}
+
+.empty-state p {
+  color: #666;
+  margin: 0 0 20px 0;
+}
+
+/* Loading State */
+.loading-state {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #f3f4f6;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Buttons */
+.btn-primary {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+  font-size: 14px;
+}
+
+.btn-primary:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+}
+
+.btn-primary .icon {
+  font-size: 16px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .filters-section {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .search-box {
+    min-width: 100%;
+  }
+  
+  .drivers-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+</style>

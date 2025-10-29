@@ -1,0 +1,58 @@
+<div class="settings-grid">
+    <!-- Jahez Integration -->
+    <div class="settings-card">
+        <h3>🔗 ربط حساب جاهز</h3>
+        <p>قم بربط حساب جاهز الخاص بك لمزامنة الطلبات والمناديب</p>
+
+        <div id="jahez-status-container">
+            <p style="text-align: center; color: #64748b;">جاري التحميل...</p>
+        </div>
+
+        <!-- Sync Drivers Button (shown only when connected) -->
+        <div id="sync-drivers-section" style="display: none; margin-top: 20px; padding-top: 20px; border-top: 1px solid #f1f5f9;">
+            <div id="sync-message" class="message"></div>
+            <button type="button" class="save-btn" id="syncDriversBtn" style="width: 100%;">
+                🔄 مزامنة المناديب من جاهز
+            </button>
+            <p style="font-size: 12px; color: #64748b; margin-top: 8px; text-align: center;">
+                آخر مزامنة: <span id="last-sync-time">لم تتم المزامنة بعد</span>
+            </p>
+        </div>
+    </div>
+
+    <!-- Account Settings -->
+    <div class="settings-card">
+        <h3>⚙️ إعدادات الحساب</h3>
+        <p>قم بتحديث معلومات حسابك الشخصية</p>
+
+        <div class="form-group">
+            <label class="form-label">الاسم الكامل</label>
+            <input type="text" class="form-input" value="مدير العمليات">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">البريد الإلكتروني</label>
+            <input type="email" class="form-input" value="manager@fleetmaster.com">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">رقم الهاتف</label>
+            <input type="tel" class="form-input" value="0501234567">
+        </div>
+
+        <button class="save-btn">حفظ التغييرات</button>
+    </div>
+
+    <!-- System Settings -->
+    <div class="settings-card">
+        <h3>🔧 إعدادات النظام</h3>
+        <p>إدارة الإعدادات العامة للنظام</p>
+
+        <div class="form-group">
+            <label class="form-label">الهدف اليومي للمناديب</label>
+            <input type="number" class="form-input" value="30">
+        </div>
+
+        <button class="save-btn">حفظ التغييرات</button>
+    </div>
+</div>

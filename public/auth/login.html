@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل الدخول - FleetMaster</title>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #667eea;
+            --primary-dark: #5568d3;
+            --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-hover: linear-gradient(135deg, #5568d3 0%, #6941a0 100%);
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Animated Background */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="2" fill="white" opacity="0.1"/></svg>');
+            animation: float 20s linear infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-100px); }
+        }
+
+        /* Floating Shapes */
+        .shape {
+            position: absolute;
+            opacity: 0.1;
+            animation: floatShape 20s ease-in-out infinite;
+        }
+
+        .shape-1 {
+            width: 300px;
+            height: 300px;
+            background: white;
+            border-radius: 50%;
+            top: -100px;
+            right: -100px;
+            animation-delay: 0s;
+        }
+
+        .shape-2 {
+            width: 200px;
+            height: 200px;
+            background: white;
+            border-radius: 50%;
+            bottom: -50px;
+            left: -50px;
+            animation-delay: 5s;
+        }
+
+        .shape-3 {
+            width: 150px;
+            height: 150px;
+            background: white;
+            border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+            top: 50%;
+            left: 10%;
+            animation-delay: 10s;
+        }
+
+        @keyframes floatShape {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-30px) rotate(180deg); }
+        }
+
+        .container {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
+            max-width: 480px;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+            overflow: hidden;
+            animation: slideUp 0.5s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .container-header {
+            background: var(--gradient);
+            padding: 3rem 2.5rem 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .container-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="2" fill="white" opacity="0.1"/></svg>');
+        }
+
+        .logo-container {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            position: relative;
+            z-index: 1;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .logo-container svg {
+            width: 45px;
+            height: 45px;
+            stroke: white;
+            stroke-width: 2.5;
+        }
+
+        .container-header h1 {
+            color: white;
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .container-header p {
+            color: rgba(255, 255, 255, 0.95);
+            font-size: 1.1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .container-body {
+            padding: 2.5rem;
+        }
+
+        .message {
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            display: none;
+            text-align: center;
+            font-weight: 700;
+            font-size: 0.95rem;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 2px solid #10b981;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .message.success svg {
+            width: 20px;
+            height: 20px;
+            stroke: #065f46;
+        }
+
+        .message.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 2px solid #ef4444;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .message.error svg {
+            width: 20px;
+            height: 20px;
+            stroke: #991b1b;
+        }
+
+        .message.show {
+            display: flex;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        label {
+            display: block;
+            color: #374151;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        label svg {
+            width: 18px;
+            height: 18px;
+            stroke: #667eea;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+        }
+
+        .input-icon svg {
+            width: 20px;
+            height: 20px;
+            stroke: #9ca3af;
+        }
+
+        input {
+            width: 100%;
+            padding: 1rem 3.5rem 1rem 3.5rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-family: 'Cairo', sans-serif;
+            font-weight: 600;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: #f9fafb;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        input::placeholder {
+            color: #9ca3af;
+            font-weight: 400;
+        }
+
+        .password-toggle {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            padding: 0.25rem;
+            transition: all 0.2s ease;
+        }
+
+        .password-toggle:hover {
+            background: #f3f4f6;
+            border-radius: 6px;
+        }
+
+        .password-toggle svg {
+            width: 20px;
+            height: 20px;
+            stroke: #6b7280;
+        }
+
+        button {
+            width: 100%;
+            padding: 1rem;
+            background: var(--gradient);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 800;
+            cursor: pointer;
+            margin-top: 0.5rem;
+            transition: all 0.3s ease;
+            font-family: 'Cairo', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        button:hover:not(:disabled) {
+            background: var(--gradient-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        button:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #d1d5db;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        button svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 2rem 0;
+            color: #9ca3af;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .divider span {
+            padding: 0 1rem;
+        }
+
+        .signup-link {
+            text-align: center;
+            color: #6b7280;
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        .signup-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 800;
+            transition: all 0.2s ease;
+        }
+
+        .signup-link a:hover {
+            color: #5568d3;
+            text-decoration: underline;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            color: #6b7280;
+            font-weight: 600;
+        }
+
+        .feature-item svg {
+            width: 18px;
+            height: 18px;
+            stroke: #10b981;
+            stroke-width: 2.5;
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .container {
+                border-radius: 20px;
+            }
+
+            .container-header {
+                padding: 2.5rem 2rem 1.5rem;
+            }
+
+            .container-header h1 {
+                font-size: 1.75rem;
+            }
+
+            .container-header p {
+                font-size: 1rem;
+            }
+
+            .container-body {
+                padding: 2rem;
+            }
+
+            .logo-container {
+                width: 70px;
+                height: 70px;
+            }
+
+            .logo-container svg {
+                width: 38px;
+                height: 38px;
+            }
+
+            .features {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Loading overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(102, 126, 234, 0.95);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .loading-overlay.show {
+            display: flex;
+        }
+
+        .loading-content {
+            text-align: center;
+            color: white;
+        }
+
+        .loading-content .spinner {
+            width: 60px;
+            height: 60px;
+            border-width: 5px;
+            margin: 0 auto 1.5rem;
+        }
+
+        .loading-content h3 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+
+        .loading-content p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <!-- Floating Shapes -->
+    <div class="shape shape-1"></div>
+    <div class="shape shape-2"></div>
+    <div class="shape shape-3"></div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <h3>جاري تسجيل الدخول</h3>
+            <p>مرحباً بك في FleetMaster</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="container-header">
+            <div class="logo-container">
+                <i data-lucide="truck"></i>
+            </div>
+            <h1>مرحباً بعودتك!</h1>
+            <p>سجّل دخولك لإدارة أسطول المناديب</p>
+        </div>
+
+        <div class="container-body">
+            <div id="message" class="message"></div>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="email">
+                        <i data-lucide="mail"></i>
+                        البريد الإلكتروني
+                    </label>
+                    <div class="input-wrapper">
+                        <div class="input-icon">
+                            <i data-lucide="at-sign"></i>
+                        </div>
+                        <input 
+                            type="email" 
+                            id="email" 
+                            name="email" 
+                            required 
+                            placeholder="example@email.com"
+                            autocomplete="email"
+                        >
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">
+                        <i data-lucide="lock"></i>
+                        كلمة المرور
+                    </label>
+                    <div class="input-wrapper">
+                        <div class="input-icon">
+                            <i data-lucide="key"></i>
+                        </div>
+                        <input 
+                            type="password" 
+                            id="password" 
+                            name="password" 
+                            required 
+                            placeholder="أدخل كلمة المرور"
+                            autocomplete="current-password"
+                        >
+                        <div class="password-toggle" onclick="togglePassword()">
+                            <i data-lucide="eye" id="eyeIcon"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" id="submitBtn">
+                    <span id="btnText">تسجيل الدخول</span>
+                    <i data-lucide="arrow-left" id="btnIcon"></i>
+                </button>
+            </form>
+
+            <div class="divider">
+                <span>أو</span>
+            </div>
+
+            <div class="signup-link">
+                ليس لديك حساب؟ <a href="index.html">إنشاء حساب جديد</a>
+            </div>
+
+            <div class="features">
+                <div class="feature-item">
+                    <i data-lucide="shield-check"></i>
+                    <span>تسجيل دخول آمن</span>
+                </div>
+                <div class="feature-item">
+                    <i data-lucide="zap"></i>
+                    <span>وصول سريع</span>
+                </div>
+                <div class="feature-item">
+                    <i data-lucide="lock"></i>
+                    <span>بيانات محمية</span>
+                </div>
+                <div class="feature-item">
+                    <i data-lucide="clock"></i>
+                    <span>متاح 24/7</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+  <script src="../assets/js/api.js"></script>
+  <script src="../assets/js/auth.js"></script>
+   
+
+<script>
+
+
+(function checkExistingAuth() {
+  const token = localStorage.getItem('token');
+  
+  if (token) {
+    console.log('✅ Token found, checking validity...');
+    
+    // تحقق من صلاحية Token
+    fetch('http://localhost:3000/api/auth/me', {
+      headers: {
+        'Authorization': 'Bearer ' + token
+      }
+    })
+    .then(res => res.json())
+    .then(result => {
+      if (result.success) {
+        console.log('✅ Valid token, redirecting to dashboard...');
+        window.location.replace('/dashboard/index.html');
+      } else {
+        console.log('⚠️ Invalid token, clearing...');
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      }
+    })
+    .catch(error => {
+      console.error('❌ Token check failed:', error);
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+    });
+  }
+})();
+// انتظر تحميل API بالكامل - بدون loops
+let apiCheckAttempts = 0;
+(function checkAPI() {
+  apiCheckAttempts++;
+  
+  if (apiCheckAttempts > 100) {
+    console.error('❌ API failed to load after 100 attempts');
+    return;
+  }
+  
+  if (typeof API === 'undefined') {
+    console.log('⏳ Waiting for API... (attempt ' + apiCheckAttempts + ')');
+    setTimeout(checkAPI, 50);
+    return;
+  }
+  
+  console.log('✅ API loaded successfully after ' + apiCheckAttempts + ' attempts');
+  
+  // الآن نبدأ كود تسجيل الدخول
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initLoginForm);
+  } else {
+    initLoginForm();
+  }
+  
+  function initLoginForm() {
+    const loginForm = document.getElementById('loginForm');
+    
+    if (!loginForm) {
+      console.error('❌ Login form not found!');
+      return;
+    }
+
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const emailInput = document.getElementById('email');
+      const passwordInput = document.getElementById('password');
+      
+      if (!emailInput || !passwordInput) {
+        console.error('❌ Email or password input not found!');
+        alert('خطأ في الصفحة، يرجى إعادة تحميلها');
+        return;
+      }
+
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+      
+      let errorDiv = document.getElementById('error-message');
+      
+      if (!errorDiv) {
+        errorDiv = document.createElement('div');
+        errorDiv.id = 'error-message';
+        errorDiv.style.cssText = 'color: red; margin: 10px 0; padding: 10px; border: 1px solid red; border-radius: 5px; background: #fee;';
+        loginForm.insertBefore(errorDiv, loginForm.firstChild);
+      }
+      
+      const submitBtn = loginForm.querySelector('button[type="submit"]');
+      
+      if (!submitBtn) {
+        console.error('❌ Submit button not found!');
+        return;
+      }
+
+      errorDiv.style.display = 'none';
+      errorDiv.textContent = '';
+      
+      const originalBtnText = submitBtn.textContent;
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'جاري تسجيل الدخول...';
+      
+      try {
+        console.log('🔐 Attempting login for:', email);
+        
+        const result = await API.login(email, password);
+
+        console.log('✅ Login response:', result);
+
+        if (result.success) {
+          console.log('✅ Login successful! Redirecting...');
+          window.location.href = '/dashboard/index.html';
+        } else {
+          errorDiv.textContent = result.message || 'فشل تسجيل الدخول';
+          errorDiv.style.display = 'block';
+          console.error('❌ Login failed:', result.message);
+        }
+
+      } catch (error) {
+        console.error('❌ Login error:', error);
+        errorDiv.textContent = 'حدث خطأ في الاتصال بالسيرفر: ' + error.message;
+        errorDiv.style.display = 'block';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalBtnText;
+      }
+    });
+  }
+})();
+
+// Toggle password visibility
+function togglePassword() {
+  const passwordInput = document.getElementById('password');
+  const eyeIcon = document.getElementById('eyeIcon');
+  
+  if (passwordInput.type === 'password') {
+    passwordInput.type = 'text';
+    eyeIcon.setAttribute('data-lucide', 'eye-off');
+  } else {
+    passwordInput.type = 'password';
+    eyeIcon.setAttribute('data-lucide', 'eye');
+  }
+  
+  lucide.createIcons();
+}
+
+// Initialize Lucide icons
+lucide.createIcons();
+</script>
+</body>
+</html>

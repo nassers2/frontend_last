@@ -1,0 +1,1389 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FleetMaster - نظام إدارة المناديب الأذكى في السعودية</title>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --secondary: #10b981;
+            --accent: #f59e0b;
+            --dark: #1e293b;
+            --light: #f8fafc;
+            --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-2: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --gradient-3: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        body {
+            font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--light);
+            color: var(--dark);
+            overflow-x: hidden;
+        }
+
+        /* Navigation */
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .navbar.scrolled {
+            background: rgba(255, 255, 255, 1);
+            box-shadow: 0 4px 30px rgba(0,0,0,0.15);
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1.2rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .logo-icon {
+            width: 45px;
+            height: 45px;
+            background: var(--gradient);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .logo-icon svg {
+            width: 28px;
+            height: 28px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--dark);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            right: 0;
+            width: 0;
+            height: 3px;
+            background: var(--gradient);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.8rem 2rem;
+            border-radius: 50px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: var(--gradient);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 25px rgba(102, 126, 234, 0.5);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 180px 2rem 120px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="2" fill="white" opacity="0.1"/></svg>');
+            animation: float 20s linear infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-100px); }
+        }
+
+        .hero-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-content h1 {
+            font-size: 3.5rem;
+            color: white;
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+            font-weight: 900;
+        }
+
+        .hero-content h1 span {
+            background: linear-gradient(to left, #fbbf24, #f59e0b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-content p {
+            font-size: 1.4rem;
+            color: rgba(255,255,255,0.95);
+            margin-bottom: 2.5rem;
+            line-height: 1.8;
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 3rem;
+            margin-top: 3rem;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 900;
+            color: white;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: rgba(255,255,255,0.9);
+            font-size: 1.1rem;
+        }
+
+        .hero-visual {
+            position: relative;
+        }
+
+        .dashboard-preview {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+            transform: perspective(1000px) rotateY(-5deg);
+            transition: all 0.5s ease;
+        }
+
+        .dashboard-preview:hover {
+            transform: perspective(1000px) rotateY(0deg) translateY(-10px);
+            box-shadow: 0 40px 80px rgba(0,0,0,0.4);
+        }
+
+        .preview-header {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 1.5rem;
+        }
+
+        .preview-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .dot-red { background: #ef4444; }
+        .dot-yellow { background: #f59e0b; }
+        .dot-green { background: #10b981; }
+
+        .preview-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 400px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3rem;
+            font-weight: 900;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 120px 2rem;
+            background: white;
+        }
+
+        .section-header {
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto 80px;
+        }
+
+        .section-tag {
+            display: inline-block;
+            padding: 0.5rem 1.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 50px;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .section-header h2 {
+            font-size: 3rem;
+            color: var(--dark);
+            margin-bottom: 1.5rem;
+            font-weight: 900;
+        }
+
+        .section-header p {
+            font-size: 1.3rem;
+            color: #64748b;
+            line-height: 1.8;
+        }
+
+        .features-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2.5rem;
+        }
+
+        .feature-card {
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            border: 2px solid #e2e8f0;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--gradient);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            border-color: transparent;
+        }
+
+        .feature-card:hover::before {
+            opacity: 0.05;
+        }
+
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            position: relative;
+            z-index: 1;
+            transition: all 0.4s ease;
+        }
+
+        .feature-icon svg {
+            width: 40px;
+            height: 40px;
+            stroke: #667eea;
+            stroke-width: 2;
+        }
+
+        .feature-card:hover .feature-icon {
+            background: var(--gradient);
+            border-color: transparent;
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .feature-card:hover .feature-icon svg {
+            stroke: white;
+        }
+
+        .feature-card:nth-child(2) .feature-icon {
+            background: linear-gradient(135deg, rgba(240, 147, 251, 0.1) 0%, rgba(245, 87, 108, 0.1) 100%);
+            border-color: rgba(245, 87, 108, 0.2);
+        }
+
+        .feature-card:nth-child(2) .feature-icon svg {
+            stroke: #f5576c;
+        }
+
+        .feature-card:nth-child(3) .feature-icon {
+            background: linear-gradient(135deg, rgba(79, 172, 254, 0.1) 0%, rgba(0, 242, 254, 0.1) 100%);
+            border-color: rgba(79, 172, 254, 0.2);
+        }
+
+        .feature-card:nth-child(3) .feature-icon svg {
+            stroke: #4facfe;
+        }
+
+        .feature-card h3 {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            color: var(--dark);
+            position: relative;
+            z-index: 1;
+        }
+
+        .feature-card p {
+            color: #64748b;
+            line-height: 1.8;
+            font-size: 1.1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .feature-list {
+            list-style: none;
+            margin-top: 1.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .feature-list li {
+            padding: 0.8rem 0;
+            padding-right: 2rem;
+            position: relative;
+            color: #64748b;
+            font-size: 1.05rem;
+        }
+
+        .feature-list li::before {
+            content: '✓';
+            position: absolute;
+            right: 0;
+            color: #10b981;
+            font-weight: 900;
+            font-size: 1.2rem;
+        }
+
+        /* Integration Section */
+        .integration {
+            padding: 120px 2rem;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .integration::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(102,126,234,0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: rotate 60s linear infinite;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .integration-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5rem;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .integration h2 {
+            color: white;
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            font-weight: 900;
+        }
+
+        .integration p {
+            color: rgba(255,255,255,0.85);
+            font-size: 1.3rem;
+            line-height: 1.8;
+            margin-bottom: 2rem;
+        }
+
+        .integration-features {
+            display: grid;
+            gap: 1.5rem;
+            margin-top: 3rem;
+        }
+
+        .integration-feature {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px);
+            padding: 2rem;
+            border-radius: 15px;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .integration-feature:hover {
+            background: rgba(255,255,255,0.1);
+            transform: translateX(-10px);
+        }
+
+        .integration-feature h4 {
+            color: white;
+            font-size: 1.5rem;
+            margin-bottom: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .integration-feature h4 .icon-wrapper {
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .integration-feature h4 .icon-wrapper svg {
+            width: 28px;
+            height: 28px;
+            stroke: white;
+            stroke-width: 2;
+        }
+
+        .integration-visual {
+            position: relative;
+        }
+
+        .jahez-card {
+            background: white;
+            border-radius: 30px;
+            padding: 3rem;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 2;
+        }
+
+        .jahez-logo {
+            font-size: 4rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .sync-animation {
+            text-align: center;
+            padding: 2rem;
+            font-size: 3rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.8; }
+        }
+
+        .sync-status {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.8rem 1.5rem;
+            background: #f0fdf4;
+            border-radius: 50px;
+            color: #10b981;
+            font-weight: 700;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: blink 1.5s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* Benefits Section */
+        .benefits {
+            padding: 120px 2rem;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        }
+
+        .benefits-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 4rem;
+        }
+
+        .benefit-card {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+        }
+
+        .benefit-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+        }
+
+        .benefit-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1.5rem;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.4s ease;
+        }
+
+        .benefit-icon svg {
+            width: 40px;
+            height: 40px;
+            stroke: #667eea;
+            stroke-width: 2;
+        }
+
+        .benefit-card:hover .benefit-icon {
+            background: var(--gradient);
+            transform: scale(1.1) rotate(-5deg);
+        }
+
+        .benefit-card:hover .benefit-icon svg {
+            stroke: white;
+        }
+
+        .benefit-card h3 {
+            font-size: 1.5rem;
+            color: var(--dark);
+            margin-bottom: 1rem;
+        }
+
+        .benefit-card p {
+            color: #64748b;
+            line-height: 1.7;
+        }
+
+        /* Pricing Section */
+        .pricing {
+            padding: 120px 2rem;
+            background: white;
+        }
+
+        .pricing-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .pricing-cards {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 3rem;
+            margin-top: 4rem;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .pricing-card {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 25px;
+            padding: 3rem;
+            transition: all 0.4s ease;
+            position: relative;
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-15px);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+            border-color: transparent;
+        }
+
+        .pricing-card.featured {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            transform: scale(1.05);
+        }
+
+        .pricing-card.featured * {
+            color: white !important;
+        }
+
+        .pricing-badge {
+            position: absolute;
+            top: -15px;
+            right: 50%;
+            transform: translateX(50%);
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            padding: 0.5rem 2rem;
+            border-radius: 50px;
+            font-weight: 800;
+            font-size: 0.9rem;
+        }
+
+        .pricing-card h3 {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            color: var(--dark);
+        }
+
+        .pricing-price {
+            font-size: 3.5rem;
+            font-weight: 900;
+            margin: 1.5rem 0;
+            color: var(--dark);
+        }
+
+        .pricing-price span {
+            font-size: 1.5rem;
+            color: #64748b;
+        }
+
+        .pricing-features {
+            list-style: none;
+            margin: 2rem 0;
+        }
+
+        .pricing-features li {
+            padding: 1rem 0;
+            border-bottom: 1px solid #e2e8f0;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .pricing-features li::before {
+            content: '✓';
+            color: #10b981;
+            font-weight: 900;
+            font-size: 1.3rem;
+        }
+
+        .pricing-card.featured .pricing-features li {
+            border-bottom-color: rgba(255,255,255,0.2);
+        }
+
+        /* CTA Section */
+        .cta {
+            padding: 120px 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="2" fill="white" opacity="0.1"/></svg>');
+        }
+
+        .cta-container {
+            max-width: 900px;
+            margin: 0 auto;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .cta h2 {
+            font-size: 3.5rem;
+            color: white;
+            margin-bottom: 1.5rem;
+            font-weight: 900;
+        }
+
+        .cta p {
+            font-size: 1.5rem;
+            color: rgba(255,255,255,0.95);
+            margin-bottom: 3rem;
+            line-height: 1.8;
+        }
+
+        .cta-buttons-group {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-large {
+            padding: 1.2rem 3rem;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            font-weight: 800;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .btn-white {
+            background: white;
+            color: var(--primary);
+        }
+
+        .btn-white:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+
+        .btn-outline-white {
+            background: transparent;
+            color: white;
+            border: 3px solid white;
+        }
+
+        .btn-outline-white:hover {
+            background: white;
+            color: var(--primary);
+        }
+
+        /* Footer */
+        .footer {
+            background: #0f172a;
+            padding: 80px 2rem 2rem;
+            color: white;
+        }
+
+        .footer-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 4rem;
+            margin-bottom: 3rem;
+        }
+
+        .footer-about h3 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .footer-about p {
+            color: #94a3b8;
+            line-height: 1.8;
+            margin-bottom: 2rem;
+        }
+
+        .footer-links h4 {
+            font-size: 1.3rem;
+            margin-bottom: 1.5rem;
+            color: white;
+        }
+
+        .footer-links ul {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 1rem;
+        }
+
+        .footer-links a {
+            color: #94a3b8;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 3rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            color: #64748b;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .hero-container,
+            .integration-container {
+                grid-template-columns: 1fr;
+                gap: 3rem;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .hero-content h1 {
+                font-size: 2.5rem;
+            }
+
+            .footer-container {
+                grid-template-columns: 1fr 1fr;
+                gap: 3rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero-content h1 {
+                font-size: 2rem;
+            }
+
+            .hero-content p {
+                font-size: 1.1rem;
+            }
+
+            .section-header h2 {
+                font-size: 2rem;
+            }
+
+            .features-container {
+                grid-template-columns: 1fr;
+            }
+
+            .benefits-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .pricing-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-container {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-stats {
+                flex-direction: column;
+                gap: 2rem;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-on-scroll {
+            opacity: 0;
+            animation: fadeInUp 0.8s ease forwards;
+        }
+
+        .animate-on-scroll:nth-child(1) { animation-delay: 0.1s; }
+        .animate-on-scroll:nth-child(2) { animation-delay: 0.2s; }
+        .animate-on-scroll:nth-child(3) { animation-delay: 0.3s; }
+        .animate-on-scroll:nth-child(4) { animation-delay: 0.4s; }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i data-lucide="truck"></i>
+                </div>
+                <span>FleetMaster</span>
+            </div>
+            <div class="nav-links">
+                <a href="#features">المميزات</a>
+                <a href="#integration">التكامل</a>
+                <a href="#benefits">الفوائد</a>
+                <a href="#pricing">الأسعار</a>
+            </div>
+            <div class="cta-buttons">
+                <a href="./auth/login.html" class="btn btn-secondary">تسجيل الدخول</a>
+                <a href="./auth/index.html" class="btn btn-primary">ابدأ الآن مجاناً</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-container">
+            <div class="hero-content">
+                <h1>
+                    إدارة ذكية لمناديب التوصيل
+                    <span>بتكامل كامل مع جاهز</span>
+                </h1>
+                <p>
+                    وفّر 20 ساعة أسبوعياً في إدارة الرواتب والمتابعة. نظام متكامل يمزامن البيانات تلقائياً ويحسب الرواتب بدقة 100%
+                </p>
+                <div class="cta-buttons">
+                    <a href="index.html" class="btn btn-primary btn-large">ابدأ تجربتك المجانية</a>
+                    <a href="#features" class="btn btn-outline-white btn-large">تعرف على المزيد</a>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <span class="stat-number">30+</span>
+                        <span class="stat-label">شركة تثق بنا</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">100%</span>
+                        <span class="stat-label">دقة الحسابات</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">20</span>
+                        <span class="stat-label">ساعة موفرة أسبوعياً</span>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="dashboard-preview">
+                    <div class="preview-header">
+                        <div class="preview-dot dot-red"></div>
+                        <div class="preview-dot dot-yellow"></div>
+                        <div class="preview-dot dot-green"></div>
+                    </div>
+                    <div class="preview-content">
+                        <i data-lucide="layout-dashboard" style="width: 120px; height: 120px; stroke-width: 1.5;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="section-header">
+            <span class="section-tag">مميزات النظام</span>
+            <h2>كل ما تحتاجه لإدارة مناديبك</h2>
+            <p>نظام شامل يوفر لك جميع الأدوات اللازمة لإدارة أسطول المناديب بكفاءة واحترافية</p>
+        </div>
+        <div class="features-container">
+            <div class="feature-card animate-on-scroll">
+                <div class="feature-icon">
+                    <i data-lucide="refresh-cw"></i>
+                </div>
+                <h3>مزامنة تلقائية مع جاهز</h3>
+                <p>تكامل كامل مع منصة جاهز لجلب بيانات السائقين والبيانات المالية وعدد الطلبات تلقائياً</p>
+                <ul class="feature-list">
+                    <li>مزامنة فورية كل 15 دقيقة</li>
+                    <li>تصحيح يومي في الساعة 3 فجراً</li>
+                    <li>لا حاجة للإدخال اليدوي</li>
+                    <li>دقة 100% في البيانات</li>
+                </ul>
+            </div>
+
+            <div class="feature-card animate-on-scroll">
+                <div class="feature-icon">
+                    <i data-lucide="wallet"></i>
+                </div>
+                <h3>نظام رواتب متقدم</h3>
+                <p>حساب الرواتب أوتوماتيكياً مع دعم معادلات معقدة وإدارة الحوافز والخصومات</p>
+                <ul class="feature-list">
+                    <li>حساب تلقائي بناءً على الطلبات</li>
+                    <li>نظام تارجت ومكافآت</li>
+                    <li>إدارة الخصومات والغرامات</li>
+                    <li>تقارير تفصيلية جاهزة للطباعة</li>
+                </ul>
+            </div>
+
+            <div class="feature-card animate-on-scroll">
+                <div class="feature-icon">
+                    <i data-lucide="bar-chart-3"></i>
+                </div>
+                <h3>تقارير ولوحات تحكم</h3>
+                <p>متابعة دقيقة لأداء كل مندوب مع تقارير شاملة ولوحات تحكم تفاعلية</p>
+                <ul class="feature-list">
+                    <li>لوحة تحكم شاملة</li>
+                    <li>تقارير يومية وشهرية</li>
+                    <li>تحليلات الأداء</li>
+                    <li>تصدير Excel وطباعة</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Integration Section -->
+    <section class="integration" id="integration">
+        <div class="integration-container">
+            <div class="integration-content">
+                <h2>تكامل سلس مع منصة جاهز</h2>
+                <p>
+                    نفخر بكوننا أول نظام في السعودية يقدم تكامل كامل وأوتوماتيكي مع منصة جاهز. لا حاجة للإدخال اليدوي بعد الآن!
+                </p>
+                <div class="integration-features">
+                    <div class="integration-feature">
+                        <h4>
+                            <span class="icon-wrapper"><i data-lucide="zap"></i></span>
+                            مزامنة فورية
+                        </h4>
+                        <p>جلب البيانات من جاهز كل 15 دقيقة تلقائياً</p>
+                    </div>
+                    <div class="integration-feature">
+                        <h4>
+                            <span class="icon-wrapper"><i data-lucide="shield-check"></i></span>
+                            أمان عالي
+                        </h4>
+                        <p>بيانات الدخول مشفرة بالكامل ومحمية</p>
+                    </div>
+                    <div class="integration-feature">
+                        <h4>
+                            <span class="icon-wrapper"><i data-lucide="target"></i></span>
+                            دقة 100%
+                        </h4>
+                        <p>تصحيح يومي تلقائي لضمان دقة البيانات</p>
+                    </div>
+                </div>
+            </div>
+            <div class="integration-visual">
+                <div class="jahez-card">
+                    <div class="jahez-logo">جاهز</div>
+                    <div class="sync-animation">
+                        <i data-lucide="refresh-cw" style="width: 60px; height: 60px;"></i>
+                    </div>
+                    <div class="sync-status">
+                        <div class="status-indicator">
+                            <div class="status-dot"></div>
+                            متصل ومتزامن
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Benefits Section -->
+    <section class="benefits" id="benefits">
+        <div class="benefits-container">
+            <div class="section-header">
+                <span class="section-tag">لماذا FleetMaster؟</span>
+                <h2>القيمة المضافة لشركتك</h2>
+                <p>استثمر في نظام يوفر عليك الوقت والجهد ويزيد من كفاءة عملك</p>
+            </div>
+            <div class="benefits-grid">
+                <div class="benefit-card">
+                    <div class="benefit-icon">
+                        <i data-lucide="clock"></i>
+                    </div>
+                    <h3>توفير الوقت</h3>
+                    <p>وفّر 20 ساعة أسبوعياً كانت تُصرف في المتابعة والحسابات اليدوية</p>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon">
+                        <i data-lucide="check-circle"></i>
+                    </div>
+                    <h3>دقة عالية</h3>
+                    <p>تخلص من الأخطاء البشرية في حساب الرواتب والمستحقات</p>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon">
+                        <i data-lucide="trending-up"></i>
+                    </div>
+                    <h3>زيادة الإنتاجية</h3>
+                    <p>ركز على نمو عملك بدلاً من الغرق في التفاصيل الإدارية</p>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon">
+                        <i data-lucide="gem"></i>
+                    </div>
+                    <h3>شفافية كاملة</h3>
+                    <p>كل مندوب يرى مستحقاته بوضوح مع تفاصيل دقيقة</p>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon">
+                        <i data-lucide="shield"></i>
+                    </div>
+                    <h3>أمان البيانات</h3>
+                    <p>بياناتك محمية بأعلى معايير الأمان والتشفير</p>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon">
+                        <i data-lucide="smartphone"></i>
+                    </div>
+                    <h3>سهولة الاستخدام</h3>
+                    <p>واجهة بسيطة وسهلة لا تحتاج إلى تدريب معقد</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section class="pricing" id="pricing">
+        <div class="pricing-container">
+            <div class="section-header">
+                <span class="section-tag">الأسعار</span>
+                <h2>خطط مرنة تناسب احتياجاتك</h2>
+                <p>اختر الخطة المناسبة لحجم أسطولك وابدأ فوراً</p>
+            </div>
+            <div class="pricing-cards">
+                <div class="pricing-card">
+                    <h3>الباقة الأساسية</h3>
+                    <div class="pricing-price">
+                        299 <span>ر.س/شهرياً</span>
+                    </div>
+                    <ul class="pricing-features">
+                        <li>حتى 20 مندوب</li>
+                        <li>مزامنة تلقائية مع جاهز</li>
+                        <li>نظام رواتب متقدم</li>
+                        <li>تقارير شهرية</li>
+                        <li>دعم فني عبر الإيميل</li>
+                    </ul>
+                    <a href="index.html" class="btn btn-primary" style="width: 100%; margin-top: 2rem;">ابدأ الآن</a>
+                </div>
+
+                <div class="pricing-card featured">
+                    <div class="pricing-badge">الأكثر شعبية</div>
+                    <h3>الباقة الاحترافية</h3>
+                    <div class="pricing-price">
+                        599 <span>ر.س/شهرياً</span>
+                    </div>
+                    <ul class="pricing-features">
+                        <li>حتى 50 مندوب</li>
+                        <li>كل مميزات الأساسية</li>
+                        <li>تقارير متقدمة</li>
+                        <li>تصدير بيانات متعدد</li>
+                        <li>دعم فني ذو أولوية</li>
+                        <li>تخصيص معادلات الرواتب</li>
+                    </ul>
+                    <a href="index.html" class="btn btn-white" style="width: 100%; margin-top: 2rem;">ابدأ الآن</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+        <div class="cta-container">
+            <h2>جاهز للبدء؟</h2>
+            <p>
+                انضم إلى 30+ شركة توصيل في السعودية تستخدم FleetMaster لإدارة أساطيلها بكفاءة
+            </p>
+            <div class="cta-buttons-group">
+                <a href="index.html" class="btn btn-white btn-large">
+                    ابدأ تجربتك المجانية
+                    <i data-lucide="arrow-left" style="width: 20px; height: 20px;"></i>
+                </a>
+                <a href="#pricing" class="btn btn-outline-white btn-large">
+                    شاهد الأسعار
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-about">
+                <h3>FleetMaster</h3>
+                <p>
+                    نظام متكامل لإدارة ومتابعة مناديب التوصيل مع تكامل كامل مع منصة جاهز. نساعدك على توفير الوقت وزيادة الكفاءة.
+                </p>
+            </div>
+            <div class="footer-links">
+                <h4>الشركة</h4>
+                <ul>
+                    <li><a href="#about">من نحن</a></li>
+                    <li><a href="#contact">تواصل معنا</a></li>
+                    <li><a href="#careers">الوظائف</a></li>
+                </ul>
+            </div>
+            <div class="footer-links">
+                <h4>المنتج</h4>
+                <ul>
+                    <li><a href="#features">المميزات</a></li>
+                    <li><a href="#pricing">الأسعار</a></li>
+                    <li><a href="#docs">التوثيق</a></li>
+                </ul>
+            </div>
+            <div class="footer-links">
+                <h4>الدعم</h4>
+                <ul>
+                    <li><a href="#help">مركز المساعدة</a></li>
+                    <li><a href="#tutorials">دروس تعليمية</a></li>
+                    <li><a href="#status">حالة النظام</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2025 FleetMaster. جميع الحقوق محفوظة.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        // Navbar scroll effect
+        window.addEventListener('scroll', () => {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        // Smooth scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Animate elements on scroll
+        const observerOptions = {
+            threshold: 0.2,
+            rootMargin: '0px 0px -100px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.animate-on-scroll').forEach(el => {
+            observer.observe(el);
+        });
+    </script>
+
+</body>
+</html>
