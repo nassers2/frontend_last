@@ -3,7 +3,7 @@
 // ========================================
 
 const API = {
-  baseURL: 'https://api.fleemaster.com/api', // ✅ تم التحديث
+  baseURL: 'http://localhost:3000/api', // ✅ تم التحديث
 
   // ========================================
   // 🌐 Generic API Call
@@ -51,6 +51,23 @@ const API = {
     }
   },
 
+
+  // في قسم Authentication APIs، أضف:
+
+async updateProfile(fullName, phone, email) {
+  return await this.call('/auth/update-profile', 'PUT', {
+    full_name: fullName,
+    phone: phone,
+    email: email
+  });
+},
+
+async changePassword(currentPassword, newPassword) {
+  return await this.call('/auth/change-password', 'POST', {
+    current_password: currentPassword,
+    new_password: newPassword
+  });
+},
   // ========================================
   // 🔐 Authentication APIs
   // ========================================

@@ -647,7 +647,7 @@
     console.log('✅ Token found, checking validity...');
     
     // تحقق من صلاحية Token
-    fetch('https://api.fleemaster.com/api/auth/me', {
+    fetch('http://localhost:3000/api/auth/me', {
       headers: {
         'Authorization': 'Bearer ' + token
       }
@@ -742,29 +742,56 @@ let apiCheckAttempts = 0;
       submitBtn.textContent = 'جاري تسجيل الدخول...';
       
       try {
-        console.log('🔐 Attempting login for:', email);
-        
-        const result = await API.login(email, password);
+  console.log('🔐 Attempting login for:', email);
+  
+  const result = await API.login(email, password);
 
-        console.log('✅ Login response:', result);
+  console.log('✅ Login response:', result);
 
-        if (result.success) {
-          console.log('✅ Login successful! Redirecting...');
-          window.location.href = '/dashboard/index.html';
-        } else {
-          errorDiv.textContent = result.message || 'فشل تسجيل الدخول';
-          errorDiv.style.display = 'block';
-          console.error('❌ Login failed:', result.message);
-        }
+  if (result.success) {
+    console.log('✅ Login successful! Redirecting...');
+    window.location.href = '/dashboard/index.html';
+  } else {
+    errorDiv.textContent = result.message || 'فشل تسجيل الدخول';
+    errorDiv.style.display = 'block';
+    console.error('❌ Login failed:', result.message);
+  }
 
-      } catch (error) {
-        console.error('❌ Login error:', error);
-        errorDiv.textContent = 'حدث خطأ في الاتصال بالسيرفر: ' + error.message;
-        errorDiv.style.display = 'block';
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = originalBtnText;
-      }
+} catch (error) {
+  console.error('❌ Login error:', error);
+  
+  // ✅ استخراج رسالة الخطأ النظيفة
+  let message = error.message || 'حدث خطأ غير متوقع';
+  
+  // إزالة "Error: " إذا موجود
+  message = message.replace('Error: ', '');
+  
+  // ترجمة الأخطاء الشائعة
+  const errorMap = {
+    'Invalid email or password': 'البريد الإلكتروني أو كلمة المرور غير صحيحة',
+    'Account is disabled': 'الحساب معطل. يرجى التواصل مع الدعم',
+    'Email is required': 'البريد الإلكتروني مطلوب',
+    'Password is required': 'كلمة المرور مطلوبة',
+    'Network request failed': 'خطأ في الاتصال بالسيرفر',
+    'Failed to fetch': 'تعذر الاتصال بالسيرفر'
+  };
+  
+  // البحث عن الرسالة المطابقة
+  let arabicMessage = message;
+  for (const [english, arabic] of Object.entries(errorMap)) {
+    if (message.includes(english)) {
+      arabicMessage = arabic;
+      break;
+    }
+  }
+  
+  errorDiv.textContent = arabicMessage;
+  errorDiv.style.display = 'block';
+  
+} finally {
+  submitBtn.disabled = false;
+  submitBtn.textContent = originalBtnText;
+}
     });
   }
 })();

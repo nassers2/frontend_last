@@ -89,7 +89,7 @@ function loadPayrollScript() {
     } else {
         console.log('📥 [Payroll] Loading payroll script');
         const script = document.createElement('script');
-        script.src = '/js/payroll.js';
+        script.src = '/assets/js/payroll.js'; // ✅ تم تصحيح المسار
         script.onload = () => {
             console.log('✅ [Payroll] Script loaded');
             if (typeof window.initPayroll === 'function') {
@@ -228,7 +228,7 @@ function initializePage(pageName) {
             window.CashApp.init();
         } else {
             // Check if script is already in DOM
-            const existingScript = document.querySelector('script[src="/js/cash.js"]');
+            const existingScript = document.querySelector('script[src="/assets/js/cash.js"]');
             
             if (existingScript) {
                 console.log('⏳ [Init] CashApp script already exists, waiting for load...');
@@ -246,7 +246,7 @@ function initializePage(pageName) {
             } else {
                 console.log('📥 [Init] Loading CashApp script for first time');
                 const script = document.createElement('script');
-                script.src = '/js/cash.js';
+                script.src = '/assets/js/cash.js'; // ✅ تم تصحيح المسار
                 script.onload = () => {
                     console.log('✅ [Init] CashApp script loaded');
                     if (typeof window.CashApp !== 'undefined' && window.CashApp.init) {

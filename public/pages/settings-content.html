@@ -25,34 +25,55 @@
         <h3>⚙️ إعدادات الحساب</h3>
         <p>قم بتحديث معلومات حسابك الشخصية</p>
 
-        <div class="form-group">
-            <label class="form-label">الاسم الكامل</label>
-            <input type="text" class="form-input" value="مدير العمليات">
-        </div>
-
-        <div class="form-group">
-            <label class="form-label">البريد الإلكتروني</label>
-            <input type="email" class="form-input" value="manager@fleetmaster.com">
-        </div>
-
-        <div class="form-group">
-            <label class="form-label">رقم الهاتف</label>
-            <input type="tel" class="form-input" value="0501234567">
-        </div>
-
-        <button class="save-btn">حفظ التغييرات</button>
+        <!-- Profile Section -->
+<div class="settings-card">
+  <h3 class="card-title">المعلومات الشخصية</h3>
+  
+  <form id="profileForm">
+    <div class="form-group">
+      <label class="form-label">الاسم الكامل</label>
+      <input type="text" id="fullName" class="form-input" required>
     </div>
 
-    <!-- System Settings -->
-    <div class="settings-card">
-        <h3>🔧 إعدادات النظام</h3>
-        <p>إدارة الإعدادات العامة للنظام</p>
-
-        <div class="form-group">
-            <label class="form-label">الهدف اليومي للمناديب</label>
-            <input type="number" class="form-input" value="30">
-        </div>
-
-        <button class="save-btn">حفظ التغييرات</button>
+    <div class="form-group">
+      <label class="form-label">البريد الإلكتروني</label>
+      <input type="email" id="email" class="form-input" required>
     </div>
+
+    <div class="form-group">
+      <label class="form-label">رقم الهاتف</label>
+      <input type="tel" id="phone" class="form-input" required>
+    </div>
+
+    <button type="submit" class="save-btn">حفظ التغييرات</button>
+  </form>
+</div>
+
+<!-- Password Section -->
+<div class="settings-card">
+  <h3 class="card-title">تغيير كلمة المرور</h3>
+  
+  <form id="passwordForm">
+    <div class="form-group">
+      <label class="form-label">كلمة المرور الحالية</label>
+      <input type="password" id="currentPassword" class="form-input" required>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">كلمة المرور الجديدة</label>
+      <input type="password" id="newPassword" class="form-input" minlength="8" required>
+      <small class="form-hint">يجب أن تكون 8 أحرف على الأقل</small>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">تأكيد كلمة المرور الجديدة</label>
+      <input type="password" id="confirmPassword" class="form-input" minlength="8" required>
+    </div>
+
+    <button type="submit" class="save-btn">تغيير كلمة المرور</button>
+  </form>
+</div>
+
+<!-- Add script -->
+<script src="./assets/js/settings.js"></script>
 </div>

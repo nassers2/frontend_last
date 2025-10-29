@@ -1,10 +1,154 @@
 /* =============================
    Payroll Management JavaScript
-   Version: 3.0
+   Version: 4.0
+   Updated to use API from payroll.routes.js
 ============================= */
 
 (function() {
   'use strict';
+
+  /* =============================
+     API Configuration
+  ============================= */
+  const API_BASE_URL = 'http://localhost:3000/api/payroll';
+
+  // Helper function to get auth headers
+  function getAuthHeaders() {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.warn('⚠️ No auth token found in localStorage');
+    }
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': token ? `Bearer ${token}` : ''
+    };
+  }
+
+  const API = {
+    // Get payroll settings
+    getPayrollSettings: async () => {
+      const response = await fetch(`${API_BASE_URL}/settings`, {
+        method: 'GET',
+        headers: getAuthHeaders()
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      return await response.json();
+    },
+
+    // Update payroll settings
+    updatePayrollSettings: async (settings) => {
+      const response = await fetch(`${API_BASE_URL}/settings`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(settings)
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      return await response.json();
+    },
+
+    // Calculate payroll for a period
+    calculatePayroll: async (startDate, endDate) => {
+      const response = await fetch(`${API_BASE_URL}/calculate-period`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({
+          start_date: startDate,
+          end_date: endDate
+        })
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      return await response.json();
+    },
+
+    // Get payroll records
+    getPayrollRecords: async (startDate, endDate, driverId = null, status = null) => {
+      const params = new URLSearchParams();
+      if (startDate) params.append('start_date', startDate);
+      if (endDate) params.append('end_date', endDate);
+      if (status) params.append('status', status);
+      
+      const response = await fetch(`${API_BASE_URL}/records?${params.toString()}`, {
+        method: 'GET',
+        headers: getAuthHeaders()
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      return await response.json();
+    },
+
+    // Get single payroll record
+    getPayrollRecord: async (id) => {
+      const response = await fetch(`${API_BASE_URL}/record/${id}`, {
+        method: 'GET',
+        headers: getAuthHeaders()
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      return await response.json();
+    },
+
+    // Update payroll status
+    updatePayrollStatus: async (id, status) => {
+      const response = await fetch(`${API_BASE_URL}/record/${id}/status`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ status })
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      return await response.json();
+    },
+
+    // Update payroll notes
+    updatePayrollNotes: async (id, notes) => {
+      const response = await fetch(`${API_BASE_URL}/record/${id}/notes`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ notes })
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      return await response.json();
+    },
+
+    // Delete payroll record
+    deletePayrollRecord: async (id) => {
+      const response = await fetch(`${API_BASE_URL}/record/${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      return await response.json();
+    },
+
+    // Get payroll statistics
+    getPayrollStats: async (startDate, endDate) => {
+      const params = new URLSearchParams();
+      if (startDate) params.append('start_date', startDate);
+      if (endDate) params.append('end_date', endDate);
+      
+      const response = await fetch(`${API_BASE_URL}/stats?${params.toString()}`, {
+        method: 'GET',
+        headers: getAuthHeaders()
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      return await response.json();
+    }
+  };
 
   /* =============================
      State
@@ -128,9 +272,14 @@
         if (orderValueAfterTarget) orderValueAfterTarget.value = s.order_value_after_target || 4.4;
 
         setSettingsVisibility(Boolean(s.target_orders && s.target_orders > 0));
+        console.log('✅ [SETTINGS] Settings loaded successfully');
       }
     } catch (err) {
       console.error('❌ [SETTINGS] Load error:', err);
+      // Don't show error notification on initial load, settings might not exist yet
+      if (err.message && !err.message.includes('404')) {
+        showNotification('❌ حدث خطأ أثناء تحميل الإعدادات', 'error');
+      }
     }
   }
 
@@ -183,18 +332,31 @@
       const result = await API.calculatePayroll(start, end);
 
       if (result.success) {
-        showNotification(`✅ تم حساب رواتب ${result.data.drivers_count} مناديب بنجاح`, 'success');
+        const data = result.data || {};
+        const driversCount = data.drivers_count || 0;
+        const savedCount = data.saved || 0;
+        const updatedCount = data.updated || 0;
+        
+        let message = `✅ تم حساب رواتب ${driversCount} مناديب بنجاح`;
+        if (updatedCount > 0) {
+          message += ` (${savedCount} جديد، ${updatedCount} محدث)`;
+        }
+        
+        showNotification(message, 'success');
+        
         const statusFilter = document.getElementById('status-filter');
         if (statusFilter) statusFilter.value = 'draft';
         await loadPayrollRecords();
       } else {
-        showNotification('❌ ' + (result.error || 'فشل في حساب الرواتب'), 'error');
-        tableContent.innerHTML = '<p style="text-align:center; padding:40px; color:#ef4444;">فشل في حساب الرواتب</p>';
+        const errorMsg = result.error || result.message || 'فشل في حساب الرواتب';
+        showNotification('❌ ' + errorMsg, 'error');
+        tableContent.innerHTML = `<p style="text-align:center; padding:40px; color:#ef4444;">فشل في حساب الرواتب<br><small style="color:#94a3b8;">${errorMsg}</small></p>`;
       }
     } catch (err) {
       console.error('❌ [CALCULATE] Error:', err);
-      showNotification('❌ حدث خطأ أثناء حساب الرواتب', 'error');
-      tableContent.innerHTML = '<p style="text-align:center; padding:40px; color:#ef4444;">حدث خطأ أثناء حساب الرواتب</p>';
+      const errorMsg = err.message || 'حدث خطأ أثناء حساب الرواتب';
+      showNotification('❌ ' + errorMsg, 'error');
+      tableContent.innerHTML = `<p style="text-align:center; padding:40px; color:#ef4444;">حدث خطأ أثناء حساب الرواتب<br><small style="color:#94a3b8;">${errorMsg}</small></p>`;
     }
   };
 
@@ -219,27 +381,44 @@
 
       if (result.success) {
         currentRecords = result.records || [];
+        console.log(`✅ [LOAD] Loaded ${currentRecords.length} records`);
+        
         if (currentRecords.length === 0) {
-          tableContent.innerHTML = '<p style="text-align:center; padding:40px; color:#64748b;">لا توجد سجلات رواتب لهذه الفترة</p>';
+          const statusText = statusFilter !== 'all' ? ` بحالة "${getStatusLabel(statusFilter)}"` : '';
+          tableContent.innerHTML = `<p style="text-align:center; padding:40px; color:#64748b;">لا توجد سجلات رواتب لهذه الفترة${statusText}<br><small style="color:#94a3b8; margin-top:8px;">جرب الضغط على "حساب الرواتب" لإنشاء السجلات</small></p>`;
         } else {
           renderPayrollTable(currentRecords);
           updateStats(currentRecords);
           toggleApproveAllButton(currentRecords, statusFilter);
         }
       } else {
-        showNotification('❌ ' + (result.error || 'فشل في تحميل السجلات'), 'error');
-        tableContent.innerHTML = '<p style="text-align:center; padding:40px; color:#ef4444;">فشل في تحميل السجلات</p>';
+        const errorMsg = result.error || result.message || 'فشل في تحميل السجلات';
+        showNotification('❌ ' + errorMsg, 'error');
+        tableContent.innerHTML = `<p style="text-align:center; padding:40px; color:#ef4444;">فشل في تحميل السجلات<br><small style="color:#94a3b8;">${errorMsg}</small></p>`;
       }
     } catch (err) {
       console.error('❌ [LOAD] Error:', err);
-      showNotification('❌ حدث خطأ أثناء تحميل السجلات', 'error');
-      tableContent.innerHTML = '<p style="text-align:center; padding:40px; color:#ef4444;">حدث خطأ أثناء تحميل السجلات</p>';
+      const errorMsg = err.message || 'حدث خطأ أثناء تحميل السجلات';
+      showNotification('❌ ' + errorMsg, 'error');
+      tableContent.innerHTML = `<p style="text-align:center; padding:40px; color:#ef4444;">حدث خطأ أثناء تحميل السجلات<br><small style="color:#94a3b8;">${errorMsg}</small></p>`;
     }
+  }
+
+  function getStatusLabel(status) {
+    const labels = {
+      'draft': 'مسودة',
+      'approved': 'معتمد',
+      'paid': 'مدفوع'
+    };
+    return labels[status] || status;
   }
 
   window.filterByStatus = function() {
     loadPayrollRecords();
   };
+
+  // Export loadPayrollRecords for external access
+  window.loadPayrollRecords = loadPayrollRecords;
 
   function renderPayrollTable(records) {
     const rows = records.map(record => `
@@ -260,7 +439,7 @@
         <td>${formatCurrency(toNumber(record.total_debit))}</td>
         <td>${formatCurrency(toNumber(record.total_credit))}</td>
         <td>${formatCurrency(toNumber(record.total_cash))}</td>
-        <td>${formatCurrency(toNumber(record.cash_received))}</td>
+        <td>${formatCurrency(toNumber(record.cash_received || record.total_cash_received))}</td>
         <td>${formatCurrency(toNumber(record.gross_salary))}</td>
         <td style="font-weight:700; color:#059669;">${formatCurrency(toNumber(record.net_salary))}</td>
         <td>${getStatusBadge(record.status)}</td>
@@ -383,7 +562,7 @@
       const endDate = document.getElementById('payroll-end-date')?.value;
 
       const headers = [
-        'اسم المندوب','رقم الجوال','من تاريخ','إلى تاريخ','الطلبات','سعر التوصيل','الإكراميات','المكافآت','الغرامات','المدين','الدائن','النقد','الإجمالي','الصافي','الحالة'
+        'اسم المندوب','رقم الجوال','من تاريخ','إلى تاريخ','الطلبات','سعر التوصيل','الإكراميات','المكافآت','الغرامات','المدين','الدائن','النقد','كاش مستلم','الإجمالي','الصافي','الحالة'
       ];
 
       const rows = currentRecords.map(r => ([
@@ -399,6 +578,7 @@
         toNumber(r.total_debit),
         toNumber(r.total_credit),
         toNumber(r.total_cash),
+        toNumber(r.cash_received || r.total_cash_received),
         toNumber(r.gross_salary),
         toNumber(r.net_salary),
         `"${statusLabelAr(r.status)}"`
@@ -457,7 +637,16 @@
     initPayroll();
   }
 
-  // Export init function for manual initialization
+  // =============================
+  // Export functions to window for external access
+  // =============================
   window.initPayroll = initPayroll;
+  window.loadPayrollRecords = loadPayrollRecords;
+  window.fetchPayrollData = window.fetchPayrollData; // Already exported above
+  window.filterByStatus = window.filterByStatus; // Already exported above
+  window.toggleSettings = window.toggleSettings; // Already exported above
+  window.saveSettings = window.saveSettings; // Already exported above
+  window.exportToExcel = window.exportToExcel; // Already exported above
+  window.printPayroll = window.printPayroll; // Already exported above
 
 })();

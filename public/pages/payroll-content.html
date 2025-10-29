@@ -140,7 +140,7 @@
         </div>
         <div>
           <label>📋 الحالة</label>
-          <select id="status-filter">
+          <select id="status-filter" onchange="filterByStatus()">
             <option value="draft">مسودة</option>
             <option value="approved">معتمد</option>
             <option value="paid">مدفوع</option>
@@ -218,7 +218,7 @@
 
   </div>
 
- <!-- في نهاية الملف قبل </body> -->
-<script src="../js/payroll.js"></script>
+ <!-- ✅ تم إضافة ?v=4 لتجاوز الـ cache -->
+<script src="./assets/js/payroll.js?v=4"></script>
 </body>
 </html>

@@ -1288,7 +1288,7 @@ if (logoutBtn) {
     if (confirm('هل أنت متأكد من تسجيل الخروج؟')) {
       try {
         await API.logout();
-        window.location.href = '/login.html';
+        window.location.href = '/auth/login.html';
       } catch (error) {
         console.error('❌ Logout error:', error);
         alert('حدث خطأ أثناء تسجيل الخروج');

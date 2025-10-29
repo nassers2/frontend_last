@@ -57,65 +57,93 @@ if (typeof window.CashApp !== 'undefined') {
         });
     },
 
-    loadDrivers: async function() {
-        try {
-            console.log('📡 [CASH/DRIVERS] Loading...');
+   loadDrivers: async function() {
+    try {
+        console.log('📡 [CASH/DRIVERS] Loading...');
 
-            const response = await API.getCompanyDrivers();
+        // استخدام API الصحيح
+        const response = await API.call('/cash/drivers', 'GET');
 
-            if (response.success && response.drivers) {
-                this.state.drivers = response.drivers;
-                console.log(`✅ [CASH/DRIVERS] Loaded ${response.drivers.length} drivers`);
+        if (response.success && response.drivers) {
+            this.state.drivers = response.drivers;
+            console.log(`✅ [CASH/DRIVERS] Loaded ${response.drivers.length} drivers`);
 
-                // Main select (form) - ID: driverId
-                const driverSelect = document.getElementById('driverId');
-                if (driverSelect) {
-                    driverSelect.innerHTML = '<option value="">اختر السائق...</option>';
-                    response.drivers.forEach(d => {
-                        const opt = document.createElement('option');
-                        opt.value = d.driver_id;
-                        opt.textContent = `${d.name || 'سائق ' + d.driver_id}`;
-                        driverSelect.appendChild(opt);
-                    });
+            // Main select (form) - ID: driverId
+            const driverSelect = document.getElementById('driverId');
+            if (driverSelect) {
+                driverSelect.innerHTML = '<option value="">اختر السائق...</option>';
+                response.drivers.forEach(d => {
+                    const opt = document.createElement('option');
+                    opt.value = d.driver_id;
+                    // Try multiple field names for driver name
+                    const driverName = d.name || d.driver_name || d.full_name || ('سائق ' + d.driver_id);
+                    opt.textContent = driverName;
+                    driverSelect.appendChild(opt);
+                });
 
-                    // Initialize Select2
-                    $(driverSelect).select2({
-                        placeholder: 'ابحث عن السائق...',
-                        allowClear: true,
-                        dir: 'rtl',
-                        language: {
-                            noResults: () => 'لم يتم العثور على نتائج',
-                            searching: () => 'جاري البحث...'
-                        }
-                    });
-                } else {
-                    console.warn('⚠️ [CASH/DRIVERS] Element #driverId not found');
-                }
-
-                // Filter select
-                const filterDriver = document.getElementById('filterDriver');
-                if (filterDriver) {
-                    filterDriver.innerHTML = '<option value="">جميع السائقين</option>';
-                    response.drivers.forEach(d => {
-                        const opt = document.createElement('option');
-                        opt.value = d.driver_id;
-                        opt.textContent = `${d.name || 'سائق ' + d.driver_id}`;
-                        filterDriver.appendChild(opt);
-                    });
-
-                    $(filterDriver).select2({
-                        placeholder: 'اختر السائق...',
-                        allowClear: true,
-                        dir: 'rtl'
-                    });
-                }
-            } else {
-                console.error('❌ [CASH/DRIVERS] Invalid response:', response);
-            }
-        } catch (error) {
-            console.error('❌ [CASH/DRIVERS] Error:', error);
+        // Initialize Select2 after a small delay
+setTimeout(() => {
+    // Destroy existing Select2 if any
+    if ($(driverSelect).data('select2')) {
+        $(driverSelect).select2('destroy');
+    }
+    
+    // Initialize Select2
+    $(driverSelect).select2({
+        placeholder: 'ابحث عن السائق...',
+        allowClear: true,
+        dir: 'rtl',
+        width: '100%',
+        dropdownParent: $(driverSelect).parent(),
+        language: {
+            noResults: () => 'لم يتم العثور على نتائج',
+            searching: () => 'جاري البحث...'
         }
-    },
+    });
+    
+    console.log('✅ [CASH] Select2 initialized for driverId');
+}, 100);
+            } setTimeout(() => {
+    if ($(filterDriver).data('select2')) {
+        $(filterDriver).select2('destroy');
+    }
+    
+    $(filterDriver).select2({
+        placeholder: 'اختر السائق...',
+        allowClear: true,
+        dir: 'rtl',
+        width: '100%',
+        dropdownParent: $(filterDriver).parent()
+    });
+    
+    console.log('✅ [CASH] Select2 initialized for filterDriver');
+}, 100);
+
+            // Filter select
+            const filterDriver = document.getElementById('filterDriver');
+            if (filterDriver) {
+                filterDriver.innerHTML = '<option value="">جميع السائقين</option>';
+                response.drivers.forEach(d => {
+                    const opt = document.createElement('option');
+                    opt.value = d.driver_id;
+                    const driverName = d.name || d.driver_name || d.full_name || ('سائق ' + d.driver_id);
+                    opt.textContent = driverName;
+                    filterDriver.appendChild(opt);
+                });
+
+                $(filterDriver).select2({
+                    placeholder: 'اختر السائق...',
+                    allowClear: true,
+                    dir: 'rtl'
+                });
+            }
+        } else {
+            console.error('❌ [CASH/DRIVERS] Invalid response:', response);
+        }
+    } catch (error) {
+        console.error('❌ [CASH/DRIVERS] Error:', error);
+    }
+},
 
     loadCurrentPeriod: async function() {
         try {
@@ -530,7 +558,7 @@ if (typeof window.CashApp !== 'undefined') {
     },
 
     formatCurrency: function(amount) {
-        return new Intl.NumberFormat('ar-SA', {
+        return new Intl.NumberFormat('en-US', {
             style: 'currency',
             currency: 'SAR',
             minimumFractionDigits: 0
@@ -539,7 +567,7 @@ if (typeof window.CashApp !== 'undefined') {
 
     formatDate: function(dateString) {
         if (!dateString) return '-';
-        return new Date(dateString).toLocaleDateString('ar-SA', {
+        return new Date(dateString).toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'long',
             day: 'numeric'
@@ -548,7 +576,7 @@ if (typeof window.CashApp !== 'undefined') {
 
     formatDateTime: function(dateString) {
         if (!dateString) return '-';
-        return new Date(dateString).toLocaleString('ar-SA', {
+        return new Date(dateString).toLocaleString('en-US', {
             year: 'numeric',
             month: 'short',
             day: 'numeric',
