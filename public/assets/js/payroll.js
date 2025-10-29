@@ -10,7 +10,7 @@
   /* =============================
      API Configuration
   ============================= */
-  const API_BASE_URL = 'https://api.fleemaster.com/api/payroll';
+  const API_BASE_URL = 'https://api.flemaster.com/api/payroll';
 
   // Helper function to get auth headers
   function getAuthHeaders() {
