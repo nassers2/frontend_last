@@ -539,6 +539,24 @@
         border-color: var(--primary);
         box-shadow: 0 0 0 3px var(--primary-light);
     }
+    /* Fix Select2 dropdowns */
+.select2-container--default .select2-selection--single {
+    border: 2px solid var(--gray-200) !important;
+    border-radius: 8px !important;
+    height: auto !important;
+    padding: 0.5rem !important;
+    background-image: none !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    padding-right: 1rem !important;
+    padding-left: 1rem !important;
+    line-height: 1.6 !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 100% !important;
+}
 </style>
 
 <!-- Page Header -->
