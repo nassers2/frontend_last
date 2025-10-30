@@ -531,24 +531,108 @@ if (typeof window.CashApp !== 'undefined') {
     },
 
     applyFilters: async function() {
-        const driverId = document.getElementById('filterDriver').value;
-        const periodId = document.getElementById('filterPeriod').value;
+    const driverId = document.getElementById('filterDriver').value;
+    const periodId = document.getElementById('filterPeriod').value;
 
-        try {
-            const container = document.getElementById('receiptsTableContainer');
-            container.innerHTML = '<div class="loading"><div class="spinner"></div><p>جاري التحميل...</p></div>';
+    console.log('🔍 [CASH/FILTER] Applying filters:', { driverId, periodId });
 
-            const data = await API.getCashReceipts(periodId, driverId);
+    try {
+        const container = document.getElementById('receiptsTableContainer');
+        container.innerHTML = '<div class="loading"><div class="spinner"></div><p>جاري التحميل...</p></div>';
 
-            if (data.success) {
-                this.state.receipts = data.receipts || [];
-                await this.loadReceipts();
-            }
-        } catch (error) {
-            console.error('❌ [CASH/FILTER] Error:', error);
-            alert('❌ حدث خطأ في التصفية');
+        // بناء query parameters
+        let queryParams = [];
+        
+        if (periodId && periodId !== '') {
+            queryParams.push(`period_id=${periodId}`);
         }
-    },
+        
+        if (driverId && driverId !== '') {
+            queryParams.push(`driver_id=${driverId}`);
+        }
+        
+        const queryString = queryParams.length > 0 ? '?' + queryParams.join('&') : '';
+        
+        console.log('📡 [CASH/FILTER] Query string:', queryString);
+
+        const data = await API.call(`/cash/receipts${queryString}`, 'GET');
+
+        console.log('✅ [CASH/FILTER] Response:', data);
+
+        if (data.success) {
+            this.state.receipts = data.receipts || [];
+            this.renderReceipts();
+        } else {
+            container.innerHTML = `
+                <div class="error-state">
+                    <i data-lucide="alert-circle" style="width: 48px; height: 48px;"></i>
+                    <p>فشل تحميل البيانات</p>
+                </div>
+            `;
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+    } catch (error) {
+        console.error('❌ [CASH/FILTER] Error:', error);
+        alert('❌ حدث خطأ في التصفية');
+    }
+},
+
+renderReceipts: function() {
+    const container = document.getElementById('receiptsTableContainer');
+    
+    if (this.state.receipts.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i data-lucide="inbox" style="width: 64px; height: 64px;"></i>
+                <p>لا توجد سجلات</p>
+            </div>
+        `;
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    } else {
+        container.innerHTML = `
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>التاريخ</th>
+                            <th>السائق</th>
+                            <th>المبلغ</th>
+                            <th>الملاحظات</th>
+                            <th>حالة الفترة</th>
+                            <th>إجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${this.state.receipts.map(r => `
+                            <tr>
+                                <td>${this.formatDateTime(r.receipt_date)}</td>
+                                <td>${r.driver_name || '-'}</td>
+                                <td class="amount">${this.formatCurrency(r.amount)}</td>
+                                <td>${r.notes || '-'}</td>
+                                <td>
+                                    <span class="badge ${r.period_status === 'active' ? 'badge-success' : 'badge-secondary'}">
+                                        ${r.period_status === 'active' ? 'نشط' : 'مغلق'}
+                                    </span>
+                                </td>
+                                <td>
+                                    ${r.period_status === 'active' ? 
+                                        `<button class="btn btn-sm btn-danger" onclick="CashApp.deleteReceipt('${r.id}')">
+                                            <i data-lucide="trash-2"></i>
+                                        </button>` : 
+                                        '<span class="text-muted">-</span>'
+                                    }
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+    
+    console.log(`✅ [CASH/RECEIPTS] Rendered ${this.state.receipts.length} receipts`);
+},
 
     formatCurrency: function(amount) {
         return new Intl.NumberFormat('en-US', {
