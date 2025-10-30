@@ -531,53 +531,24 @@ if (typeof window.CashApp !== 'undefined') {
     },
 
     applyFilters: async function() {
-    const driverId = document.getElementById('filterDriver').value;
-    const periodId = document.getElementById('filterPeriod').value;
+        const driverId = document.getElementById('filterDriver').value;
+        const periodId = document.getElementById('filterPeriod').value;
 
-    console.log('🔍 [CASH/FILTER] Applying filters:', { driverId, periodId });
+        try {
+            const container = document.getElementById('receiptsTableContainer');
+            container.innerHTML = '<div class="loading"><div class="spinner"></div><p>جاري التحميل...</p></div>';
 
-    try {
-        const container = document.getElementById('receiptsTableContainer');
-        container.innerHTML = '<div class="loading"><div class="spinner"></div><p>جاري التحميل...</p></div>';
+            const data = await API.getCashReceipts(periodId, driverId);
 
-        // بناء query parameters
-        let queryParams = [];
-        
-        if (periodId && periodId !== '') {
-            queryParams.push(`period_id=${periodId}`);
+            if (data.success) {
+                this.state.receipts = data.receipts || [];
+                await this.loadReceipts();
+            }
+        } catch (error) {
+            console.error('❌ [CASH/FILTER] Error:', error);
+            alert('❌ حدث خطأ في التصفية');
         }
-        
-        if (driverId && driverId !== '') {
-            queryParams.push(`driver_id=${driverId}`);
-        }
-        
-        const queryString = queryParams.length > 0 ? '?' + queryParams.join('&') : '';
-        
-        console.log('📡 [CASH/FILTER] Query string:', queryString);
-
-
-        const data = await API.call(`/cash/receipts${queryString}`, 'GET');
-
-        console.log('✅ [CASH/FILTER] Response:', data);
-
-        if (data.success) {
-            this.state.receipts = data.receipts || [];
-            this.renderReceipts();
-        } else {
-            container.innerHTML = `
-                <div class="error-state">
-                    <i data-lucide="alert-circle" style="width: 48px; height: 48px;"></i>
-                    <p>فشل تحميل البيانات</p>
-                </div>
-            `;
-            if (typeof lucide !== 'undefined') lucide.createIcons();
-        }
-    } catch (error) {
-        console.error('❌ [CASH/FILTER] Error:', error);
-        alert('❌ حدث خطأ في التصفية');
-    }
-},
-
+    },
 
     formatCurrency: function(amount) {
         return new Intl.NumberFormat('en-US', {
