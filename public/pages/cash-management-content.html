@@ -792,75 +792,17 @@ select.form-control:not(.select2-hidden-accessible) {
         
         console.log('✅ jQuery loaded successfully');
         
-        // Prevent double submission - STRONG PROTECTION
-        let isSubmitting = false;
-        let lastSubmitTime = 0;
-        
         // Initialize after jQuery is ready
         $(document).ready(function() {
             console.log('✅ Document ready, initializing...');
             
             // Initialize Lucide icons
             if (typeof lucide !== 'undefined' && lucide.createIcons) {
-    try {
-        lucide.createIcons();
-    } catch (e) {
-        console.warn('⚠️ Lucide icons error:', e);
-    }
-}
-            
-            // Remove any existing submit listeners to prevent duplicates
-            const receiptForm = document.getElementById('receiptForm');
-            const submitBtn = document.getElementById('submitReceiptBtn');
-            
-            if (receiptForm) {
-                // Clone form to remove all event listeners
-                const newForm = receiptForm.cloneNode(true);
-                receiptForm.parentNode.replaceChild(newForm, receiptForm);
-                
-                // Get references again after cloning
-                const form = document.getElementById('receiptForm');
-                const btn = document.getElementById('submitReceiptBtn');
-                
-                // Add single protected submit handler
-                form.addEventListener('submit', function(e) {
-                    const now = Date.now();
-                    
-                    // Prevent if already submitting OR if less than 2 seconds since last submit
-                    if (isSubmitting || (now - lastSubmitTime) < 2000) {
-                        e.preventDefault();
-                        e.stopImmediatePropagation();
-                        console.log('⚠️ Duplicate submission prevented!');
-                        return false;
-                    }
-                    
-                    isSubmitting = true;
-                    lastSubmitTime = now;
-                    
-                    console.log('✅ Form submission allowed at:', new Date().toLocaleTimeString());
-                    
-                    // Disable button immediately
-                    if (btn) {
-                        btn.disabled = true;
-                        btn.style.pointerEvents = 'none';
-                        btn.style.opacity = '0.6';
-                        
-                        const btnText = btn.querySelector('span') || btn;
-                        const originalText = btnText.textContent;
-                        btnText.textContent = 'جاري الحفظ...';
-                        
-                        // Re-enable after operation completes (will be handled by form handler)
-                        setTimeout(function() {
-                            isSubmitting = false;
-                            btn.disabled = false;
-                            btn.style.pointerEvents = '';
-                            btn.style.opacity = '1';
-                            btnText.textContent = originalText;
-                        }, 3000);
-                    }
-                });
-                
-                console.log('✅ Form protection initialized');
+                try {
+                    lucide.createIcons();
+                } catch (e) {
+                    console.warn('⚠️ Lucide icons error:', e);
+                }
             }
             
             // Sync period total with stat total
