@@ -478,7 +478,7 @@ if (typeof window.CashApp !== 'undefined') {
         }
     },
 
-   applyFilters: async function() {
+ applyFilters: async function() {
     const driverId = document.getElementById('filterDriver').value;
     const periodId = document.getElementById('filterPeriod').value;
 
@@ -503,30 +503,67 @@ if (typeof window.CashApp !== 'undefined') {
         
         console.log('📡 [CASH/FILTER] Query string:', queryString);
 
+        // استدعاء API مع الفلاتر
         const data = await API.call(`/cash/receipts${queryString}`, 'GET');
 
         console.log('✅ [CASH/FILTER] Response:', data);
 
         if (data.success) {
             this.state.receipts = data.receipts || [];
-            this.renderReceipts();
             
-            setTimeout(() => {
-                const driverSelect = $('#driverId');
-                if (driverSelect.length && !driverSelect.data('select2')) {
-                    driverSelect.select2({
-                        placeholder: 'ابحث عن السائق...',
-                        allowClear: true,
-                        dir: 'rtl',
-                        width: '100%',
-                        language: {
-                            noResults: () => 'لم يتم العثور على نتائج',
-                            searching: () => 'جاري البحث...'
-                        }
-                    });
-                    console.log('✅ [CASH/FILTER] Re-initialized Select2 for driverId');
-                }
-            }, 100);
+            // عرض النتائج (نسخة من كود loadReceipts)
+            if (this.state.receipts.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i data-lucide="inbox" style="width: 64px; height: 64px;"></i>
+                        <p>لا توجد سجلات</p>
+                    </div>
+                `;
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            } else {
+                container.innerHTML = `
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>التاريخ</th>
+                                    <th>السائق</th>
+                                    <th>المبلغ</th>
+                                    <th>الملاحظات</th>
+                                    <th>حالة الفترة</th>
+                                    <th>إجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${this.state.receipts.map(r => `
+                                    <tr>
+                                        <td>${this.formatDateTime(r.receipt_date)}</td>
+                                        <td>${r.driver_name || '-'}</td>
+                                        <td class="amount">${this.formatCurrency(r.amount)}</td>
+                                        <td>${r.notes || '-'}</td>
+                                        <td>
+                                            <span class="badge ${r.period_status === 'active' ? 'badge-success' : 'badge-secondary'}">
+                                                ${r.period_status === 'active' ? 'نشط' : 'مغلق'}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            ${r.period_status === 'active' ? 
+                                                `<button class="btn btn-sm btn-danger" onclick="CashApp.deleteReceipt('${r.id}')">
+                                                    <i data-lucide="trash-2"></i>
+                                                </button>` : 
+                                                '<span class="text-muted">-</span>'
+                                            }
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            }
+            
+            console.log(`✅ [CASH/FILTER] Loaded ${this.state.receipts.length} receipts`);
         } else {
             container.innerHTML = `
                 <div class="error-state">
@@ -542,62 +579,7 @@ if (typeof window.CashApp !== 'undefined') {
     }
 },
 
-renderReceipts: function() {
-    const container = document.getElementById('receiptsTableContainer');
-    
-    if (this.state.receipts.length === 0) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <i data-lucide="inbox" style="width: 64px; height: 64px;"></i>
-                <p>لا توجد سجلات</p>
-            </div>
-        `;
-        if (typeof lucide !== 'undefined') lucide.createIcons();
-    } else {
-        container.innerHTML = `
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>التاريخ</th>
-                            <th>السائق</th>
-                            <th>المبلغ</th>
-                            <th>الملاحظات</th>
-                            <th>حالة الفترة</th>
-                            <th>إجراءات</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${this.state.receipts.map(r => `
-                            <tr>
-                                <td>${this.formatDateTime(r.receipt_date)}</td>
-                                <td>${r.driver_name || '-'}</td>
-                                <td class="amount">${this.formatCurrency(r.amount)}</td>
-                                <td>${r.notes || '-'}</td>
-                                <td>
-                                    <span class="badge ${r.period_status === 'active' ? 'badge-success' : 'badge-secondary'}">
-                                        ${r.period_status === 'active' ? 'نشط' : 'مغلق'}
-                                    </span>
-                                </td>
-                                <td>
-                                    ${r.period_status === 'active' ? 
-                                        `<button class="btn btn-sm btn-danger" onclick="CashApp.deleteReceipt('${r.id}')">
-                                            <i data-lucide="trash-2"></i>
-                                        </button>` : 
-                                        '<span class="text-muted">-</span>'
-                                    }
-                                </td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            </div>
-        `;
-        if (typeof lucide !== 'undefined') lucide.createIcons();
-    }
-    
-    console.log(`✅ [CASH/RECEIPTS] Rendered ${this.state.receipts.length} receipts`);
-},
+
 
     formatCurrency: function(amount) {
         return new Intl.NumberFormat('en-US', {
