@@ -539,7 +539,7 @@ select.form-control:not(.select2-hidden-accessible) {
         border-color: var(--primary);
         box-shadow: 0 0 0 3px var(--primary-light);
     }
-    /* Fix Select2 dropdowns */
+   
 .select2-container--default .select2-selection--single {
     border: 2px solid var(--gray-200) !important;
     border-radius: 8px !important;
@@ -557,6 +557,39 @@ select.form-control:not(.select2-hidden-accessible) {
 .select2-container--default .select2-selection--single .select2-selection__arrow {
     height: 100% !important;
 }
+
+.select2-container {
+    z-index: 9999 !important;
+}
+
+.select2-dropdown {
+    z-index: 10000 !important;
+}
+
+.select2-container--open .select2-dropdown {
+    border: 2px solid var(--primary) !important;
+}
+
+
+.select2-hidden-accessible {
+    border: 0 !important;
+    clip: rect(0 0 0 0) !important;
+    height: 1px !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    padding: 0 !important;
+    position: absolute !important;
+    width: 1px !important;
+}
+
+
+.select2-search__field {
+    width: 100% !important;
+    padding: 0.5rem !important;
+    border: 1px solid var(--gray-300) !important;
+    border-radius: 4px !important;
+}
+
 </style>
 
 <!-- Page Header -->

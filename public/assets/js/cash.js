@@ -57,7 +57,7 @@ if (typeof window.CashApp !== 'undefined') {
         });
     },
 
-  loadDrivers: async function() {
+ loadDrivers: async function() {
     try {
         console.log('📡 [CASH/DRIVERS] Loading...');
 
@@ -70,33 +70,39 @@ if (typeof window.CashApp !== 'undefined') {
             // تحميل السائقين في dropdown النموذج
             const driverSelect = $('#driverId');
             if (driverSelect.length) {
-                // تدمير Select2 القديم
+                // تدمير Select2 القديم بشكل كامل
                 if (driverSelect.data('select2')) {
                     driverSelect.select2('destroy');
                 }
 
                 // مسح الخيارات القديمة
-                driverSelect.empty();
-                
-                // إضافة الخيار الافتراضي
-                driverSelect.append('<option value="">اختر السائق...</option>');
+                driverSelect.empty().append('<option value="">اختر السائق...</option>');
                 
                 // إضافة السائقين
                 response.drivers.forEach(d => {
                     const driverName = d.name || d.driver_name || d.full_name || ('سائق ' + d.driver_id);
-                    driverSelect.append(`<option value="${d.driver_id}">${driverName}</option>`);
+                    driverSelect.append(new Option(driverName, d.driver_id, false, false));
                 });
 
-                // تفعيل Select2
+                // تفعيل Select2 مع إعدادات محسّنة
                 driverSelect.select2({
                     placeholder: 'ابحث عن السائق...',
                     allowClear: true,
                     dir: 'rtl',
                     width: '100%',
+                    dropdownAutoWidth: true,
                     language: {
                         noResults: () => 'لم يتم العثور على نتائج',
-                        searching: () => 'جاري البحث...'
-                    }
+                        searching: () => 'جاري البحث...',
+                        inputTooShort: () => 'الرجاء إدخال حرف واحد على الأقل'
+                    },
+                    // ⭐ مهم جداً: تحديد مكان الـ dropdown
+                    dropdownParent: $('.card-body').first()
+                });
+                
+                // التأكد من أن Select2 يعمل
+                driverSelect.on('select2:open', function() {
+                    console.log('✅ [SELECT2] Dropdown opened for driverId');
                 });
                 
                 console.log('✅ [CASH] Select2 initialized for driverId');
@@ -109,12 +115,11 @@ if (typeof window.CashApp !== 'undefined') {
                     filterDriver.select2('destroy');
                 }
 
-                filterDriver.empty();
-                filterDriver.append('<option value="">جميع السائقين</option>');
+                filterDriver.empty().append('<option value="">جميع السائقين</option>');
                 
                 response.drivers.forEach(d => {
                     const driverName = d.name || d.driver_name || d.full_name || ('سائق ' + d.driver_id);
-                    filterDriver.append(`<option value="${d.driver_id}">${driverName}</option>`);
+                    filterDriver.append(new Option(driverName, d.driver_id, false, false));
                 });
 
                 filterDriver.select2({
@@ -137,7 +142,6 @@ if (typeof window.CashApp !== 'undefined') {
         console.error('❌ [CASH/DRIVERS] Error:', error);
     }
 },
-
     loadCurrentPeriod: async function() {
         try {
             console.log('📡 [CASH/PERIOD] Loading...');
@@ -381,36 +385,10 @@ if (typeof window.CashApp !== 'undefined') {
    setupEventListeners: function() {
     console.log('🔧 [CASH] Setting up event listeners...');
 
-    // Receipt form submission - بدون cloning!
+    // Receipt form submission بدون cloning
     const receiptForm = document.getElementById('receiptForm');
     if (receiptForm) {
-        // إزالة listeners القديمة فقط بدون cloning
-        receiptForm.replaceWith(receiptForm.cloneNode(true));
-        
-        // الحصول على المرجع الجديد
-        const form = document.getElementById('receiptForm');
-        
-        // إضافة listener جديد
-        form.addEventListener('submit', (e) => this.handleFormSubmit(e));
-        
-        // ⭐ إعادة تفعيل Select2 بعد الـ cloning
-        setTimeout(() => {
-            const driverSelect = $('#driverId');
-            if (driverSelect.length && !driverSelect.hasClass('select2-hidden-accessible')) {
-                driverSelect.select2({
-                    placeholder: 'ابحث عن السائق...',
-                    allowClear: true,
-                    dir: 'rtl',
-                    width: '100%',
-                    language: {
-                        noResults: () => 'لم يتم العثور على نتائج',
-                        searching: () => 'جاري البحث...'
-                    }
-                });
-                console.log('🔄 [CASH] Re-activated Select2 after form clone');
-            }
-        }, 100);
-        
+        receiptForm.addEventListener('submit', (e) => this.handleFormSubmit(e));
         console.log('✅ [CASH] Form listener attached');
     }
 
