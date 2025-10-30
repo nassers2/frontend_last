@@ -67,69 +67,68 @@ if (typeof window.CashApp !== 'undefined') {
             this.state.drivers = response.drivers;
             console.log(`✅ [CASH/DRIVERS] Loaded ${response.drivers.length} drivers`);
 
-            // Main select (form) - ID: driverId
-            const driverSelect = document.getElementById('driverId');
-            if (driverSelect) {
-                driverSelect.innerHTML = '<option value="">اختر السائق...</option>';
+            // تحميل السائقين في dropdown النموذج
+            const driverSelect = $('#driverId');
+            if (driverSelect.length) {
+                // تدمير Select2 القديم
+                if (driverSelect.data('select2')) {
+                    driverSelect.select2('destroy');
+                }
+
+                // مسح الخيارات القديمة
+                driverSelect.empty();
+                
+                // إضافة الخيار الافتراضي
+                driverSelect.append('<option value="">اختر السائق...</option>');
+                
+                // إضافة السائقين
                 response.drivers.forEach(d => {
-                    const opt = document.createElement('option');
-                    opt.value = d.driver_id;
                     const driverName = d.name || d.driver_name || d.full_name || ('سائق ' + d.driver_id);
-                    opt.textContent = driverName;
-                    driverSelect.appendChild(opt);
+                    driverSelect.append(`<option value="${d.driver_id}">${driverName}</option>`);
                 });
 
-                // Initialize Select2 after adding options
-                setTimeout(() => {
-                    if ($(driverSelect).data('select2')) {
-                        $(driverSelect).select2('destroy');
+                // تفعيل Select2
+                driverSelect.select2({
+                    placeholder: 'ابحث عن السائق...',
+                    allowClear: true,
+                    dir: 'rtl',
+                    width: '100%',
+                    language: {
+                        noResults: () => 'لم يتم العثور على نتائج',
+                        searching: () => 'جاري البحث...'
                     }
-                    
-                    $(driverSelect).select2({
-                        placeholder: 'ابحث عن السائق...',
-                        allowClear: true,
-                        dir: 'rtl',
-                        width: '100%',
-                        language: {
-                            noResults: () => 'لم يتم العثور على نتائج',
-                            searching: () => 'جاري البحث...'
-                        }
-                    });
-                    
-                    console.log('✅ [CASH] Select2 initialized for driverId');
-                }, 100);
+                });
+                
+                console.log('✅ [CASH] Select2 initialized for driverId');
             }
 
-            // Filter select
-            const filterDriver = document.getElementById('filterDriver');
-            if (filterDriver) {
-                filterDriver.innerHTML = '<option value="">جميع السائقين</option>';
+            // تحميل السائقين في dropdown الفلتر
+            const filterDriver = $('#filterDriver');
+            if (filterDriver.length) {
+                if (filterDriver.data('select2')) {
+                    filterDriver.select2('destroy');
+                }
+
+                filterDriver.empty();
+                filterDriver.append('<option value="">جميع السائقين</option>');
+                
                 response.drivers.forEach(d => {
-                    const opt = document.createElement('option');
-                    opt.value = d.driver_id;
                     const driverName = d.name || d.driver_name || d.full_name || ('سائق ' + d.driver_id);
-                    opt.textContent = driverName;
-                    filterDriver.appendChild(opt);
+                    filterDriver.append(`<option value="${d.driver_id}">${driverName}</option>`);
                 });
 
-                setTimeout(() => {
-                    if ($(filterDriver).data('select2')) {
-                        $(filterDriver).select2('destroy');
+                filterDriver.select2({
+                    placeholder: 'اختر السائق...',
+                    allowClear: true,
+                    dir: 'rtl',
+                    width: '100%',
+                    language: {
+                        noResults: () => 'لم يتم العثور على نتائج',
+                        searching: () => 'جاري البحث...'
                     }
-                    
-                    $(filterDriver).select2({
-                        placeholder: 'اختر السائق...',
-                        allowClear: true,
-                        dir: 'rtl',
-                        width: '100%',
-                        language: {
-                            noResults: () => 'لم يتم العثور على نتائج',
-                            searching: () => 'جاري البحث...'
-                        }
-                    });
-                    
-                    console.log('✅ [CASH] Select2 initialized for filterDriver');
-                }, 100);
+                });
+                
+                console.log('✅ [CASH] Select2 initialized for filterDriver');
             }
         } else {
             console.error('❌ [CASH/DRIVERS] Invalid response:', response);
