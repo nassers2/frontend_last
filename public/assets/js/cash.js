@@ -578,62 +578,7 @@ if (typeof window.CashApp !== 'undefined') {
     }
 },
 
-renderReceipts: function() {
-    const container = document.getElementById('receiptsTableContainer');
-    
-    if (this.state.receipts.length === 0) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <i data-lucide="inbox" style="width: 64px; height: 64px;"></i>
-                <p>لا توجد سجلات</p>
-            </div>
-        `;
-        if (typeof lucide !== 'undefined') lucide.createIcons();
-    } else {
-        container.innerHTML = `
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>التاريخ</th>
-                            <th>السائق</th>
-                            <th>المبلغ</th>
-                            <th>الملاحظات</th>
-                            <th>حالة الفترة</th>
-                            <th>إجراءات</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${this.state.receipts.map(r => `
-                            <tr>
-                                <td>${this.formatDateTime(r.receipt_date)}</td>
-                                <td>${r.driver_name || '-'}</td>
-                                <td class="amount">${this.formatCurrency(r.amount)}</td>
-                                <td>${r.notes || '-'}</td>
-                                <td>
-                                    <span class="badge ${r.period_status === 'active' ? 'badge-success' : 'badge-secondary'}">
-                                        ${r.period_status === 'active' ? 'نشط' : 'مغلق'}
-                                    </span>
-                                </td>
-                                <td>
-                                    ${r.period_status === 'active' ? 
-                                        `<button class="btn btn-sm btn-danger" onclick="CashApp.deleteReceipt('${r.id}')">
-                                            <i data-lucide="trash-2"></i>
-                                        </button>` : 
-                                        '<span class="text-muted">-</span>'
-                                    }
-                                </td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            </div>
-        `;
-        if (typeof lucide !== 'undefined') lucide.createIcons();
-    }
-    
-    console.log(`✅ [CASH/RECEIPTS] Rendered ${this.state.receipts.length} receipts`);
-},
+
     formatCurrency: function(amount) {
         return new Intl.NumberFormat('en-US', {
             style: 'currency',
