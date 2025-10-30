@@ -57,11 +57,10 @@ if (typeof window.CashApp !== 'undefined') {
         });
     },
 
-   loadDrivers: async function() {
+  loadDrivers: async function() {
     try {
         console.log('📡 [CASH/DRIVERS] Loading...');
 
-        // استخدام API الصحيح
         const response = await API.call('/cash/drivers', 'GET');
 
         if (response.success && response.drivers) {
@@ -75,49 +74,31 @@ if (typeof window.CashApp !== 'undefined') {
                 response.drivers.forEach(d => {
                     const opt = document.createElement('option');
                     opt.value = d.driver_id;
-                    // Try multiple field names for driver name
                     const driverName = d.name || d.driver_name || d.full_name || ('سائق ' + d.driver_id);
                     opt.textContent = driverName;
                     driverSelect.appendChild(opt);
                 });
 
-        // Initialize Select2 after a small delay
-setTimeout(() => {
-    // Destroy existing Select2 if any
-    if ($(driverSelect).data('select2')) {
-        $(driverSelect).select2('destroy');
-    }
-    
-    // Initialize Select2
-    $(driverSelect).select2({
-        placeholder: 'ابحث عن السائق...',
-        allowClear: true,
-        dir: 'rtl',
-        width: '100%',
-        dropdownParent: $(driverSelect).parent(),
-        language: {
-            noResults: () => 'لم يتم العثور على نتائج',
-            searching: () => 'جاري البحث...'
-        }
-    });
-    
-    console.log('✅ [CASH] Select2 initialized for driverId');
-}, 100);
-            } setTimeout(() => {
-    if ($(filterDriver).data('select2')) {
-        $(filterDriver).select2('destroy');
-    }
-    
-    $(filterDriver).select2({
-        placeholder: 'اختر السائق...',
-        allowClear: true,
-        dir: 'rtl',
-        width: '100%',
-        dropdownParent: $(filterDriver).parent()
-    });
-    
-    console.log('✅ [CASH] Select2 initialized for filterDriver');
-}, 100);
+                // Initialize Select2 after adding options
+                setTimeout(() => {
+                    if ($(driverSelect).data('select2')) {
+                        $(driverSelect).select2('destroy');
+                    }
+                    
+                    $(driverSelect).select2({
+                        placeholder: 'ابحث عن السائق...',
+                        allowClear: true,
+                        dir: 'rtl',
+                        width: '100%',
+                        language: {
+                            noResults: () => 'لم يتم العثور على نتائج',
+                            searching: () => 'جاري البحث...'
+                        }
+                    });
+                    
+                    console.log('✅ [CASH] Select2 initialized for driverId');
+                }, 100);
+            }
 
             // Filter select
             const filterDriver = document.getElementById('filterDriver');
@@ -131,11 +112,24 @@ setTimeout(() => {
                     filterDriver.appendChild(opt);
                 });
 
-                $(filterDriver).select2({
-                    placeholder: 'اختر السائق...',
-                    allowClear: true,
-                    dir: 'rtl'
-                });
+                setTimeout(() => {
+                    if ($(filterDriver).data('select2')) {
+                        $(filterDriver).select2('destroy');
+                    }
+                    
+                    $(filterDriver).select2({
+                        placeholder: 'اختر السائق...',
+                        allowClear: true,
+                        dir: 'rtl',
+                        width: '100%',
+                        language: {
+                            noResults: () => 'لم يتم العثور على نتائج',
+                            searching: () => 'جاري البحث...'
+                        }
+                    });
+                    
+                    console.log('✅ [CASH] Select2 initialized for filterDriver');
+                }, 100);
             }
         } else {
             console.error('❌ [CASH/DRIVERS] Invalid response:', response);
