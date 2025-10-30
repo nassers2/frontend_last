@@ -378,40 +378,62 @@ if (typeof window.CashApp !== 'undefined') {
         }
     },
 
-    setupEventListeners: function() {
-        console.log('🔧 [CASH] Setting up event listeners...');
+   setupEventListeners: function() {
+    console.log('🔧 [CASH] Setting up event listeners...');
 
-        // Receipt form submission
-        const receiptForm = document.getElementById('receiptForm');
-        if (receiptForm) {
-            // Remove existing listeners
-            const newForm = receiptForm.cloneNode(true);
-            receiptForm.parentNode.replaceChild(newForm, receiptForm);
-            
-            newForm.addEventListener('submit', (e) => this.handleFormSubmit(e));
-            console.log('✅ [CASH] Form listener attached');
-        }
+    // Receipt form submission - بدون cloning!
+    const receiptForm = document.getElementById('receiptForm');
+    if (receiptForm) {
+        // إزالة listeners القديمة فقط بدون cloning
+        receiptForm.replaceWith(receiptForm.cloneNode(true));
+        
+        // الحصول على المرجع الجديد
+        const form = document.getElementById('receiptForm');
+        
+        // إضافة listener جديد
+        form.addEventListener('submit', (e) => this.handleFormSubmit(e));
+        
+        // ⭐ إعادة تفعيل Select2 بعد الـ cloning
+        setTimeout(() => {
+            const driverSelect = $('#driverId');
+            if (driverSelect.length && !driverSelect.hasClass('select2-hidden-accessible')) {
+                driverSelect.select2({
+                    placeholder: 'ابحث عن السائق...',
+                    allowClear: true,
+                    dir: 'rtl',
+                    width: '100%',
+                    language: {
+                        noResults: () => 'لم يتم العثور على نتائج',
+                        searching: () => 'جاري البحث...'
+                    }
+                });
+                console.log('🔄 [CASH] Re-activated Select2 after form clone');
+            }
+        }, 100);
+        
+        console.log('✅ [CASH] Form listener attached');
+    }
 
-        // Close period button
-        const closePeriodBtn = document.getElementById('closePeriodBtn');
-        if (closePeriodBtn) {
-            closePeriodBtn.addEventListener('click', () => this.showClosePeriodModal());
-        }
+    // Close period button
+    const closePeriodBtn = document.getElementById('closePeriodBtn');
+    if (closePeriodBtn) {
+        closePeriodBtn.addEventListener('click', () => this.showClosePeriodModal());
+    }
 
-        // Confirm close period
-        const confirmCloseBtn = document.getElementById('confirmCloseBtn');
-        if (confirmCloseBtn) {
-            confirmCloseBtn.addEventListener('click', () => this.closePeriod());
-        }
+    // Confirm close period
+    const confirmCloseBtn = document.getElementById('confirmCloseBtn');
+    if (confirmCloseBtn) {
+        confirmCloseBtn.addEventListener('click', () => this.closePeriod());
+    }
 
-        // Apply filters
-        const applyFiltersBtn = document.getElementById('applyFiltersBtn');
-        if (applyFiltersBtn) {
-            applyFiltersBtn.addEventListener('click', () => this.applyFilters());
-        }
+    // Apply filters
+    const applyFiltersBtn = document.getElementById('applyFiltersBtn');
+    if (applyFiltersBtn) {
+        applyFiltersBtn.addEventListener('click', () => this.applyFilters());
+    }
 
-        console.log('✅ [CASH] Event listeners setup');
-    },
+    console.log('✅ [CASH] Event listeners setup');
+},
 
     handleFormSubmit: async function(e) {
         e.preventDefault();
