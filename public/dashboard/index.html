@@ -661,24 +661,6 @@
             font-size: 0.9rem;
         }
 
-        /* Responsive */
-        @media (max-width: 1024px) {
-            .sidebar {
-                transform: translateX(100%);
-            }
-
-            .sidebar.active {
-                transform: translateX(0);
-            }
-
-            .main-content {
-                margin-right: 0;
-            }
-
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
 
         @media (max-width: 768px) {
     .stats-grid {
@@ -1347,6 +1329,24 @@
 @media (max-width: 480px) {
     .page-title {
         font-size: 1rem;
+    }
+}
+
+
+
+@media (max-width: 1024px) {
+    .sidebar {
+        height: 100vh;
+        height: 100dvh; 
+        min-height: 100vh;
+        max-height: 100vh;
+        overflow-y: auto;
+    }
+    
+    .sidebar.active {
+        transform: translateX(0);
+        height: 100vh;
+        height: 100dvh;
     }
 }
     </style>
