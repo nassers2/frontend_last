@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تفاصيل الدفع - Flee Master</title>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #667eea;
+            --primary-dark: #5568d3;
+            --secondary: #10b981;
+            --danger: #ef4444;
+            --dark: #1e293b;
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-500: #64748b;
+            --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: var(--gray-50);
+            color: var(--dark);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            padding: 1.5rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--gradient);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .logo-icon svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--gray-500);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            color: var(--primary);
+        }
+
+        .back-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 3rem 2rem;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        /* Plan Summary */
+        .plan-summary {
+            background: var(--gradient);
+            color: white;
+            padding: 2.5rem;
+            border-radius: 20px;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .plan-summary h1 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .plan-details {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 2rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .plan-detail-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .plan-detail-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .plan-detail-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+        }
+
+        /* Payment Info */
+        .payment-section {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: var(--dark);
+        }
+
+        .section-title svg {
+            width: 28px;
+            height: 28px;
+            stroke: var(--primary);
+        }
+
+        .info-grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.2rem;
+            background: var(--gray-50);
+            border-radius: 12px;
+            border: 2px solid var(--gray-200);
+            transition: all 0.3s ease;
+        }
+
+        .info-item:hover {
+            border-color: var(--primary);
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: var(--gray-500);
+            font-size: 0.95rem;
+        }
+
+        .info-value {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--dark);
+            direction: ltr;
+            text-align: left;
+        }
+
+        .copy-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .copy-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .copy-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Instructions */
+        .instructions {
+            background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+            padding: 2rem;
+            border-radius: 16px;
+            border-right: 4px solid #f59e0b;
+        }
+
+        .instructions h3 {
+            color: #d97706;
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .instructions h3 svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .instructions ol {
+            margin-right: 1.5rem;
+            color: #92400e;
+            line-height: 2;
+        }
+
+        .instructions li {
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+        }
+
+        .instructions strong {
+            color: #b45309;
+        }
+
+        /* Contact Section */
+        .contact-section {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+
+        .contact-section h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--dark);
+        }
+
+        .contact-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .contact-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .whatsapp-btn {
+            background: #25D366;
+            color: white;
+        }
+
+        .whatsapp-btn:hover {
+            background: #1da851;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(37, 211, 102, 0.3);
+        }
+
+        .email-btn {
+            background: var(--gradient);
+            color: white;
+        }
+
+        .email-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .contact-btn svg {
+            width: 22px;
+            height: 22px;
+        }
+
+        /* Alert Box */
+        .alert {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border-right: 4px solid #3b82f6;
+            margin-top: 2rem;
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .alert svg {
+            width: 24px;
+            height: 24px;
+            stroke: #1e40af;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .alert-content {
+            flex: 1;
+        }
+
+        .alert-content strong {
+            color: #1e40af;
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 1.05rem;
+        }
+
+        .alert-content p {
+            color: #1e3a8a;
+            line-height: 1.6;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 2rem 1rem;
+            }
+
+            .payment-section,
+            .contact-section {
+                padding: 1.5rem;
+            }
+
+            .plan-details {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .info-item {
+                flex-direction: column;
+                gap: 0.75rem;
+                text-align: center;
+            }
+
+            .info-value {
+                text-align: center;
+            }
+
+            .contact-buttons {
+                flex-direction: column;
+            }
+
+            .contact-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--secondary);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            display: none;
+            align-items: center;
+            gap: 0.75rem;
+            animation: slideIn 0.3s ease;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            display: flex;
+        }
+
+        .toast svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-container">
+            <a href="./landing.html" class="logo">
+                <div class="logo-icon">
+                    <i data-lucide="truck"></i>
+                </div>
+                <span>Flee Master</span>
+            </a>
+            <a href="./landing.html#pricing" class="back-btn">
+                <i data-lucide="arrow-right"></i>
+                <span>العودة للأسعار</span>
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            
+            <!-- Plan Summary -->
+            <div class="plan-summary">
+                <h1 id="plan-title">الباقة الأساسية</h1>
+                <p>شكراً لاختيارك Flee Master</p>
+                <div class="plan-details">
+                    <div class="plan-detail-item">
+                        <span class="plan-detail-label">المبلغ الإجمالي</span>
+                        <span class="plan-detail-value" id="total-amount">299 ر.س</span>
+                    </div>
+                    <div class="plan-detail-item">
+                        <span class="plan-detail-label">نوع الاشتراك</span>
+                        <span class="plan-detail-value" id="subscription-type">شهري</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Info -->
+            <div class="payment-section">
+                <h2 class="section-title">
+                    <i data-lucide="building-2"></i>
+                    معلومات التحويل البنكي
+                </h2>
+                
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">اسم المؤسسة</span>
+                        <span class="info-value">وايزر لتقنية المعلومات</span>
+                    </div>
+                    
+                    <div class="info-item">
+                        <span class="info-label">رقم الحساب البنكي</span>
+                        <div style="display: flex; gap: 1rem; align-items: center;">
+                            <span class="info-value" id="account-number">SA1234567890123456789012</span>
+                            <button class="copy-btn" onclick="copyToClipboard('account-number')">
+                                <i data-lucide="copy"></i>
+                                نسخ
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <span class="info-label">رقم الآيبان (IBAN)</span>
+                        <div style="display: flex; gap: 1rem; align-items: center;">
+                            <span class="info-value" id="iban">SA1234567890123456789012</span>
+                            <button class="copy-btn" onclick="copyToClipboard('iban')">
+                                <i data-lucide="copy"></i>
+                                نسخ
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Instructions -->
+                <div class="instructions">
+                    <h3>
+                        <i data-lucide="clipboard-list"></i>
+                        تعليمات الدفع
+                    </h3>
+                    <ol>
+                        <li>قم بتحويل المبلغ المذكور أعلاه إلى الحساب البنكي</li>
+                        <li>احتفظ بإيصال التحويل أو لقطة شاشة</li>
+                        <li>تواصل معنا عبر <strong>واتساب</strong> أو <strong>البريد الإلكتروني</strong> وأرفق الإيصال</li>
+                        <li>سيتم تفعيل حسابك خلال <strong>24 ساعة</strong> من استلام التحويل</li>
+                        <li>ستصلك

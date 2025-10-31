@@ -1008,6 +1008,101 @@
         .animate-on-scroll:nth-child(2) { animation-delay: 0.2s; }
         .animate-on-scroll:nth-child(3) { animation-delay: 0.3s; }
         .animate-on-scroll:nth-child(4) { animation-delay: 0.4s; }
+        /* Pricing Toggle */
+.pricing-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding: 1rem;
+    background: #f8fafc;
+    border-radius: 50px;
+    display: inline-flex;
+}
+
+.toggle-label {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--dark);
+    transition: all 0.3s ease;
+}
+
+.toggle-label.active {
+    color: var(--primary);
+}
+
+.discount-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    margin-right: 0.5rem;
+}
+
+/* Switch Toggle */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 30px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #cbd5e1;
+    transition: 0.4s;
+    border-radius: 34px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 22px;
+    width: 22px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: 0.4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background: var(--gradient);
+}
+
+input:checked + .slider:before {
+    transform: translateX(30px);
+}
+
+.price-note {
+    min-height: 30px;
+    margin-top: 0.5rem;
+}
+
+.yearly-note {
+    font-size: 0.9rem;
+    color: #10b981;
+    font-weight: 600;
+}
+
+.pricing-card.featured .yearly-note {
+    color: rgba(255, 255, 255, 0.9);
+}
     </style>
 </head>
 <body>
@@ -1236,48 +1331,74 @@
     </section>
 
     <!-- Pricing Section -->
-    <section class="pricing" id="pricing">
-        <div class="pricing-container">
-            <div class="section-header">
-                <span class="section-tag">الأسعار</span>
-                <h2>خطط مرنة تناسب احتياجاتك</h2>
-                <p>اختر الخطة المناسبة لحجم أسطولك وابدأ فوراً</p>
-            </div>
-            <div class="pricing-cards">
-                <div class="pricing-card">
-                    <h3>الباقة الأساسية</h3>
-                    <div class="pricing-price">
-                        299 <span>ر.س/شهرياً</span>
-                    </div>
-                    <ul class="pricing-features">
-                        <li>حتى 20 مندوب</li>
-                        <li>مزامنة تلقائية مع جاهز</li>
-                        <li>نظام رواتب متقدم</li>
-                        <li>تقارير شهرية</li>
-                        <li>دعم فني عبر الإيميل</li>
-                    </ul>
-                    <a href="index.html" class="btn btn-primary" style="width: 100%; margin-top: 2rem;">ابدأ الآن</a>
-                </div>
-
-                <div class="pricing-card featured">
-                    <div class="pricing-badge">الأكثر شعبية</div>
-                    <h3>الباقة الاحترافية</h3>
-                    <div class="pricing-price">
-                        599 <span>ر.س/شهرياً</span>
-                    </div>
-                    <ul class="pricing-features">
-                        <li>حتى 50 مندوب</li>
-                        <li>كل مميزات الأساسية</li>
-                        <li>تقارير متقدمة</li>
-                        <li>تصدير بيانات متعدد</li>
-                        <li>دعم فني ذو أولوية</li>
-                        <li>تخصيص معادلات الرواتب</li>
-                    </ul>
-                    <a href="index.html" class="btn btn-white" style="width: 100%; margin-top: 2rem;">ابدأ الآن</a>
-                </div>
+    <!-- Pricing Section -->
+<section class="pricing" id="pricing">
+    <div class="pricing-container">
+        <div class="section-header">
+            <span class="section-tag">الأسعار</span>
+            <h2>خطط مرنة تناسب احتياجاتك</h2>
+            <p>اختر الخطة المناسبة لحجم أسطولك وابدأ فوراً</p>
+            
+            <!-- Toggle شهري/سنوي -->
+            <div class="pricing-toggle">
+                <span class="toggle-label" id="monthly-label">شهري</span>
+                <label class="switch">
+                    <input type="checkbox" id="pricing-switch" onchange="togglePricing()">
+                    <span class="slider"></span>
+                </label>
+                <span class="toggle-label" id="yearly-label">
+                    سنوي 
+                    <span class="discount-badge">وفّر 10%</span>
+                </span>
             </div>
         </div>
-    </section>
+        
+        <div class="pricing-cards">
+            <!-- الباقة الأساسية -->
+            <div class="pricing-card">
+                <h3>الباقة الأساسية</h3>
+                <div class="pricing-price">
+                    <span class="price-amount" data-monthly="299" data-yearly="3229">299</span>
+                    <span class="price-currency">ر.س</span>
+                    <span class="price-period">/شهرياً</span>
+                </div>
+                <div class="price-note">
+                    <span class="yearly-note" style="display: none;">3,229 ر.س سنوياً (وفّر 359 ر.س)</span>
+                </div>
+                <ul class="pricing-features">
+                    <li>حتى 20 مندوب</li>
+                    <li>مزامنة تلقائية مع جاهز</li>
+                    <li>نظام رواتب متقدم</li>
+                    <li>تقارير شهرية</li>
+                    <li>دعم فني عبر الإيميل</li>
+                </ul>
+                <a href="../payment-details.html?plan=basic&type=monthly" class="btn btn-primary pricing-btn" data-plan="basic">اشترك الآن</a>
+            </div>
+
+            <!-- الباقة الاحترافية -->
+            <div class="pricing-card featured">
+                <div class="pricing-badge">الأكثر شعبية</div>
+                <h3>الباقة الاحترافية</h3>
+                <div class="pricing-price">
+                    <span class="price-amount" data-monthly="599" data-yearly="6469">599</span>
+                    <span class="price-currency">ر.س</span>
+                    <span class="price-period">/شهرياً</span>
+                </div>
+                <div class="price-note">
+                    <span class="yearly-note" style="display: none;">6,469 ر.س سنوياً (وفّر 719 ر.س)</span>
+                </div>
+                <ul class="pricing-features">
+                    <li>حتى 60 مندوب</li>
+                    <li>كل مميزات الأساسية</li>
+                    <li>تصدير بيانات متعدد</li>
+                    <li>دعم فني ذو أولوية</li>
+                    <li>تخصيص معادلات الرواتب</li>
+                </ul>
+                <a href="../payment-details.html?plan=pro&type=monthly" class="btn btn-white pricing-btn" data-plan="pro">اشترك الآن</a>
+            </div>
+        </div>
+    </div>
+</section>
 
     <!-- CTA Section -->
     <section class="cta">
@@ -1312,7 +1433,6 @@
                 <ul>
                     <li><a href="#about">من نحن</a></li>
                     <li><a href="#contact">تواصل معنا</a></li>
-                    <li><a href="#careers">الوظائف</a></li>
                 </ul>
             </div>
             <div class="footer-links">
@@ -1320,7 +1440,6 @@
                 <ul>
                     <li><a href="#features">المميزات</a></li>
                     <li><a href="#pricing">الأسعار</a></li>
-                    <li><a href="#docs">التوثيق</a></li>
                 </ul>
             </div>
             <div class="footer-links">
@@ -1338,10 +1457,10 @@
     </footer>
 
     <script>
-        // Initialize Lucide Icons
+       
         lucide.createIcons();
 
-        // Navbar scroll effect
+        
         window.addEventListener('scroll', () => {
             const navbar = document.querySelector('.navbar');
             if (window.scrollY > 50) {
@@ -1351,7 +1470,7 @@
             }
         });
 
-        // Smooth scrolling
+       
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
@@ -1365,7 +1484,6 @@
             });
         });
 
-        // Animate elements on scroll
         const observerOptions = {
             threshold: 0.2,
             rootMargin: '0px 0px -100px 0px'
@@ -1383,6 +1501,43 @@
         document.querySelectorAll('.animate-on-scroll').forEach(el => {
             observer.observe(el);
         });
+
+       
+function togglePricing() {
+    const isYearly = document.getElementById('pricing-switch').checked;
+    const priceAmounts = document.querySelectorAll('.price-amount');
+    const pricePeriods = document.querySelectorAll('.price-period');
+    const yearlyNotes = document.querySelectorAll('.yearly-note');
+    const pricingBtns = document.querySelectorAll('.pricing-btn');
+    
+    priceAmounts.forEach(amount => {
+        const monthly = amount.getAttribute('data-monthly');
+        const yearly = amount.getAttribute('data-yearly');
+        amount.textContent = isYearly ? yearly : monthly;
+    });
+    
+    pricePeriods.forEach(period => {
+        period.textContent = isYearly ? '/سنوياً' : '/شهرياً';
+    });
+    
+    yearlyNotes.forEach(note => {
+        note.style.display = isYearly ? 'block' : 'none';
+    });
+    
+    
+    pricingBtns.forEach(btn => {
+        const plan = btn.getAttribute('data-plan');
+        const type = isYearly ? 'yearly' : 'monthly';
+        btn.href = `./payment-details.html?plan=${plan}&type=${type}`;
+    });
+    
+    
+    document.getElementById('monthly-label').classList.toggle('active', !isYearly);
+    document.getElementById('yearly-label').classList.toggle('active', isYearly);
+}
+
+
+document.getElementById('monthly-label').classList.add('active');
     </script>
 
 </body>
