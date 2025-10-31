@@ -172,7 +172,7 @@
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 1.5rem;
-            margin-bottom: 2.5rem;
+            margin-bottom: 2rem;
         }
 
         .feature-item {
@@ -269,32 +269,6 @@
             margin-top: 0.5rem;
         }
 
-        /* Back Button */
-        .back-button {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.875rem 2rem;
-            background: var(--gradient);
-            color: white;
-            text-decoration: none;
-            border-radius: 12px;
-            font-weight: 800;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-        }
-
-        .back-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 25px rgba(102, 126, 234, 0.4);
-        }
-
-        .back-button svg {
-            width: 20px;
-            height: 20px;
-        }
-
         /* Responsive */
         @media (max-width: 640px) {
             .container {
@@ -329,7 +303,6 @@
         .loading-dots {
             display: inline-flex;
             gap: 0.35rem;
-            margin-top: 1rem;
         }
 
         .loading-dot {
@@ -382,7 +355,7 @@
             هذه الصفحة قيد التطوير حالياً. نعمل على إضافة ميزات جديدة ومحسنة لتحسين تجربتك في استخدام FleetMaster.
         </p>
 
-       
+        <!-- Progress Bar -->
         <div class="progress-container">
             <div class="progress-label">
                 <i data-lucide="code-2"></i>
@@ -394,7 +367,7 @@
             <div class="progress-percentage">65% مكتمل</div>
         </div>
 
-        
+        <!-- Features Coming Soon -->
         <div class="features">
             <div class="feature-item">
                 <i data-lucide="sparkles"></i>
@@ -410,22 +383,16 @@
             </div>
         </div>
 
-        
+        <!-- Loading Animation -->
         <div class="loading-dots">
             <div class="loading-dot"></div>
             <div class="loading-dot"></div>
             <div class="loading-dot"></div>
         </div>
-
-      
-        <a href="javascript:history.back()" class="back-button" style="margin-top: 2rem;">
-            <i data-lucide="arrow-right"></i>
-            <span>العودة للخلف</span>
-        </a>
     </div>
 
     <script>
-       
+        // Initialize Lucide Icons
         lucide.createIcons();
     </script>
 </body>
