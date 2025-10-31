@@ -54,18 +54,19 @@
 
         /* Sidebar Styles */
         .sidebar {
-            width: var(--sidebar-width);
-            background: white;
-            border-left: 1px solid var(--gray-200);
-            display: flex;
-            flex-direction: column;
-            position: fixed;
-            right: 0;
-            top: 0;
-            height: 100vh;
-            z-index: 1000;
-            transition: all 0.3s ease;
-        }
+    width: var(--sidebar-width);
+    background: white;
+    border-left: 1px solid var(--gray-200);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    right: 0;
+    top: 0;
+    bottom: 0;  /* ← أضف هذا */
+    height: 100vh;
+    z-index: 1000;
+    transition: all 0.3s ease;
+}
 
         .sidebar-header {
             padding: 1.5rem;
@@ -1139,31 +1140,39 @@
 
         /* Responsive */
         @media (max-width: 1024px) {
-            .sidebar {
-                transform: translateX(100%);
-            }
-
-            .sidebar.active {
-                transform: translateX(0);
-            }
-
-            .main-content {
-                margin-right: 0;
-            }
-
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .company-header-content {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .date-controls {
-                width: 100%;
-            }
-        }
+    .sidebar {
+        position: fixed;  
+        top: 0;
+        bottom: 0;  
+        right: 0;
+        height: 100%;  
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+        z-index: 1000;
+        box-shadow: -4px 0 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    .sidebar.active {
+        transform: translateX(0);
+    }
+    
+    .main-content {
+        margin-right: 0;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .company-header-content {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .date-controls {
+        width: 100%;
+    }
+}
 
         @media (max-width: 768px) {
             .stats-grid {
@@ -1278,10 +1287,10 @@
     opacity: 1;
 }
 
-/* Update existing media query */
+
 @media (max-width: 1024px) {
     .mobile-menu-btn {
-        display: flex;  /* يظهر على الجوال */
+        display: flex;  
     }
     
     .sidebar {
