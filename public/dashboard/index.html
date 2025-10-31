@@ -681,30 +681,73 @@
         }
 
         @media (max-width: 768px) {
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
 
-            .actions-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
+    .actions-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
 
-            .search-box input {
-                width: 200px;
-            }
+    .search-box input {
+        width: 200px;
+    }
 
-            .search-box input:focus {
-                width: 240px;
-            }
+    .search-box input:focus {
+        width: 240px;
+    }
 
-            .content-area {
-                padding: 1.5rem;
-            }
+    .content-area {
+        padding: 1.5rem;
+    }
 
-            .top-bar {
-                padding: 0 1.5rem;
-            }
-        }
+    .top-bar {
+        padding: 0 1.5rem;
+    }
+
+    /* جدول scrollable أفقياً */
+    .performance-table-card {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    table {
+        min-width: 800px; /* الجدول يحافظ على عرضه */
+        font-size: 0.8125rem;
+    }
+
+    th, td {
+        padding: 0.75rem 0.5rem;
+        white-space: nowrap; /* يمنع النص من الانكسار */
+    }
+
+    .driver-avatar {
+        width: 32px;
+        height: 32px;
+        font-size: 0.875rem;
+    }
+
+    .date-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .date-input-wrapper {
+        justify-content: space-between;
+    }
+
+    /* مؤشر بصري اختياري */
+    .performance-table-card::after {
+        content: '← اسحب لرؤية المزيد';
+        display: block;
+        text-align: center;
+        font-size: 0.75rem;
+        color: var(--gray-400);
+        padding: 0.5rem;
+        background: var(--gray-50);
+        border-top: 1px solid var(--gray-200);
+    }
+}
 
         /* Company Header Card */
         .company-header-card {
