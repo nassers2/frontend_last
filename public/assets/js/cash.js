@@ -95,9 +95,7 @@ if (typeof window.CashApp !== 'undefined') {
                         noResults: () => 'لم يتم العثور على نتائج',
                         searching: () => 'جاري البحث...',
                         inputTooShort: () => 'الرجاء إدخال حرف واحد على الأقل'
-                    },
-                    // ⭐ مهم جداً: تحديد مكان الـ dropdown
-                    dropdownParent: $('.card-body').first()
+                    }
                 });
                 
                 // التأكد من أن Select2 يعمل
@@ -446,7 +444,7 @@ if (typeof window.CashApp !== 'undefined') {
             const result = await API.createCashReceipt(driverId, amount, null, notes);
 
             if (result.success) {
-                alert('✅ تم حفظ الإيصال بنجاح');
+                console.log('✅ [CASH/SUBMIT] تم حفظ الإيصال بنجاح');
                 document.getElementById('receiptForm').reset();
                 
                 // Reset Select2
@@ -459,12 +457,10 @@ if (typeof window.CashApp !== 'undefined') {
 
                 console.log('✅ [CASH/SUBMIT] Success');
             } else {
-                alert('❌ ' + (result.message || 'فشل الحفظ'));
-                console.error('❌ [CASH/SUBMIT] Error:', result);
+                console.error('❌ [CASH/SUBMIT] فشل الحفظ:', result.message || result);
             }
         } catch (error) {
-            console.error('❌ [CASH/SUBMIT] Error:', error);
-            alert('❌ حدث خطأ في الحفظ: ' + error.message);
+            console.error('❌ [CASH/SUBMIT] حدث خطأ في الحفظ:', error.message);
         } finally {
             this.state.isSubmitting = false;
             if (submitBtn) {
@@ -486,7 +482,7 @@ if (typeof window.CashApp !== 'undefined') {
 
     closePeriod: async function() {
         if (!this.state.currentPeriod) {
-            alert('لا توجد فترة نشطة');
+            console.warn('⚠️ لا توجد فترة نشطة');
             return;
         }
 
@@ -494,17 +490,16 @@ if (typeof window.CashApp !== 'undefined') {
             const result = await API.closeCashPeriod(this.state.currentPeriod.id);
 
             if (result.success) {
-                alert('✅ تم إنهاء الفترة بنجاح');
+                console.log('✅ [CASH] تم إنهاء الفترة بنجاح');
                 document.getElementById('confirmModal').classList.remove('show');
                 
                 // Reload all data
                 await this.init();
             } else {
-                alert('❌ ' + (result.message || 'فشل إنهاء الفترة'));
+                console.error('❌ [CASH] فشل إنهاء الفترة:', result.message || result);
             }
         } catch (error) {
-            console.error('❌ [CASH/CLOSE] Error:', error);
-            alert('❌ حدث خطأ: ' + error.message);
+            console.error('❌ [CASH/CLOSE] حدث خطأ:', error.message);
         }
     },
 
@@ -517,16 +512,15 @@ if (typeof window.CashApp !== 'undefined') {
             const result = await API.deleteCashReceipt(receiptId);
 
             if (result.success) {
-                alert('✅ تم حذف الإيصال');
+                console.log('✅ [CASH] تم حذف الإيصال');
                 await this.loadReceipts();
                 await this.loadSummary();
                 await this.loadCurrentPeriod();
             } else {
-                alert('❌ ' + (result.message || 'فشل الحذف'));
+                console.error('❌ [CASH] فشل الحذف:', result.message || result);
             }
         } catch (error) {
-            console.error('❌ [CASH/DELETE] Error:', error);
-            alert('❌ حدث خطأ: ' + error.message);
+            console.error('❌ [CASH/DELETE] حدث خطأ:', error.message);
         }
     },
 
@@ -673,5 +667,5 @@ if (typeof window.CashApp !== 'undefined') {
 
 
 window.CashApp = window.CashApp || {};
-// Don't auto-initialize - wait for navigation to call it
+
 console.log('✅ [CASH] Module ready');
