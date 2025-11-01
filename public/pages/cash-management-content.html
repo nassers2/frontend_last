@@ -570,7 +570,6 @@ select.form-control:not(.select2-hidden-accessible) {
     border: 2px solid var(--primary) !important;
 }
 
-
 .select2-hidden-accessible {
     border: 0 !important;
     clip: rect(0 0 0 0) !important;
@@ -582,12 +581,30 @@ select.form-control:not(.select2-hidden-accessible) {
     width: 1px !important;
 }
 
-
 .select2-search__field {
     width: 100% !important;
     padding: 0.5rem !important;
     border: 1px solid var(--gray-300) !important;
     border-radius: 4px !important;
+}
+
+/* ⭐ الحل النهائي: إخفاء Select2 عند فتح المودال */
+.modal.show ~ * .select2-container,
+.modal.show ~ .select2-container,
+body:has(.modal.show) .select2-dropdown {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+}
+
+/* منع ظهور Select2 dropdown فوق المودال */
+.modal.show {
+    z-index: 99999 !important;
+}
+
+.modal.show .modal-content {
+    z-index: 100000 !important;
+    position: relative;
 }
 
 </style>
