@@ -294,6 +294,15 @@
             border: 1px solid var(--border);
         }
 
+        .chart-card.revenue-chart {
+            padding: 1.25rem;
+        }
+
+        .chart-card.revenue-chart canvas {
+            height: 280px !important;
+            max-height: 280px !important;
+        }
+
         .chart-header {
             display: flex;
             justify-content: space-between;
@@ -604,14 +613,16 @@
 
         <!-- Charts -->
         <div class="charts-section">
-            <div class="chart-card">
+            <div class="chart-card revenue-chart">
                 <div class="chart-header">
                     <h3 class="chart-title">
                         <i data-lucide="bar-chart-3" style="width: 18px; height: 18px;"></i>
                         الإيرادات اليومية
                     </h3>
                 </div>
-                <canvas id="revenueChart" style="height: 280px; max-height: 280px;"></canvas>
+                <div style="height: 280px;">
+                    <canvas id="revenueChart"></canvas>
+                </div>
             </div>
 
             <div class="chart-card" id="cashStatusCard">
@@ -765,9 +776,40 @@
                 const container = document.getElementById('statsContainer');
                 if (!container) return;
                 
+                // حساب إجمالي الإيرادات من delivery_price
                 const totalRevenue = this.state.driversPerformance.reduce((sum, d) => 
-                    sum + parseFloat(d.total_cash || 0) + parseFloat(d.total_credit || 0), 0
+                    sum + parseFloat(d.total_delivery || 0), 0
                 );
+                
+                // حساب مقارنة بالشهر الماضي
+                const currentMonth = new Date().getMonth();
+                const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+                
+                // فلترة البيانات حسب الشهر
+                const currentMonthData = this.state.financialsByDate.filter(record => {
+                    const recordDate = new Date(record.date);
+                    return recordDate.getMonth() === currentMonth;
+                });
+                
+                const lastMonthData = this.state.financialsByDate.filter(record => {
+                    const recordDate = new Date(record.date);
+                    return recordDate.getMonth() === lastMonth;
+                });
+                
+                const currentMonthRevenue = currentMonthData.reduce((sum, r) => 
+                    sum + parseFloat(r.delivery_price || 0), 0
+                );
+                
+                const lastMonthRevenue = lastMonthData.reduce((sum, r) => 
+                    sum + parseFloat(r.delivery_price || 0), 0
+                );
+                
+                const revenueChange = lastMonthRevenue > 0 
+                    ? (((currentMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100).toFixed(1)
+                    : 0;
+                
+                const revenueChangeIcon = revenueChange >= 0 ? 'arrow-up' : 'arrow-down';
+                const revenueChangeTrend = revenueChange >= 0 ? 'up' : 'down';
                 
                 const totalOrders = this.state.driversPerformance.reduce((sum, d) => 
                     sum + parseInt(d.days_active || 0) * 10, 0
@@ -777,11 +819,17 @@
                     d.employment_status === 'active'
                 ).length;
                 
-                const avgDeliveryPerDriver = activeDrivers > 0 ? (totalRevenue / activeDrivers).toFixed(0) : 0;
+                const avgDeliveryPerDriver = activeDrivers > 0 
+                    ? (totalRevenue / activeDrivers).toFixed(0)
+                    : 0;
+                
                 const totalViolations = this.state.driversPerformance.reduce((sum, d) => 
                     sum + parseFloat(d.total_penalties || 0) + parseFloat(d.total_debit || 0), 0
                 );
-                const revenuePerDriver = activeDrivers > 0 ? (totalRevenue / activeDrivers).toFixed(0) : 0;
+                
+                const revenuePerDriver = activeDrivers > 0
+                    ? (totalRevenue / activeDrivers).toFixed(0)
+                    : 0;
                 
                 container.innerHTML = `
                     <div class="stat-card primary">
@@ -790,7 +838,13 @@
                             <div class="stat-icon"><i data-lucide="trending-up" style="width: 20px; height: 20px;"></i></div>
                         </div>
                         <div class="stat-value">${this.formatCurrency(totalRevenue)}</div>
-                        <div class="stat-footer"><span class="stat-footer-text">للفترة المحددة</span></div>
+                        <div class="stat-footer">
+                            <span class="stat-trend ${revenueChangeTrend}">
+                                <i data-lucide="${revenueChangeIcon}" style="width: 14px; height: 14px;"></i>
+                                ${Math.abs(revenueChange)}%
+                            </span>
+                            <span class="stat-footer-text">مقارنة بالشهر الماضي</span>
+                        </div>
                     </div>
                     <div class="stat-card success">
                         <div class="stat-top">
@@ -841,10 +895,11 @@
                 const canvas = document.getElementById('revenueChart');
                 if (!canvas) return;
                 
+                // تجميع delivery_price لكل تاريخ
                 const revenueByDate = {};
                 this.state.financialsByDate.forEach(record => {
                     const date = record.date;
-                    const revenue = parseFloat(record.cash_collected || 0) + parseFloat(record.driver_credit || 0);
+                    const revenue = parseFloat(record.delivery_price || 0);
                     if (!revenueByDate[date]) revenueByDate[date] = 0;
                     revenueByDate[date] += revenue;
                 });
@@ -906,16 +961,17 @@
                 const container = document.getElementById('cashStatusCard');
                 if (!container) return;
                 
-                const summary = this.state.cashSummary;
+                // المتوقع = مجموع cash_collected من driver_financials_daily
+                const totalExpected = this.state.financialsByDate.reduce((sum, record) => 
+                    sum + parseFloat(record.cash_collected || 0), 0
+                );
+                
+                // المستلم = total_received من cash_periods (الفترة النشطة)
                 const period = this.state.currentPeriod;
+                const totalCollected = period && period.status === 'active' 
+                    ? parseFloat(period.total_received || 0) 
+                    : 0;
                 
-                if (!summary || !period) {
-                    container.innerHTML = '<div class="loading"><p style="color: var(--text-light); padding: 2rem;">لا توجد بيانات متاحة</p></div>';
-                    return;
-                }
-                
-                const totalCollected = parseFloat(summary.total_amount || 0);
-                const totalExpected = period.total_received || 0;
                 const remaining = totalExpected - totalCollected;
                 const percentage = totalExpected > 0 ? ((totalCollected / totalExpected) * 100).toFixed(1) : 0;
                 
@@ -990,7 +1046,7 @@
                         ` : ''}
                         <div style="margin-top: 1rem; padding: 0.75rem; background: rgba(34, 197, 94, 0.1); border-radius: 8px; display: flex; align-items: center; gap: 0.5rem;">
                             <i data-lucide="info" style="width: 16px; height: 16px; color: var(--success);"></i>
-                            <span style="font-size: 0.8125rem; color: var(--success); font-weight: 600;">${summary.drivers_count || 0} مندوب نشط</span>
+                            <span style="font-size: 0.8125rem; color: var(--success); font-weight: 600;">الكاش المتبقي: ${this.formatCurrency(remaining)}</span>
                         </div>
                     </div>
                 `;
@@ -1005,8 +1061,8 @@
                 const drivers = this.state.driversPerformance
                     .filter(d => d.employment_status === 'active')
                     .sort((a, b) => {
-                        const aRevenue = parseFloat(a.total_cash || 0) + parseFloat(a.total_credit || 0);
-                        const bRevenue = parseFloat(b.total_cash || 0) + parseFloat(b.total_credit || 0);
+                        const aRevenue = parseFloat(a.total_delivery || 0);
+                        const bRevenue = parseFloat(b.total_delivery || 0);
                         return bRevenue - aRevenue;
                     })
                     .slice(0, 10);
@@ -1020,12 +1076,12 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>#</th><th>السائق</th><th>الأيام النشطة</th><th>الإيرادات</th><th>الكاش</th><th>الغرامات</th><th>الحالة</th>
+                                <th>#</th><th>السائق</th><th>الأيام النشطة</th><th>الإيرادات</th><th>الكاش</th><th>الغرامات</th>
                             </tr>
                         </thead>
                         <tbody>
                             ${drivers.map((driver, index) => {
-                                const revenue = parseFloat(driver.total_cash || 0) + parseFloat(driver.total_credit || 0);
+                                const revenue = parseFloat(driver.total_delivery || 0);
                                 const violations = parseFloat(driver.total_penalties || 0) + parseFloat(driver.total_debit || 0);
                                 return `
                                     <tr>
@@ -1035,7 +1091,6 @@
                                         <td><strong>${this.formatCurrency(revenue)}</strong></td>
                                         <td>${this.formatCurrency(driver.total_cash)}</td>
                                         <td><span class="badge ${violations === 0 ? 'badge-success' : violations < 100 ? 'badge-warning' : 'badge-danger'}">${this.formatCurrency(violations)}</span></td>
-                                        <td><span class="badge ${driver.online ? 'badge-success' : 'badge-warning'}">${driver.online ? 'متصل' : 'غير متصل'}</span></td>
                                     </tr>
                                 `;
                             }).join('')}
@@ -1049,12 +1104,12 @@
                 if (!container) return;
                 
                 const totalRevenue = this.state.driversPerformance.reduce((sum, d) => 
-                    sum + parseFloat(d.total_cash || 0) + parseFloat(d.total_credit || 0), 0
+                    sum + parseFloat(d.total_delivery || 0), 0
                 );
                 const activeDrivers = this.state.driversPerformance.filter(d => d.employment_status === 'active' && d.online).length;
                 const topDriver = this.state.driversPerformance.sort((a, b) => {
-                    const aRev = parseFloat(a.total_cash || 0) + parseFloat(a.total_credit || 0);
-                    const bRev = parseFloat(b.total_cash || 0) + parseFloat(b.total_credit || 0);
+                    const aRev = parseFloat(a.total_delivery || 0);
+                    const bRev = parseFloat(b.total_delivery || 0);
                     return bRev - aRev;
                 })[0];
                 
@@ -1078,7 +1133,7 @@
                         <div class="insight-icon"><i data-lucide="award" style="width: 22px; height: 22px;"></i></div>
                         <div class="insight-content">
                             <div class="insight-title">أفضل سائق</div>
-                            <div class="insight-description">${topDriver.name || 'غير معروف'} حقق أعلى إيرادات بقيمة ${this.formatCurrency(parseFloat(topDriver.total_cash || 0) + parseFloat(topDriver.total_credit || 0))}</div>
+                            <div class="insight-description">${topDriver.name || 'غير معروف'} حقق أعلى إيرادات بقيمة ${this.formatCurrency(parseFloat(topDriver.total_delivery || 0))}</div>
                         </div>
                     </div>
                     ` : ''}
