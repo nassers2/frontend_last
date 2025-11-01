@@ -954,7 +954,7 @@
                 
                 const labels = weekDates.map(date => {
                     const d = new Date(date);
-                    return d.toLocaleDateString('ar-SA', { weekday: 'short' });
+                    return d.toLocaleDateString('en-US', { weekday: 'short' });
                 });
                 
                 const data = weekDates.map(date => revenueByDate[date] || 0);
@@ -963,7 +963,7 @@
                 if (weekDates.length > 0) {
                     const startDate = new Date(weekDates[0]);
                     const endDate = new Date(weekDates[weekDates.length - 1]);
-                    const dateRangeText = `${startDate.toLocaleDateString('ar-SA', { day: 'numeric', month: 'short' })} - ${endDate.toLocaleDateString('ar-SA', { day: 'numeric', month: 'short', year: 'numeric' })}`;
+                    const dateRangeText = `${startDate.toLocaleDateString('en-US', { day: 'numeric', month: 'short' })} - ${endDate.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}`;
                     
                     const dateDisplay = document.getElementById('chartDateRange');
                     if (dateDisplay) {
@@ -998,7 +998,7 @@
                                 callbacks: {
                                     label: (context) => {
                                         const date = new Date(weekDates[context.dataIndex]);
-                                        const dateStr = date.toLocaleDateString('ar-SA', { day: 'numeric', month: 'short' });
+                                        const dateStr = date.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
                                         return [
                                             dateStr,
                                             'الإيرادات: ' + context.parsed.y.toLocaleString() + ' ر.س'
@@ -1304,7 +1304,7 @@
             },
 
             formatCurrency: function(amount) {
-                return (parseFloat(amount) || 0).toLocaleString('ar-SA') + ' ر.س';
+                return (parseFloat(amount) || 0).toLocaleString('en-US') + ' ر.س';
             },
 
             showLoading: function() {
