@@ -19,7 +19,8 @@ if (typeof window.CashApp !== 'undefined') {
             receipts: [],
             periods: [],
             isSubmitting: false,
-            lastSubmitTime: 0
+            lastSubmitTime: 0,
+            receiptToDelete: null
         },
 
     init: async function() {
@@ -402,6 +403,21 @@ if (typeof window.CashApp !== 'undefined') {
         confirmCloseBtn.addEventListener('click', () => this.closePeriod());
     }
 
+    // Confirm delete receipt
+    const confirmDeleteBtn = document.getElementById('confirmDeleteReceiptBtn');
+    if (confirmDeleteBtn) {
+        confirmDeleteBtn.addEventListener('click', () => this.deleteReceipt());
+    }
+
+    // Cancel delete receipt
+    const cancelDeleteBtn = document.getElementById('cancelDeleteReceiptBtn');
+    if (cancelDeleteBtn) {
+        cancelDeleteBtn.addEventListener('click', () => {
+            this.state.receiptToDelete = null;
+            document.getElementById('deleteReceiptModal').classList.remove('show');
+        });
+    }
+
     // Apply filters
     const applyFiltersBtn = document.getElementById('applyFiltersBtn');
     if (applyFiltersBtn) {
@@ -501,6 +517,28 @@ if (typeof window.CashApp !== 'undefined') {
         }
     },
 
+    showDeleteReceiptModal: function(receiptId) {
+        // إغلاق Select2 dropdowns
+        if (typeof $ !== 'undefined' && $.fn.select2) {
+            $('select').each(function() {
+                if ($(this).data('select2')) {
+                    $(this).select2('close');
+                }
+            });
+            $('.select2-container--open').removeClass('select2-container--open');
+            $('.select2-dropdown').remove();
+        }
+
+        // حفظ ID الإيصال للاستخدام عند التأكيد
+        this.state.receiptToDelete = receiptId;
+        
+        const modal = document.getElementById('deleteReceiptModal');
+        if (modal) {
+            modal.classList.add('show');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+    },
+
     closePeriod: async function() {
         if (!this.state.currentPeriod) {
             console.warn('⚠️ لا توجد فترة نشطة');
@@ -525,11 +563,31 @@ if (typeof window.CashApp !== 'undefined') {
     },
 
     deleteReceipt: async function(receiptId) {
+        // إذا تم استدعاؤها مباشرة من الزر، اعرض المودال
+        if (receiptId && !this.state.receiptToDelete) {
+            this.showDeleteReceiptModal(receiptId);
+            return;
+        }
+
+        // إذا تم استدعاؤها من زر التأكيد في المودال
+        const idToDelete = this.state.receiptToDelete || receiptId;
+        
         try {
-            const result = await API.deleteCashReceipt(receiptId);
+            const result = await API.deleteCashReceipt(idToDelete);
 
             if (result.success) {
                 console.log('✅ [CASH] تم حذف الإيصال');
+                
+                // إغلاق المودال
+                const modal = document.getElementById('deleteReceiptModal');
+                if (modal) {
+                    modal.classList.remove('show');
+                }
+                
+                // مسح ID المحفوظ
+                this.state.receiptToDelete = null;
+                
+                // إعادة تحميل البيانات
                 await this.loadReceipts();
                 await this.loadSummary();
                 await this.loadCurrentPeriod();

@@ -829,6 +829,33 @@ body:has(.modal.show) .select2-dropdown {
     </div>
 </div>
 
+<!-- Delete Receipt Confirmation Modal -->
+<div id="deleteReceiptModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <i data-lucide="trash-2"></i>
+            تأكيد حذف الإيصال
+        </div>
+        <div class="modal-body">
+            <p><strong>هل أنت متأكد من حذف هذا الإيصال؟</strong></p>
+            <div class="warning-text">
+                <i data-lucide="alert-circle"></i>
+                لا يمكن التراجع عن هذا الإجراء!
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button id="confirmDeleteReceiptBtn" class="btn btn-danger">
+                <i data-lucide="trash-2"></i>
+                نعم، حذف الإيصال
+            </button>
+            <button id="cancelDeleteReceiptBtn" class="btn btn-secondary">
+                <i data-lucide="x"></i>
+                إلغاء
+            </button>
+        </div>
+    </div>
+</div>
+
 <script src="../assets/js/cash.js"></script>
 
 <script>
@@ -950,6 +977,19 @@ body:has(.modal.show) .select2-dropdown {
                 confirmModal.addEventListener('click', function(e) {
                     if (e.target === this) {
                         this.classList.remove('show');
+                    }
+                });
+            }
+
+            // Close delete modal on outside click
+            const deleteModal = document.getElementById('deleteReceiptModal');
+            if (deleteModal) {
+                deleteModal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        this.classList.remove('show');
+                        if (window.CashApp) {
+                            window.CashApp.state.receiptToDelete = null;
+                        }
                     }
                 });
             }
