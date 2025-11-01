@@ -619,6 +619,14 @@
                         <i data-lucide="bar-chart-3" style="width: 18px; height: 18px;"></i>
                         الإيرادات اليومية
                     </h3>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button onclick="ReportsApp.previousWeek()" style="padding: 0.5rem; border: 1px solid var(--border); background: white; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                            <i data-lucide="chevron-right" style="width: 16px; height: 16px;"></i>
+                        </button>
+                        <button onclick="ReportsApp.nextWeek()" style="padding: 0.5rem; border: 1px solid var(--border); background: white; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                            <i data-lucide="chevron-left" style="width: 16px; height: 16px;"></i>
+                        </button>
+                    </div>
                 </div>
                 <div style="height: 280px;">
                     <canvas id="revenueChart"></canvas>
@@ -676,7 +684,8 @@
                 financialsByDate: [],
                 fromDate: null,
                 toDate: null,
-                revenueChart: null
+                revenueChart: null,
+                currentWeekOffset: 0 // 0 = هذا الأسبوع, -1 = الأسبوع الماضي, etc.
             },
 
             init: async function() {
@@ -782,18 +791,23 @@
                 );
                 
                 // حساب مقارنة بالشهر الماضي
-                const currentMonth = new Date().getMonth();
-                const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+                const now = new Date();
+                const currentMonth = now.getMonth();
+                const currentYear = now.getFullYear();
                 
-                // فلترة البيانات حسب الشهر
+                // الشهر الماضي
+                const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+                const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+                
+                // فلترة البيانات حسب الشهر والسنة
                 const currentMonthData = this.state.financialsByDate.filter(record => {
                     const recordDate = new Date(record.date);
-                    return recordDate.getMonth() === currentMonth;
+                    return recordDate.getMonth() === currentMonth && recordDate.getFullYear() === currentYear;
                 });
                 
                 const lastMonthData = this.state.financialsByDate.filter(record => {
                     const recordDate = new Date(record.date);
-                    return recordDate.getMonth() === lastMonth;
+                    return recordDate.getMonth() === lastMonth && recordDate.getFullYear() === lastMonthYear;
                 });
                 
                 const currentMonthRevenue = currentMonthData.reduce((sum, r) => 
@@ -804,12 +818,24 @@
                     sum + parseFloat(r.delivery_price || 0), 0
                 );
                 
-                const revenueChange = lastMonthRevenue > 0 
-                    ? (((currentMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100).toFixed(1)
-                    : 0;
+                // إذا الشهر الماضي ما فيه بيانات والشهر الحالي فيه، تكون الزيادة 100%
+                let revenueChange;
+                let revenueChangeIcon;
+                let revenueChangeTrend;
                 
-                const revenueChangeIcon = revenueChange >= 0 ? 'arrow-up' : 'arrow-down';
-                const revenueChangeTrend = revenueChange >= 0 ? 'up' : 'down';
+                if (lastMonthRevenue === 0 && currentMonthRevenue > 0) {
+                    revenueChange = 100;
+                    revenueChangeIcon = 'arrow-up';
+                    revenueChangeTrend = 'up';
+                } else if (lastMonthRevenue === 0 && currentMonthRevenue === 0) {
+                    revenueChange = 0;
+                    revenueChangeIcon = 'minus';
+                    revenueChangeTrend = 'up';
+                } else {
+                    revenueChange = (((currentMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100).toFixed(1);
+                    revenueChangeIcon = revenueChange >= 0 ? 'arrow-up' : 'arrow-down';
+                    revenueChangeTrend = revenueChange >= 0 ? 'up' : 'down';
+                }
                 
                 const totalOrders = this.state.driversPerformance.reduce((sum, d) => 
                     sum + parseInt(d.days_active || 0) * 10, 0
@@ -904,10 +930,24 @@
                     revenueByDate[date] += revenue;
                 });
                 
-                const sortedDates = Object.keys(revenueByDate).sort();
-                const last7Days = sortedDates.slice(-7);
-                const labels = last7Days.map(date => new Date(date).toLocaleDateString('ar-SA', { weekday: 'short' }));
-                const data = last7Days.map(date => revenueByDate[date]);
+                // حساب نطاق الأسبوع المطلوب
+                const today = new Date();
+                const weekStart = new Date(today);
+                weekStart.setDate(today.getDate() - today.getDay() + (this.state.currentWeekOffset * 7));
+                
+                const weekDates = [];
+                for (let i = 0; i < 7; i++) {
+                    const date = new Date(weekStart);
+                    date.setDate(weekStart.getDate() + i);
+                    weekDates.push(date.toISOString().split('T')[0]);
+                }
+                
+                const labels = weekDates.map(date => {
+                    const d = new Date(date);
+                    return d.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' });
+                });
+                
+                const data = weekDates.map(date => revenueByDate[date] || 0);
                 
                 if (this.state.revenueChart) this.state.revenueChart.destroy();
                 
@@ -915,10 +955,10 @@
                 this.state.revenueChart = new Chart(ctx, {
                     type: 'bar',
                     data: {
-                        labels: labels.length > 0 ? labels : ['السبت', 'الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة'],
+                        labels: labels,
                         datasets: [{
                             label: 'الإيرادات اليومية',
-                            data: data.length > 0 ? data : [0, 0, 0, 0, 0, 0, 0],
+                            data: data,
                             backgroundColor: 'rgba(99, 102, 241, 0.8)',
                             borderRadius: 8,
                             borderWidth: 0
@@ -957,6 +997,20 @@
                 });
             },
 
+            previousWeek: function() {
+                this.state.currentWeekOffset--;
+                this.renderRevenueChart();
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            },
+
+            nextWeek: function() {
+                if (this.state.currentWeekOffset < 0) {
+                    this.state.currentWeekOffset++;
+                    this.renderRevenueChart();
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
+                }
+            },
+
             renderCashStatus: function() {
                 const container = document.getElementById('cashStatusCard');
                 if (!container) return;
@@ -975,10 +1029,31 @@
                 const remaining = totalExpected - totalCollected;
                 const percentage = totalExpected > 0 ? ((totalCollected / totalExpected) * 100).toFixed(1) : 0;
                 
-                const pendingDrivers = this.state.driversPerformance
-                    .filter(d => parseFloat(d.total_cash || 0) > 0)
-                    .sort((a, b) => parseFloat(b.total_cash) - parseFloat(a.total_cash))
-                    .slice(0, 3);
+                // جمع الكاش لكل سائق من driver_financials_daily
+                const driversCashMap = {};
+                this.state.financialsByDate.forEach(record => {
+                    const driverId = record.driver_id;
+                    if (!driversCashMap[driverId]) {
+                        driversCashMap[driverId] = {
+                            driver_id: driverId,
+                            driver_name: record.driver_name,
+                            driver_phone: record.driver_phone,
+                            expected: 0,
+                            collected: 0
+                        };
+                    }
+                    driversCashMap[driverId].expected += parseFloat(record.cash_collected || 0);
+                });
+                
+                // إضافة الكاش المسلّم من performance
+                this.state.driversPerformance.forEach(driver => {
+                    if (driversCashMap[driver.driver_id]) {
+                        driversCashMap[driver.driver_id].collected = parseFloat(driver.total_cash || 0);
+                    }
+                });
+                
+                const driversArray = Object.values(driversCashMap)
+                    .sort((a, b) => b.expected - a.expected);
                 
                 container.innerHTML = `
                     <div class="chart-header">
@@ -1019,34 +1094,49 @@
                                 <div style="font-size: 1.25rem; font-weight: 700; color: var(--warning);">${this.formatCurrency(remaining)}</div>
                             </div>
                         </div>
-                        ${pendingDrivers.length > 0 ? `
+                        
+                        <!-- جدول السائقين مع scroll -->
                         <div style="margin-top: 1.5rem;">
-                            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border);">
-                                <i data-lucide="users" style="width: 16px; height: 16px; color: var(--text-light);"></i>
-                                <span style="font-size: 0.875rem; font-weight: 700;">أكثر السائقين تحصيلاً</span>
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border);">
+                                <span style="font-size: 0.875rem; font-weight: 700; color: var(--text);">جميع السائقين</span>
+                                <span style="font-size: 0.75rem; color: var(--text-light);">${driversArray.length} سائق</span>
                             </div>
-                            <div>
-                                ${pendingDrivers.map(driver => `
-                                    <div class="pending-driver">
-                                        <div style="display: flex; align-items: center; gap: 0.75rem;">
-                                            <div class="driver-avatar">${(driver.name || 'س')[0]}</div>
-                                            <div>
-                                                <div style="font-weight: 600; font-size: 0.9375rem;">${driver.name || 'غير معروف'}</div>
-                                                <div style="font-size: 0.75rem; color: var(--text-light);">${driver.phone || '-'}</div>
-                                            </div>
-                                        </div>
-                                        <div style="text-align: left;">
-                                            <div style="font-weight: 700; font-size: 1rem; color: var(--success);">${this.formatCurrency(driver.total_cash)}</div>
-                                            <div style="font-size: 0.75rem; color: var(--text-light);">كاش محصّل</div>
-                                        </div>
-                                    </div>
-                                `).join('')}
+                            
+                            <div style="max-height: 400px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px;">
+                                <table style="width: 100%; border-collapse: collapse; font-size: 0.8125rem;">
+                                    <thead style="position: sticky; top: 0; background: var(--bg); z-index: 1;">
+                                        <tr>
+                                            <th style="padding: 0.75rem; text-align: right; font-weight: 600; border-bottom: 1px solid var(--border);">السائق</th>
+                                            <th style="padding: 0.75rem; text-align: right; font-weight: 600; border-bottom: 1px solid var(--border);">المتوقع</th>
+                                            <th style="padding: 0.75rem; text-align: right; font-weight: 600; border-bottom: 1px solid var(--border);">المسلّم</th>
+                                            <th style="padding: 0.75rem; text-align: right; font-weight: 600; border-bottom: 1px solid var(--border);">المتبقي</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${driversArray.map(driver => {
+                                            const remaining = driver.expected - driver.collected;
+                                            const status = remaining === 0 ? 'complete' : remaining < driver.expected * 0.2 ? 'good' : 'pending';
+                                            return `
+                                                <tr style="border-bottom: 1px solid var(--border);">
+                                                    <td style="padding: 0.75rem;">
+                                                        <div style="font-weight: 600;">${driver.driver_name || 'غير معروف'}</div>
+                                                        <div style="font-size: 0.7rem; color: var(--text-light);">${driver.driver_phone || '-'}</div>
+                                                    </td>
+                                                    <td style="padding: 0.75rem; font-weight: 600;">${this.formatCurrency(driver.expected)}</td>
+                                                    <td style="padding: 0.75rem;">
+                                                        <span style="color: var(--success); font-weight: 600;">${this.formatCurrency(driver.collected)}</span>
+                                                    </td>
+                                                    <td style="padding: 0.75rem;">
+                                                        <span style="color: ${status === 'complete' ? 'var(--success)' : status === 'good' ? 'var(--warning)' : 'var(--danger)'}; font-weight: 600;">
+                                                            ${this.formatCurrency(remaining)}
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            `;
+                                        }).join('')}
+                                    </tbody>
+                                </table>
                             </div>
-                        </div>
-                        ` : ''}
-                        <div style="margin-top: 1rem; padding: 0.75rem; background: rgba(34, 197, 94, 0.1); border-radius: 8px; display: flex; align-items: center; gap: 0.5rem;">
-                            <i data-lucide="info" style="width: 16px; height: 16px; color: var(--success);"></i>
-                            <span style="font-size: 0.8125rem; color: var(--success); font-weight: 600;">الكاش المتبقي: ${this.formatCurrency(remaining)}</span>
                         </div>
                     </div>
                 `;
@@ -1161,7 +1251,7 @@
             },
 
             formatCurrency: function(amount) {
-                return (parseFloat(amount) || 0).toLocaleString('ar-SA') + ' ر.س';
+                return (parseFloat(amount) || 0).toLocaleString('en-US') + ' ر.س';
             },
 
             showLoading: function() {
