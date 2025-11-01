@@ -620,16 +620,19 @@
                         الإيرادات اليومية
                     </h3>
                     <div style="display: flex; gap: 0.5rem;">
-                        <button onclick="ReportsApp.previousWeek()" style="padding: 0.5rem; border: 1px solid var(--border); background: white; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                        <button onclick="ReportsApp.previousWeek()" style="padding: 0.5rem; border: 1px solid var(--border); background: white; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">
                             <i data-lucide="chevron-right" style="width: 16px; height: 16px;"></i>
                         </button>
-                        <button onclick="ReportsApp.nextWeek()" style="padding: 0.5rem; border: 1px solid var(--border); background: white; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                        <button onclick="ReportsApp.nextWeek()" style="padding: 0.5rem; border: 1px solid var(--border); background: white; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">
                             <i data-lucide="chevron-left" style="width: 16px; height: 16px;"></i>
                         </button>
                     </div>
                 </div>
                 <div style="height: 280px;">
                     <canvas id="revenueChart"></canvas>
+                </div>
+                <div style="text-align: center; padding-top: 1rem; border-top: 1px solid var(--border); margin-top: 1rem;">
+                    <span id="chartDateRange" style="font-size: 0.875rem; color: var(--text-light); font-weight: 600;">جاري التحميل...</span>
                 </div>
             </div>
 
@@ -785,9 +788,20 @@
                 const container = document.getElementById('statsContainer');
                 if (!container) return;
                 
-                // حساب إجمالي الإيرادات من delivery_price
-                const totalRevenue = this.state.driversPerformance.reduce((sum, d) => 
-                    sum + parseFloat(d.total_delivery || 0), 0
+                // فلترة البيانات حسب النطاق المختار (fromDate - toDate)
+                let filteredFinancials = this.state.financialsByDate;
+                if (this.state.fromDate && this.state.toDate) {
+                    filteredFinancials = this.state.financialsByDate.filter(record => {
+                        const recordDate = new Date(record.date);
+                        const from = new Date(this.state.fromDate);
+                        const to = new Date(this.state.toDate);
+                        return recordDate >= from && recordDate <= to;
+                    });
+                }
+                
+                // حساب إجمالي الإيرادات من delivery_price للفترة المختارة
+                const totalRevenue = filteredFinancials.reduce((sum, r) => 
+                    sum + parseFloat(r.delivery_price || 0), 0
                 );
                 
                 // حساب مقارنة بالشهر الماضي
@@ -795,11 +809,9 @@
                 const currentMonth = now.getMonth();
                 const currentYear = now.getFullYear();
                 
-                // الشهر الماضي
                 const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
                 const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
                 
-                // فلترة البيانات حسب الشهر والسنة
                 const currentMonthData = this.state.financialsByDate.filter(record => {
                     const recordDate = new Date(record.date);
                     return recordDate.getMonth() === currentMonth && recordDate.getFullYear() === currentYear;
@@ -818,10 +830,7 @@
                     sum + parseFloat(r.delivery_price || 0), 0
                 );
                 
-                // إذا الشهر الماضي ما فيه بيانات والشهر الحالي فيه، تكون الزيادة 100%
-                let revenueChange;
-                let revenueChangeIcon;
-                let revenueChangeTrend;
+                let revenueChange, revenueChangeIcon, revenueChangeTrend;
                 
                 if (lastMonthRevenue === 0 && currentMonthRevenue > 0) {
                     revenueChange = 100;
@@ -845,6 +854,7 @@
                     d.employment_status === 'active'
                 ).length;
                 
+                // متوسط التوصيل اليومي = إجمالي delivery_price / عدد السائقين النشطين
                 const avgDeliveryPerDriver = activeDrivers > 0 
                     ? (totalRevenue / activeDrivers).toFixed(0)
                     : 0;
@@ -886,15 +896,7 @@
                             <div class="stat-icon"><i data-lucide="truck" style="width: 20px; height: 20px;"></i></div>
                         </div>
                         <div class="stat-value">${avgDeliveryPerDriver} ر.س</div>
-                        <div class="stat-footer"><span class="stat-footer-text">متوسط يومي</span></div>
-                    </div>
-                    <div class="stat-card purple">
-                        <div class="stat-top">
-                            <div class="stat-label">السائقين النشطين</div>
-                            <div class="stat-icon"><i data-lucide="users" style="width: 20px; height: 20px;"></i></div>
-                        </div>
-                        <div class="stat-value">${activeDrivers}</div>
-                        <div class="stat-footer"><span class="stat-footer-text">من إجمالي ${this.state.driversPerformance.length}</span></div>
+                        <div class="stat-footer"><span class="stat-footer-text">لكل سائق</span></div>
                     </div>
                     <div class="stat-card danger">
                         <div class="stat-top">
@@ -930,24 +932,44 @@
                     revenueByDate[date] += revenue;
                 });
                 
-                // حساب نطاق الأسبوع المطلوب
-                const today = new Date();
-                const weekStart = new Date(today);
-                weekStart.setDate(today.getDate() - today.getDay() + (this.state.currentWeekOffset * 7));
+                // ترتيب التواريخ وأخذ آخر 7 أيام
+                const sortedDates = Object.keys(revenueByDate).sort();
                 
-                const weekDates = [];
-                for (let i = 0; i < 7; i++) {
-                    const date = new Date(weekStart);
-                    date.setDate(weekStart.getDate() + i);
-                    weekDates.push(date.toISOString().split('T')[0]);
+                if (sortedDates.length === 0) {
+                    // لا توجد بيانات
+                    const dateDisplay = document.getElementById('chartDateRange');
+                    if (dateDisplay) {
+                        dateDisplay.textContent = 'لا توجد بيانات متاحة';
+                    }
+                    return;
                 }
+                
+                // تحديد نطاق العرض بناءً على الـ offset
+                const endIndex = sortedDates.length + this.state.currentWeekOffset;
+                const startIndex = Math.max(0, endIndex - 7);
+                const displayDates = sortedDates.slice(startIndex, endIndex);
+                
+                // إذا أقل من 7 أيام، نكمل من البداية
+                const weekDates = displayDates.slice(-7);
                 
                 const labels = weekDates.map(date => {
                     const d = new Date(date);
-                    return d.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' });
+                    return d.toLocaleDateString('ar-SA', { weekday: 'short' });
                 });
                 
                 const data = weekDates.map(date => revenueByDate[date] || 0);
+                
+                // حساب نطاق التواريخ للعرض
+                if (weekDates.length > 0) {
+                    const startDate = new Date(weekDates[0]);
+                    const endDate = new Date(weekDates[weekDates.length - 1]);
+                    const dateRangeText = `${startDate.toLocaleDateString('ar-SA', { day: 'numeric', month: 'short' })} - ${endDate.toLocaleDateString('ar-SA', { day: 'numeric', month: 'short', year: 'numeric' })}`;
+                    
+                    const dateDisplay = document.getElementById('chartDateRange');
+                    if (dateDisplay) {
+                        dateDisplay.textContent = dateRangeText;
+                    }
+                }
                 
                 if (this.state.revenueChart) this.state.revenueChart.destroy();
                 
@@ -974,7 +996,14 @@
                                 padding: 12,
                                 cornerRadius: 8,
                                 callbacks: {
-                                    label: (context) => 'الإيرادات: ' + context.parsed.y.toLocaleString() + ' ر.س'
+                                    label: (context) => {
+                                        const date = new Date(weekDates[context.dataIndex]);
+                                        const dateStr = date.toLocaleDateString('ar-SA', { day: 'numeric', month: 'short' });
+                                        return [
+                                            dateStr,
+                                            'الإيرادات: ' + context.parsed.y.toLocaleString() + ' ر.س'
+                                        ];
+                                    }
                                 }
                             }
                         },
@@ -998,14 +1027,24 @@
             },
 
             previousWeek: function() {
-                this.state.currentWeekOffset--;
-                this.renderRevenueChart();
-                if (typeof lucide !== 'undefined') lucide.createIcons();
+                const sortedDates = Object.keys(this.state.financialsByDate.reduce((acc, record) => {
+                    acc[record.date] = true;
+                    return acc;
+                }, {})).sort();
+                
+                // تحقق من إمكانية الرجوع للخلف
+                const currentEndIndex = sortedDates.length + this.state.currentWeekOffset;
+                if (currentEndIndex - 7 > 0) {
+                    this.state.currentWeekOffset -= 7;
+                    this.renderRevenueChart();
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
+                }
             },
 
             nextWeek: function() {
+                // السماح بالتقدم فقط إذا لم نكن في آخر البيانات
                 if (this.state.currentWeekOffset < 0) {
-                    this.state.currentWeekOffset++;
+                    this.state.currentWeekOffset = Math.min(0, this.state.currentWeekOffset + 7);
                     this.renderRevenueChart();
                     if (typeof lucide !== 'undefined') lucide.createIcons();
                 }
@@ -1015,8 +1054,19 @@
                 const container = document.getElementById('cashStatusCard');
                 if (!container) return;
                 
-                // المتوقع = مجموع cash_collected من driver_financials_daily
-                const totalExpected = this.state.financialsByDate.reduce((sum, record) => 
+                // فلترة البيانات حسب النطاق المختار (fromDate - toDate)
+                let filteredFinancials = this.state.financialsByDate;
+                if (this.state.fromDate && this.state.toDate) {
+                    filteredFinancials = this.state.financialsByDate.filter(record => {
+                        const recordDate = new Date(record.date);
+                        const from = new Date(this.state.fromDate);
+                        const to = new Date(this.state.toDate);
+                        return recordDate >= from && recordDate <= to;
+                    });
+                }
+                
+                // المتوقع = مجموع cash_collected من driver_financials_daily للفترة المختارة
+                const totalExpected = filteredFinancials.reduce((sum, record) => 
                     sum + parseFloat(record.cash_collected || 0), 0
                 );
                 
@@ -1029,9 +1079,9 @@
                 const remaining = totalExpected - totalCollected;
                 const percentage = totalExpected > 0 ? ((totalCollected / totalExpected) * 100).toFixed(1) : 0;
                 
-                // جمع الكاش لكل سائق من driver_financials_daily
+                // جمع الكاش لكل سائق من driver_financials_daily للفترة المختارة
                 const driversCashMap = {};
-                this.state.financialsByDate.forEach(record => {
+                filteredFinancials.forEach(record => {
                     const driverId = record.driver_id;
                     if (!driversCashMap[driverId]) {
                         driversCashMap[driverId] = {
@@ -1053,6 +1103,7 @@
                 });
                 
                 const driversArray = Object.values(driversCashMap)
+                    .filter(d => d.expected > 0) // إظهار السائقين اللي عندهم كاش متوقع فقط
                     .sort((a, b) => b.expected - a.expected);
                 
                 container.innerHTML = `
@@ -1095,6 +1146,7 @@
                             </div>
                         </div>
                         
+                        ${driversArray.length > 0 ? `
                         <!-- جدول السائقين مع scroll -->
                         <div style="margin-top: 1.5rem;">
                             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border);">
@@ -1138,6 +1190,7 @@
                                 </table>
                             </div>
                         </div>
+                        ` : '<p style="text-align: center; color: var(--text-light); margin-top: 1rem;">لا توجد بيانات كاش للفترة المحددة</p>'}
                     </div>
                 `;
                 
@@ -1251,7 +1304,7 @@
             },
 
             formatCurrency: function(amount) {
-                return (parseFloat(amount) || 0).toLocaleString('en-US') + ' ر.س';
+                return (parseFloat(amount) || 0).toLocaleString('ar-SA') + ' ر.س';
             },
 
             showLoading: function() {
