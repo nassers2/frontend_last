@@ -585,20 +585,21 @@
             <div class="filter-bar">
                 <div class="filter-item">
                     <label>الفترة</label>
-                    <select id="periodFilter" onchange="ReportsApp.applyDateFilter()">
-                        <option value="7">آخر 7 أيام</option>
-                        <option value="30" selected>آخر 30 يوم</option>
-                        <option value="90">آخر 90 يوم</option>
+                    <select id="periodFilter" onchange="ReportsApp.handlePeriodChange()">
+                        <option value="current">الشهر الحالي</option>
+                        <option value="last">الشهر الماضي</option>
+                        <option value="2months">آخر شهرين</option>
+                        <option value="3months">آخر 3 أشهر</option>
                         <option value="custom">مخصص</option>
                     </select>
                 </div>
-                <div class="filter-item">
+                <div class="filter-item" id="customDatesContainer" style="display: none;">
                     <label>من</label>
-                    <input type="date" id="fromDate">
+                    <input type="date" id="fromDate" onchange="ReportsApp.applyCustomDates()">
                 </div>
-                <div class="filter-item">
+                <div class="filter-item" id="customDatesToContainer" style="display: none;">
                     <label>إلى</label>
-                    <input type="date" id="toDate">
+                    <input type="date" id="toDate" onchange="ReportsApp.applyCustomDates()">
                 </div>
             </div>
         </div>
@@ -788,7 +789,7 @@
                 const container = document.getElementById('statsContainer');
                 if (!container) return;
                 
-                // فلترة البيانات حسب النطاق المختار (fromDate - toDate)
+                // فلترة البيانات حسب النطاق المختار
                 let filteredFinancials = this.state.financialsByDate;
                 if (this.state.fromDate && this.state.toDate) {
                     filteredFinancials = this.state.financialsByDate.filter(record => {
@@ -799,10 +800,36 @@
                     });
                 }
                 
-                // حساب إجمالي الإيرادات من delivery_price للفترة المختارة
+                // 1. إجمالي الإيرادات من delivery_price
                 const totalRevenue = filteredFinancials.reduce((sum, r) => 
                     sum + parseFloat(r.delivery_price || 0), 0
                 );
+                
+                // 2. إجمالي الطلبات - نحسبه من البيانات الفعلية
+                // كل سجل في financials يمثل يوم واحد لسائق واحد
+                const totalOrders = filteredFinancials.length > 0 
+                    ? filteredFinancials.reduce((sum, r) => sum + (r.orders_count || 10), 0) // تقدير: 10 طلبات يومياً لكل سائق
+                    : 0;
+                
+                // 3. عدد السائقين النشطين في الفترة
+                const activeDriversSet = new Set();
+                filteredFinancials.forEach(r => {
+                    if (r.driver_id) activeDriversSet.add(r.driver_id);
+                });
+                const activeDrivers = activeDriversSet.size;
+                
+                // 4. متوسط التوصيل اليومي للمندوب = إجمالي delivery_price / عدد السائقين
+                const avgDeliveryPerDriver = activeDrivers > 0 
+                    ? (totalRevenue / activeDrivers).toFixed(0)
+                    : 0;
+                
+                // 5. إجمالي الغرامات (penalties + debit)
+                const totalViolations = filteredFinancials.reduce((sum, r) => 
+                    sum + parseFloat(r.penalty || 0) + parseFloat(r.driver_debit || 0), 0
+                );
+                
+                // 6. الإيراد لكل سائق (نفس متوسط التوصيل)
+                const revenuePerDriver = avgDeliveryPerDriver;
                 
                 // حساب مقارنة بالشهر الماضي
                 const now = new Date();
@@ -846,27 +873,6 @@
                     revenueChangeTrend = revenueChange >= 0 ? 'up' : 'down';
                 }
                 
-                const totalOrders = this.state.driversPerformance.reduce((sum, d) => 
-                    sum + parseInt(d.days_active || 0) * 10, 0
-                );
-                
-                const activeDrivers = this.state.driversPerformance.filter(d => 
-                    d.employment_status === 'active'
-                ).length;
-                
-                // متوسط التوصيل اليومي = إجمالي delivery_price / عدد السائقين النشطين
-                const avgDeliveryPerDriver = activeDrivers > 0 
-                    ? (totalRevenue / activeDrivers).toFixed(0)
-                    : 0;
-                
-                const totalViolations = this.state.driversPerformance.reduce((sum, d) => 
-                    sum + parseFloat(d.total_penalties || 0) + parseFloat(d.total_debit || 0), 0
-                );
-                
-                const revenuePerDriver = activeDrivers > 0
-                    ? (totalRevenue / activeDrivers).toFixed(0)
-                    : 0;
-                
                 container.innerHTML = `
                     <div class="stat-card primary">
                         <div class="stat-top">
@@ -888,7 +894,7 @@
                             <div class="stat-icon"><i data-lucide="package" style="width: 20px; height: 20px;"></i></div>
                         </div>
                         <div class="stat-value">${totalOrders.toLocaleString()}</div>
-                        <div class="stat-footer"><span class="stat-footer-text">طلب مكتمل</span></div>
+                        <div class="stat-footer"><span class="stat-footer-text">للفترة المحددة</span></div>
                     </div>
                     <div class="stat-card warning">
                         <div class="stat-top">
@@ -912,7 +918,7 @@
                             <div class="stat-icon"><i data-lucide="user-check" style="width: 20px; height: 20px;"></i></div>
                         </div>
                         <div class="stat-value">${revenuePerDriver} ر.س</div>
-                        <div class="stat-footer"><span class="stat-footer-text">متوسط الإيراد</span></div>
+                        <div class="stat-footer"><span class="stat-footer-text">متوسط للفترة</span></div>
                     </div>
                 `;
                 
@@ -954,7 +960,7 @@
                 
                 const labels = weekDates.map(date => {
                     const d = new Date(date);
-                    return d.toLocaleDateString('en-US', { weekday: 'short' });
+                    return d.toLocaleDateString('ar-SA', { weekday: 'short' });
                 });
                 
                 const data = weekDates.map(date => revenueByDate[date] || 0);
@@ -963,7 +969,7 @@
                 if (weekDates.length > 0) {
                     const startDate = new Date(weekDates[0]);
                     const endDate = new Date(weekDates[weekDates.length - 1]);
-                    const dateRangeText = `${startDate.toLocaleDateString('en-US', { day: 'numeric', month: 'short' })} - ${endDate.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}`;
+                    const dateRangeText = `${startDate.toLocaleDateString('ar-SA', { day: 'numeric', month: 'short' })} - ${endDate.toLocaleDateString('ar-SA', { day: 'numeric', month: 'short', year: 'numeric' })}`;
                     
                     const dateDisplay = document.getElementById('chartDateRange');
                     if (dateDisplay) {
@@ -998,7 +1004,7 @@
                                 callbacks: {
                                     label: (context) => {
                                         const date = new Date(weekDates[context.dataIndex]);
-                                        const dateStr = date.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+                                        const dateStr = date.toLocaleDateString('ar-SA', { day: 'numeric', month: 'short' });
                                         return [
                                             dateStr,
                                             'الإيرادات: ' + context.parsed.y.toLocaleString() + ' ر.س'
@@ -1304,7 +1310,65 @@
             },
 
             formatCurrency: function(amount) {
-                return (parseFloat(amount) || 0).toLocaleString('en-US') + ' ر.س';
+                return (parseFloat(amount) || 0).toLocaleString('ar-SA') + ' ر.س';
+            },
+
+            formatDate: function(date) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            },
+
+            handlePeriodChange: function() {
+                const periodFilter = document.getElementById('periodFilter').value;
+                const customDates = document.getElementById('customDatesContainer');
+                const customDatesTo = document.getElementById('customDatesToContainer');
+                const fromDate = document.getElementById('fromDate');
+                const toDate = document.getElementById('toDate');
+                
+                if (periodFilter === 'custom') {
+                    customDates.style.display = 'flex';
+                    customDatesTo.style.display = 'flex';
+                } else {
+                    customDates.style.display = 'none';
+                    customDatesTo.style.display = 'none';
+                    
+                    const today = new Date();
+                    const endDate = new Date(today);
+                    let startDate = new Date(today);
+                    
+                    if (periodFilter === 'current') {
+                        startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+                    } else if (periodFilter === 'last') {
+                        startDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+                        const lastDayOfLastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+                        endDate.setTime(lastDayOfLastMonth.getTime());
+                    } else if (periodFilter === '2months') {
+                        startDate = new Date(today.getFullYear(), today.getMonth() - 2, 1);
+                    } else if (periodFilter === '3months') {
+                        startDate = new Date(today.getFullYear(), today.getMonth() - 3, 1);
+                    }
+                    
+                    fromDate.valueAsDate = startDate;
+                    toDate.valueAsDate = endDate;
+                    
+                    this.state.fromDate = this.formatDate(startDate);
+                    this.state.toDate = this.formatDate(endDate);
+                    
+                    this.loadAllData();
+                }
+            },
+
+            applyCustomDates: function() {
+                const fromDate = document.getElementById('fromDate');
+                const toDate = document.getElementById('toDate');
+                
+                if (fromDate.value && toDate.value) {
+                    this.state.fromDate = fromDate.value;
+                    this.state.toDate = toDate.value;
+                    this.loadAllData();
+                }
             },
 
             showLoading: function() {
@@ -1330,13 +1394,12 @@
         // Initialize
         lucide.createIcons();
         
-        // Set default dates (last 30 days)
+        // Set default dates (current month)
         const today = new Date();
-        const thirtyDaysAgo = new Date(today);
-        thirtyDaysAgo.setDate(today.getDate() - 30);
+        const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
         
         document.getElementById('toDate').valueAsDate = today;
-        document.getElementById('fromDate').valueAsDate = thirtyDaysAgo;
+        document.getElementById('fromDate').valueAsDate = startOfMonth;
         
         // Auto-load when page loads
         if (typeof ReportsApp !== 'undefined') {
