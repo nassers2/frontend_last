@@ -473,21 +473,33 @@ if (typeof window.CashApp !== 'undefined') {
     },
 
     showClosePeriodModal: function() {
-    // إغلاق جميع Select2 dropdowns قبل فتح المودال
-    if (typeof $ !== 'undefined' && $.fn.select2) {
-        $('select').each(function() {
-            if ($(this).data('select2')) {
-                $(this).select2('close');
-            }
-        });
-    }
-    
-    const modal = document.getElementById('confirmModal');
-    if (modal) {
-        modal.classList.add('show');
-        if (typeof lucide !== 'undefined') lucide.createIcons();
-    }
-},
+        // إغلاق جميع Select2 dropdowns بشكل فوري
+        if (typeof $ !== 'undefined' && $.fn.select2) {
+            // إغلاق driverId
+            $('#driverId').select2('close');
+            // إغلاق filterDriver
+            $('#filterDriver').select2('close');
+            // إغلاق filterPeriod
+            $('#filterPeriod').select2('close');
+            
+            // إغلاق أي select2 آخر
+            $('select').each(function() {
+                if ($(this).data('select2')) {
+                    $(this).select2('close');
+                }
+            });
+            
+            // إزالة أي dropdown متبقي من الـ DOM
+            $('.select2-container--open').removeClass('select2-container--open');
+            $('.select2-dropdown').remove();
+        }
+        
+        const modal = document.getElementById('confirmModal');
+        if (modal) {
+            modal.classList.add('show');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+    },
 
     closePeriod: async function() {
         if (!this.state.currentPeriod) {
@@ -676,5 +688,5 @@ if (typeof window.CashApp !== 'undefined') {
 
 
 window.CashApp = window.CashApp || {};
-
+// Don't auto-initialize - wait for navigation to call it
 console.log('✅ [CASH] Module ready');
