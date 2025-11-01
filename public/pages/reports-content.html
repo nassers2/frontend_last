@@ -3,15 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تحت التطوير - FleetMaster</title>
+    <title>التقارير - لوحة التحكم</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
     
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     
     <style>
         * {
@@ -21,379 +24,649 @@
         }
 
         :root {
-            --primary: #667eea;
-            --primary-dark: #5568d3;
-            --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --primary: #6366f1;
+            --primary-light: #a5b4fc;
+            --primary-dark: #4338ca;
+            --success: #22c55e;
+            --success-light: #86efac;
+            --warning: #f59e0b;
+            --warning-light: #fcd34d;
+            --danger: #ef4444;
+            --danger-light: #fca5a5;
+            --purple: #a855f7;
+            --purple-light: #d8b4fe;
+            --cyan: #06b6d4;
+            --cyan-light: #67e8f9;
+            
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --text: #0f172a;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+            
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            
+            --radius: 16px;
+            --radius-sm: 12px;
         }
 
         body {
-            font-family: 'Cairo', sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        /* Animated Background Shapes */
-        .shape {
-            position: absolute;
-            opacity: 0.1;
-            animation: floatShape 20s ease-in-out infinite;
-        }
-
-        .shape-1 {
-            width: 300px;
-            height: 300px;
-            background: var(--primary);
-            border-radius: 50%;
-            top: -100px;
-            right: -100px;
-            animation-delay: 0s;
-        }
-
-        .shape-2 {
-            width: 200px;
-            height: 200px;
-            background: var(--primary);
-            border-radius: 50%;
-            bottom: -50px;
-            left: -50px;
-            animation-delay: 5s;
-        }
-
-        .shape-3 {
-            width: 150px;
-            height: 150px;
-            background: var(--primary);
-            border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
-            top: 50%;
-            left: 10%;
-            animation-delay: 10s;
-        }
-
-        @keyframes floatShape {
-            0%, 100% { transform: translateY(0) rotate(0deg); }
-            50% { transform: translateY(-30px) rotate(180deg); }
-        }
-
-        /* Main Container */
-        .container {
-            background: white;
-            border-radius: 24px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
-            max-width: 600px;
-            width: 100%;
-            padding: 4rem 3rem;
-            text-align: center;
-            position: relative;
-            z-index: 1;
-            animation: slideUp 0.6s ease;
-        }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Icon Container */
-        .icon-container {
-            width: 120px;
-            height: 120px;
-            background: var(--gradient);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 2rem;
-            position: relative;
-            animation: pulse 2s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { 
-                transform: scale(1);
-                box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.4);
-            }
-            50% { 
-                transform: scale(1.05);
-                box-shadow: 0 0 0 20px rgba(102, 126, 234, 0);
-            }
-        }
-
-        .icon-container svg {
-            width: 60px;
-            height: 60px;
-            stroke: white;
-            stroke-width: 2;
-        }
-
-        /* Text Content */
-        h1 {
-            font-size: 2.5rem;
-            font-weight: 900;
-            color: #1f2937;
-            margin-bottom: 1rem;
-            background: var(--gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .subtitle {
-            font-size: 1.25rem;
-            color: #6b7280;
-            font-weight: 600;
-            margin-bottom: 2rem;
+            font-family: 'Tajawal', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
             line-height: 1.6;
+            padding: 1.5rem;
         }
 
-        .description {
-            font-size: 1rem;
-            color: #9ca3af;
-            line-height: 1.8;
-            margin-bottom: 2.5rem;
-            max-width: 450px;
-            margin-left: auto;
-            margin-right: auto;
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
         }
 
-        /* Features Grid */
-        .features {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1.5rem;
+        /* Header */
+        .header {
             margin-bottom: 2rem;
         }
 
-        .feature-item {
-            background: #f9fafb;
-            border-radius: 16px;
-            padding: 1.5rem 1rem;
-            transition: all 0.3s ease;
-        }
-
-        .feature-item:hover {
-            background: #f3f4f6;
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
-        }
-
-        .feature-item svg {
-            width: 32px;
-            height: 32px;
-            stroke: var(--primary);
-            stroke-width: 2;
-            margin-bottom: 0.75rem;
-        }
-
-        .feature-item span {
-            display: block;
-            font-size: 0.875rem;
-            font-weight: 700;
-            color: #4b5563;
-        }
-
-        /* Progress Bar */
-        .progress-container {
-            margin-bottom: 2rem;
-        }
-
-        .progress-label {
-            font-size: 0.9rem;
-            font-weight: 700;
-            color: #4b5563;
-            margin-bottom: 0.75rem;
+        .header-top {
             display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+        }
+
+        .header-title h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .header-title p {
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .btn {
+            padding: 0.65rem 1.25rem;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            display: inline-flex;
             align-items: center;
-            justify-content: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: var(--shadow);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg);
+        }
+
+        /* Filter Bar */
+        .filter-bar {
+            background: white;
+            padding: 1.25rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+
+        .filter-item {
+            display: flex;
+            flex-direction: column;
             gap: 0.5rem;
         }
 
-        .progress-label svg {
-            width: 18px;
-            height: 18px;
-            stroke: var(--primary);
+        .filter-item label {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--text-light);
         }
 
-        .progress-bar {
-            width: 100%;
-            height: 12px;
-            background: #e5e7eb;
-            border-radius: 50px;
+        .filter-item select,
+        .filter-item input {
+            padding: 0.625rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 0.875rem;
+            font-family: inherit;
+            background: white;
+            color: var(--text);
+            min-width: 160px;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1.25rem;
+            margin: 2rem 0;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            position: relative;
             overflow: hidden;
-            position: relative;
+            transition: all 0.3s;
+            border: 1px solid transparent;
         }
 
-        .progress-fill {
-            height: 100%;
-            background: var(--gradient);
-            border-radius: 50px;
-            animation: progressAnimation 2s ease-in-out;
-            position: relative;
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--border);
         }
 
-        .progress-fill::after {
+        .stat-card::before {
             content: '';
             position: absolute;
             top: 0;
-            left: 0;
             right: 0;
-            bottom: 0;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-            animation: shimmer 1.5s infinite;
+            width: 100%;
+            height: 3px;
         }
 
-        @keyframes progressAnimation {
-            from { width: 0; }
+        .stat-card.primary::before { background: linear-gradient(90deg, var(--primary) 0%, var(--primary-light) 100%); }
+        .stat-card.success::before { background: linear-gradient(90deg, var(--success) 0%, var(--success-light) 100%); }
+        .stat-card.warning::before { background: linear-gradient(90deg, var(--warning) 0%, var(--warning-light) 100%); }
+        .stat-card.danger::before { background: linear-gradient(90deg, var(--danger) 0%, var(--danger-light) 100%); }
+        .stat-card.purple::before { background: linear-gradient(90deg, var(--purple) 0%, var(--purple-light) 100%); }
+        .stat-card.cyan::before { background: linear-gradient(90deg, var(--cyan) 0%, var(--cyan-light) 100%); }
+
+        .stat-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.25rem;
         }
 
-        @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
+        .stat-label {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
-        .progress-percentage {
-            font-size: 0.8rem;
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg);
+        }
+
+        .stat-card.primary .stat-icon { color: var(--primary); }
+        .stat-card.success .stat-icon { color: var(--success); }
+        .stat-card.warning .stat-icon { color: var(--warning); }
+        .stat-card.danger .stat-icon { color: var(--danger); }
+        .stat-card.purple .stat-icon { color: var(--purple); }
+        .stat-card.cyan .stat-icon { color: var(--cyan); }
+
+        .stat-value {
+            font-size: 2rem;
             font-weight: 800;
-            color: var(--primary);
-            margin-top: 0.5rem;
+            color: var(--text);
+            margin-bottom: 0.75rem;
+            letter-spacing: -0.02em;
         }
 
-        /* Responsive */
-        @media (max-width: 640px) {
-            .container {
-                padding: 3rem 2rem;
-            }
+        .stat-footer {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8125rem;
+        }
 
-            h1 {
-                font-size: 2rem;
-            }
+        .stat-trend {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-weight: 700;
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+        }
 
-            .subtitle {
-                font-size: 1.1rem;
-            }
+        .stat-trend.up {
+            color: var(--success);
+            background: rgba(34, 197, 94, 0.1);
+        }
 
-            .icon-container {
-                width: 100px;
-                height: 100px;
-            }
+        .stat-trend.down {
+            color: var(--danger);
+            background: rgba(239, 68, 68, 0.1);
+        }
 
-            .icon-container svg {
-                width: 50px;
-                height: 50px;
-            }
+        .stat-footer-text {
+            color: var(--text-light);
+        }
 
-            .features {
+        /* Charts Section */
+        .charts-section {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.25rem;
+            margin: 2rem 0;
+        }
+
+        .chart-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border);
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .chart-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Table */
+        .table-section {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border);
+            margin: 2rem 0;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .table-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead th {
+            padding: 0.875rem 1rem;
+            text-align: right;
+            font-weight: 700;
+            font-size: 0.8125rem;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            background: var(--bg);
+            border-bottom: 2px solid var(--border);
+        }
+
+        tbody td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.875rem;
+        }
+
+        tbody tr:hover {
+            background: var(--bg);
+        }
+
+        .rank-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.875rem;
+        }
+
+        .rank-1 { background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); color: white; }
+        .rank-2 { background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%); color: white; }
+        .rank-3 { background: linear-gradient(135deg, #fb923c 0%, #f97316 100%); color: white; }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.375rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: rgba(34, 197, 94, 0.1);
+            color: var(--success);
+        }
+
+        .badge-warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        .badge-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        /* Insights */
+        .insights-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.25rem;
+            margin: 2rem 0;
+        }
+
+        .insight-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border);
+            display: flex;
+            gap: 1rem;
+            transition: all 0.3s;
+        }
+
+        .insight-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .insight-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .insight-card.primary .insight-icon {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary);
+        }
+
+        .insight-card.success .insight-icon {
+            background: rgba(34, 197, 94, 0.1);
+            color: var(--success);
+        }
+
+        .insight-card.warning .insight-icon {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        .insight-content {
+            flex: 1;
+        }
+
+        .insight-title {
+            font-weight: 700;
+            font-size: 0.9375rem;
+            color: var(--text);
+            margin-bottom: 0.375rem;
+        }
+
+        .insight-description {
+            font-size: 0.8125rem;
+            color: var(--text-light);
+            line-height: 1.5;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-light);
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Pending Drivers */
+        .pending-driver {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.875rem;
+            background: var(--bg);
+            border-radius: 8px;
+            border-right: 3px solid var(--warning);
+            margin-bottom: 0.75rem;
+        }
+
+        .pending-driver.critical {
+            border-right-color: var(--danger);
+        }
+
+        .driver-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--warning) 0%, var(--warning-light) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 0.875rem;
+        }
+
+        .pending-driver.critical .driver-avatar {
+            background: linear-gradient(135deg, var(--danger) 0%, var(--danger-light) 100%);
+        }
+
+        @media (max-width: 1024px) {
+            .charts-section {
                 grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .header-top {
+                flex-direction: column;
                 gap: 1rem;
             }
-        }
 
-        /* Loading Animation */
-        .loading-dots {
-            display: inline-flex;
-            gap: 0.35rem;
-        }
-
-        .loading-dot {
-            width: 8px;
-            height: 8px;
-            background: var(--primary);
-            border-radius: 50%;
-            animation: loadingDot 1.4s infinite ease-in-out;
-        }
-
-        .loading-dot:nth-child(1) {
-            animation-delay: -0.32s;
-        }
-
-        .loading-dot:nth-child(2) {
-            animation-delay: -0.16s;
-        }
-
-        @keyframes loadingDot {
-            0%, 80%, 100% {
-                transform: scale(0);
-                opacity: 0.5;
+            .filter-bar {
+                flex-direction: column;
             }
-            40% {
-                transform: scale(1);
-                opacity: 1;
+
+            .stats-grid {
+                grid-template-columns: 1fr;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Floating Shapes -->
-    <div class="shape shape-1"></div>
-    <div class="shape shape-2"></div>
-    <div class="shape shape-3"></div>
-
-    <!-- Main Container -->
     <div class="container">
-        <div class="icon-container">
-            <i data-lucide="construction"></i>
+        <!-- Header -->
+        <div class="header">
+            <div class="header-top">
+                <div class="header-title">
+                    <h1>📊 التقارير والإحصائيات</h1>
+                    <p>تتبع أداء شركتك في الوقت الفعلي</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-secondary" onclick="window.print()">
+                        <i data-lucide="download" style="width: 16px; height: 16px;"></i>
+                        تصدير
+                    </button>
+                    <button class="btn btn-primary" onclick="ReportsApp.loadAllData()">
+                        <i data-lucide="refresh-cw" style="width: 16px; height: 16px;"></i>
+                        تحديث
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="filter-bar">
+                <div class="filter-item">
+                    <label>الفترة</label>
+                    <select id="periodFilter" onchange="ReportsApp.applyDateFilter()">
+                        <option value="7">آخر 7 أيام</option>
+                        <option value="30" selected>آخر 30 يوم</option>
+                        <option value="90">آخر 90 يوم</option>
+                        <option value="custom">مخصص</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label>من</label>
+                    <input type="date" id="fromDate">
+                </div>
+                <div class="filter-item">
+                    <label>إلى</label>
+                    <input type="date" id="toDate">
+                </div>
+            </div>
         </div>
 
-        <h1>تحت التطوير</h1>
-        
-        <p class="subtitle">
-            نعمل بجد لتقديم أفضل تجربة لك
-        </p>
-
-        <p class="description">
-            هذه الصفحة قيد التطوير حالياً. نعمل على إضافة ميزات جديدة ومحسنة لتحسين تجربتك في استخدام FleetMaster.
-        </p>
-
-        <!-- Progress Bar -->
-        <div class="progress-container">
-            <div class="progress-label">
-                <i data-lucide="code-2"></i>
-                <span>التقدم في التطوير</span>
-            </div>
-            <div class="progress-bar">
-                <div class="progress-fill" style="width: 65%;"></div>
-            </div>
-            <div class="progress-percentage">65% مكتمل</div>
-        </div>
-
-        <!-- Features Coming Soon -->
-        <div class="features">
-            <div class="feature-item">
-                <i data-lucide="sparkles"></i>
-                <span>ميزات جديدة</span>
-            </div>
-            <div class="feature-item">
-                <i data-lucide="zap"></i>
-                <span>أداء محسّن</span>
-            </div>
-            <div class="feature-item">
-                <i data-lucide="shield-check"></i>
-                <span>أمان أقوى</span>
+        <!-- Stats Grid -->
+        <div class="stats-grid" id="statsContainer">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>جاري تحميل البيانات...</p>
             </div>
         </div>
 
-        <!-- Loading Animation -->
-        <div class="loading-dots">
-            <div class="loading-dot"></div>
-            <div class="loading-dot"></div>
-            <div class="loading-dot"></div>
+        <!-- Charts -->
+        <div class="charts-section">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3 class="chart-title">
+                        <i data-lucide="bar-chart-3" style="width: 18px; height: 18px;"></i>
+                        الإيرادات اليومية
+                    </h3>
+                </div>
+                <canvas id="revenueChart" height="100"></canvas>
+            </div>
+
+            <div class="chart-card" id="cashStatusCard">
+                <div class="chart-header">
+                    <h3 class="chart-title">
+                        <i data-lucide="wallet" style="width: 18px; height: 18px;"></i>
+                        حالة الكاش
+                    </h3>
+                </div>
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Drivers Table -->
+        <div class="table-section">
+            <div class="table-header">
+                <h3 class="table-title">
+                    <i data-lucide="award" style="width: 20px; height: 20px;"></i>
+                    أفضل السائقين هذا الشهر
+                </h3>
+            </div>
+            <div id="driversTableContainer">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Insights -->
+        <div class="insights-section" id="insightsContainer">
+            <!-- Will be populated dynamically -->
         </div>
     </div>
 
+    <script src="../assets/js/api.js"></script>
+    <script src="../assets/js/reports.js"></script>
+    
     <script>
-        // Initialize Lucide Icons
+        // Initialize
         lucide.createIcons();
+        
+        // Set default dates (last 30 days)
+        const today = new Date();
+        const thirtyDaysAgo = new Date(today);
+        thirtyDaysAgo.setDate(today.getDate() - 30);
+        
+        document.getElementById('toDate').valueAsDate = today;
+        document.getElementById('fromDate').valueAsDate = thirtyDaysAgo;
+        
+        // Auto-load when page loads
+        if (typeof ReportsApp !== 'undefined') {
+            ReportsApp.init();
+        }
     </script>
 </body>
 </html>
