@@ -95,20 +95,10 @@ window.ReportsApp = {
         try {
             console.log('📡 [REPORTS/DRIVERS] Loading performance...');
             
-            const params = {};
-            
-            // Add date filters if set
-            if (this.state.fromDate) {
-                params.start_date = this.state.fromDate;
-            }
-            if (this.state.toDate) {
-                params.end_date = this.state.toDate;
-            }
-            
-            const queryString = new URLSearchParams(params).toString();
-            const url = `/drivers/performance${queryString ? '?' + queryString : ''}`;
-            
-            const data = await API.call(url, 'GET');
+            const data = await API.getDriverPerformance(
+                this.state.fromDate,
+                this.state.toDate
+            );
             
             if (data.success) {
                 this.state.driversPerformance = data.performance || [];
@@ -123,19 +113,11 @@ window.ReportsApp = {
         try {
             console.log('📡 [REPORTS/FINANCIALS] Loading by date...');
             
-            const params = {};
-            
-            if (this.state.fromDate) {
-                params.from_date = this.state.fromDate;
-            }
-            if (this.state.toDate) {
-                params.to_date = this.state.toDate;
-            }
-            
-            const queryString = new URLSearchParams(params).toString();
-            const url = `/drivers/financials-by-date${queryString ? '?' + queryString : ''}`;
-            
-            const data = await API.call(url, 'GET');
+            const data = await API.getDriverFinancialsByDate(
+                null, // driver_id = null (get all drivers)
+                this.state.fromDate,
+                this.state.toDate
+            );
             
             if (data.success) {
                 this.state.financialsByDate = data.financials || [];
