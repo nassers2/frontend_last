@@ -473,12 +473,21 @@ if (typeof window.CashApp !== 'undefined') {
     },
 
     showClosePeriodModal: function() {
-        const modal = document.getElementById('confirmModal');
-        if (modal) {
-            modal.classList.add('show');
-            if (typeof lucide !== 'undefined') lucide.createIcons();
-        }
-    },
+    // إغلاق جميع Select2 dropdowns قبل فتح المودال
+    if (typeof $ !== 'undefined' && $.fn.select2) {
+        $('select').each(function() {
+            if ($(this).data('select2')) {
+                $(this).select2('close');
+            }
+        });
+    }
+    
+    const modal = document.getElementById('confirmModal');
+    if (modal) {
+        modal.classList.add('show');
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+},
 
     closePeriod: async function() {
         if (!this.state.currentPeriod) {
