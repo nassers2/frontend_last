@@ -525,10 +525,6 @@ if (typeof window.CashApp !== 'undefined') {
     },
 
     deleteReceipt: async function(receiptId) {
-        if (!confirm('هل أنت متأكد من حذف هذا الإيصال؟')) {
-            return;
-        }
-
         try {
             const result = await API.deleteCashReceipt(receiptId);
 
