@@ -1062,7 +1062,7 @@
                 if (weekDates.length > 0) {
                     const startDate = new Date(weekDates[0]);
                     const endDate = new Date(weekDates[weekDates.length - 1]);
-                    const dateRangeText = `${startDate.toLocaleDateString('ar-SA', { day: 'numeric', month: 'short' })} - ${endDate.toLocaleDateString('ar-SA', { day: 'numeric', month: 'short', year: 'numeric' })}`;
+                    const dateRangeText = `${startDate.toLocaleDateString('en-US', { day: 'numeric', month: 'short' })} - ${endDate.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}`;
                     
                     const dateDisplay = document.getElementById('chartDateRange');
                     if (dateDisplay) {
@@ -1097,7 +1097,7 @@
                                 callbacks: {
                                     label: (context) => {
                                         const date = new Date(weekDates[context.dataIndex]);
-                                        const dateStr = date.toLocaleDateString('ar-SA', { day: 'numeric', month: 'short' });
+                                        const dateStr = date.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
                                         return [
                                             dateStr,
                                             'الإيرادات: ' + context.parsed.y.toLocaleString() + ' ر.س'
