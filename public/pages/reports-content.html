@@ -675,10 +675,9 @@
             setCurrentMonthDates: function() {
                 const today = new Date();
                 const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-                const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
                 
                 this.state.fromDate = this.formatDate(startOfMonth);
-                this.state.toDate = this.formatDate(endOfMonth);
+                this.state.toDate = this.formatDate(today);
                 
                 // تحديث حقول التاريخ في الواجهة
                 const fromDateInput = document.getElementById('fromDate');
@@ -805,11 +804,46 @@
 
             loadCashReceipts: async function() {
                 try {
-                    console.log('📡 [REPORTS/RECEIPTS] Loading cash receipts for period...');
-                    const data = await API.getCashReceipts(this.state.fromDate, this.state.toDate);
+                    console.log(`📡 [REPORTS/RECEIPTS] Loading receipts for active period`);
+                    
+                    // الحصول على period_id للفترة النشطة
+                    let periodId = null;
+                    if (this.state.currentPeriod && this.state.currentPeriod.id) {
+                        periodId = this.state.currentPeriod.id;
+                        console.log(`📡 [REPORTS/RECEIPTS] Using active period ID: ${periodId}`);
+                    }
+                    
+                    const token = localStorage.getItem('token');
+                    
+                    // استدعاء API بدون تصفية - نأخذ كل شيء ثم نفلتر في الـ frontend
+                    const url = periodId 
+                        ? `https://api.flemaster.com/api/cash/receipts?period_id=${periodId}`
+                        : `https://api.flemaster.com/api/cash/receipts`;
+                    
+                    const response = await fetch(url, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    
                     if (data.success) {
-                        this.state.cashReceipts = data.receipts || [];
-                        console.log(`✅ [REPORTS/RECEIPTS] Loaded ${this.state.cashReceipts.length} receipts`);
+                        // فلترة الـ receipts حسب التواريخ المحددة في الـ frontend
+                        const allReceipts = data.receipts || [];
+                        this.state.cashReceipts = allReceipts.filter(receipt => {
+                            const receiptDate = receipt.receipt_date;
+                            return receiptDate >= this.state.fromDate && receiptDate <= this.state.toDate;
+                        });
+                        
+                        console.log(`✅ [REPORTS/RECEIPTS] Loaded ${allReceipts.length} receipts, filtered to ${this.state.cashReceipts.length} for period ${this.state.fromDate} to ${this.state.toDate}`);
+                    } else {
+                        this.state.cashReceipts = [];
                     }
                 } catch (error) {
                     console.error('❌ [REPORTS/RECEIPTS] Error:', error);
@@ -821,69 +855,59 @@
                 const container = document.getElementById('statsContainer');
                 if (!container) return;
                 
-                console.log('📊 Filtering data from', this.state.fromDate, 'to', this.state.toDate);
+                console.log('📊 [STATS] Rendering for period:', this.state.fromDate, 'to', this.state.toDate);
                 
-                // فلترة البيانات حسب النطاق المختار بدقة
-                let filteredFinancials = [];
-                if (this.state.fromDate && this.state.toDate) {
-                    const fromTime = new Date(this.state.fromDate).getTime();
-                    const toTime = new Date(this.state.toDate).getTime();
-                    
-                    filteredFinancials = this.state.financialsByDate.filter(record => {
-                        const recordTime = new Date(record.date).getTime();
-                        return recordTime >= fromTime && recordTime <= toTime;
-                    });
-                } else {
-                    filteredFinancials = this.state.financialsByDate;
-                }
+                // فلترة البيانات حسب النطاق المختار
+                const filteredFinancials = this.state.financialsByDate.filter(record => {
+                    const recordDate = record.date;
+                    return recordDate >= this.state.fromDate && recordDate <= this.state.toDate;
+                });
                 
-                console.log(`📊 Filtered ${filteredFinancials.length} records`);
+                console.log(`📊 [STATS] Filtered ${filteredFinancials.length} financial records`);
                 
-                // 1. إجمالي الإيرادات = مجموع delivery_price
-                const totalRevenue = filteredFinancials.reduce((sum, r) => {
-                    const amount = parseFloat(r.delivery_price || 0);
-                    return sum + amount;
-                }, 0);
+                // 1. إجمالي الإيرادات
+                const totalRevenue = filteredFinancials.reduce((sum, r) => 
+                    sum + parseFloat(r.delivery_price || 0), 0
+                );
                 
-                console.log('💰 Total Revenue:', totalRevenue);
+                // 2. إجمالي الطلبات (حساب من orders_count)
+                const totalOrders = filteredFinancials.reduce((sum, r) => 
+                    sum + parseInt(r.orders_count || 0), 0
+                );
                 
-                // 2. إجمالي الطلبات = عدد السجلات (كل سجل = يوم واحد لسائق واحد)
-                const totalOrders = filteredFinancials.length * 15;
-                
-                console.log('📦 Total Orders:', totalOrders);
-                
-                // 3. عدد السائقين النشطين في الفترة
+                // 3. عدد السائقين النشطين
                 const activeDriversSet = new Set();
                 filteredFinancials.forEach(r => {
                     if (r.driver_id) activeDriversSet.add(r.driver_id);
                 });
                 const activeDrivers = activeDriversSet.size;
                 
-                console.log('👥 Active Drivers:', activeDrivers);
-                
-                // 4. متوسط التوصيل اليومي للمندوب
+                // 4. متوسط التوصيل اليومي
                 const totalActiveDays = filteredFinancials.length;
                 const avgDeliveryPerDriver = totalActiveDays > 0 
                     ? (totalRevenue / totalActiveDays).toFixed(0)
                     : 0;
                 
-                console.log('📊 Avg Delivery per Driver per Day:', avgDeliveryPerDriver);
-                
-                // 5. إجمالي الغرامات = مجموع (penalty + driver_debit)
+                // 5. إجمالي الغرامات
                 const totalViolations = filteredFinancials.reduce((sum, r) => {
                     const penalty = parseFloat(r.penalty || 0);
                     const debit = parseFloat(r.driver_debit || 0);
                     return sum + penalty + debit;
                 }, 0);
                 
-                console.log('⚠️ Total Violations:', totalViolations);
-                
-                // 6. الإيراد لكل سائق = إجمالي الإيرادات / عدد السائقين
+                // 6. الإيراد لكل سائق
                 const revenuePerDriver = activeDrivers > 0
                     ? (totalRevenue / activeDrivers).toFixed(0)
                     : 0;
                 
-                console.log('💵 Revenue per Driver:', revenuePerDriver);
+                console.log('📊 [STATS] Calculated:', {
+                    totalRevenue,
+                    totalOrders,
+                    activeDrivers,
+                    avgDeliveryPerDriver,
+                    totalViolations,
+                    revenuePerDriver
+                });
                 
                 // حساب مقارنة بالشهر الماضي
                 const now = new Date();
@@ -987,12 +1011,14 @@
                 const revenueByDate = {};
                 this.state.financialsByDate.forEach(record => {
                     const date = record.date;
-                    const revenue = parseFloat(record.delivery_price || 0);
-                    if (!revenueByDate[date]) revenueByDate[date] = 0;
-                    revenueByDate[date] += revenue;
+                    if (date >= this.state.fromDate && date <= this.state.toDate) {
+                        const revenue = parseFloat(record.delivery_price || 0);
+                        if (!revenueByDate[date]) revenueByDate[date] = 0;
+                        revenueByDate[date] += revenue;
+                    }
                 });
                 
-                // ترتيب التواريخ وأخذ آخر 7 أيام
+                // ترتيب التواريخ
                 const sortedDates = Object.keys(revenueByDate).sort();
                 
                 if (sortedDates.length === 0) {
@@ -1012,7 +1038,8 @@
                 
                 const labels = weekDates.map(date => {
                     const d = new Date(date);
-                    return d.toLocaleDateString('en-US', { weekday: 'short' });
+                    const dayNames = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+                    return dayNames[d.getDay()];
                 });
                 
                 const data = weekDates.map(date => revenueByDate[date] || 0);
@@ -1021,7 +1048,7 @@
                 if (weekDates.length > 0) {
                     const startDate = new Date(weekDates[0]);
                     const endDate = new Date(weekDates[weekDates.length - 1]);
-                    const dateRangeText = `${startDate.toLocaleDateString('en-US', { day: 'numeric', month: 'short' })} - ${endDate.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}`;
+                    const dateRangeText = `${startDate.toLocaleDateString('ar-SA', { day: 'numeric', month: 'short' })} - ${endDate.toLocaleDateString('ar-SA', { day: 'numeric', month: 'short', year: 'numeric' })}`;
                     
                     const dateDisplay = document.getElementById('chartDateRange');
                     if (dateDisplay) {
@@ -1056,7 +1083,7 @@
                                 callbacks: {
                                     label: (context) => {
                                         const date = new Date(weekDates[context.dataIndex]);
-                                        const dateStr = date.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+                                        const dateStr = date.toLocaleDateString('ar-SA', { day: 'numeric', month: 'short' });
                                         return [
                                             dateStr,
                                             'الإيرادات: ' + context.parsed.y.toLocaleString() + ' ر.س'
@@ -1085,12 +1112,16 @@
             },
 
             previousWeek: function() {
-                const sortedDates = Object.keys(this.state.financialsByDate.reduce((acc, record) => {
-                    acc[record.date] = true;
-                    return acc;
-                }, {})).sort();
+                const revenueByDate = {};
+                this.state.financialsByDate.forEach(record => {
+                    if (record.date >= this.state.fromDate && record.date <= this.state.toDate) {
+                        revenueByDate[record.date] = true;
+                    }
+                });
                 
+                const sortedDates = Object.keys(revenueByDate).sort();
                 const currentEndIndex = sortedDates.length + this.state.currentWeekOffset;
+                
                 if (currentEndIndex - 7 > 0) {
                     this.state.currentWeekOffset -= 7;
                     this.renderRevenueChart();
@@ -1110,43 +1141,36 @@
                 const container = document.getElementById('cashStatusCard');
                 if (!container) return;
                 
-                console.log('💰 [REPORTS/CASH] Rendering cash status...');
-                console.log('💰 Period:', this.state.fromDate, 'to', this.state.toDate);
+                console.log('💰 [CASH] Rendering status for period:', this.state.fromDate, 'to', this.state.toDate);
                 
-                // فلترة البيانات المالية حسب النطاق المختار
-                let filteredFinancials = this.state.financialsByDate;
-                if (this.state.fromDate && this.state.toDate) {
-                    const fromTime = new Date(this.state.fromDate).getTime();
-                    const toTime = new Date(this.state.toDate).getTime();
-                    
-                    filteredFinancials = this.state.financialsByDate.filter(record => {
-                        const recordTime = new Date(record.date).getTime();
-                        return recordTime >= fromTime && recordTime <= toTime;
-                    });
-                }
+                // فلترة البيانات المالية حسب النطاق
+                const filteredFinancials = this.state.financialsByDate.filter(record => {
+                    return record.date >= this.state.fromDate && record.date <= this.state.toDate;
+                });
                 
-                console.log('💰 Filtered financials:', filteredFinancials.length, 'records');
+                console.log('💰 [CASH] Filtered financials:', filteredFinancials.length);
                 
-                // المتوقع = مجموع cash_collected من driver_financials_daily للفترة المختارة
+                // المتوقع = مجموع cash_collected
                 const totalExpected = filteredFinancials.reduce((sum, record) => 
                     sum + parseFloat(record.cash_collected || 0), 0
                 );
                 
-                console.log('💰 Total Expected:', totalExpected);
+                console.log('💰 [CASH] Total Expected:', totalExpected);
                 
-                // المستلم = مجموع cash_receipts للفترة المختارة فقط (مفلترة حسب receipt_date)
+                // المستلم = مجموع cash_receipts للفترة
                 const totalCollected = this.state.cashReceipts.reduce((sum, receipt) => 
                     sum + parseFloat(receipt.amount || 0), 0
                 );
                 
-                console.log('💰 Total Collected from receipts:', totalCollected);
-                console.log('💰 Number of receipts:', this.state.cashReceipts.length);
+                console.log('💰 [CASH] Total Collected:', totalCollected, 'from', this.state.cashReceipts.length, 'receipts');
                 
                 const remaining = totalExpected - totalCollected;
                 const percentage = totalExpected > 0 ? ((totalCollected / totalExpected) * 100).toFixed(1) : 0;
                 
-                // جمع الكاش لكل سائق من driver_financials_daily للفترة المختارة
+                // جمع الكاش لكل سائق
                 const driversCashMap = {};
+                
+                // إضافة الكاش المتوقع
                 filteredFinancials.forEach(record => {
                     const driverId = record.driver_id;
                     if (!driversCashMap[driverId]) {
@@ -1161,19 +1185,28 @@
                     driversCashMap[driverId].expected += parseFloat(record.cash_collected || 0);
                 });
                 
-                // إضافة الكاش المسلّم من cash_receipts للفترة المختارة
+                // إضافة الكاش المسلّم
                 this.state.cashReceipts.forEach(receipt => {
                     const driverId = receipt.driver_id;
                     if (driversCashMap[driverId]) {
                         driversCashMap[driverId].collected += parseFloat(receipt.amount || 0);
+                    } else {
+                        // سائق عنده كاش مسلّم لكن ما عنده متوقع في الفترة
+                        driversCashMap[driverId] = {
+                            driver_id: driverId,
+                            driver_name: receipt.driver_name,
+                            driver_phone: receipt.driver_phone,
+                            expected: 0,
+                            collected: parseFloat(receipt.amount || 0)
+                        };
                     }
                 });
                 
                 const driversArray = Object.values(driversCashMap)
-                    .filter(d => d.expected > 0)
+                    .filter(d => d.expected > 0 || d.collected > 0)
                     .sort((a, b) => b.expected - a.expected);
                 
-                console.log('💰 Drivers with cash:', driversArray.length);
+                console.log('💰 [CASH] Drivers with cash:', driversArray.length);
                 
                 container.innerHTML = `
                     <div class="chart-header">
@@ -1379,13 +1412,19 @@
                     
                     const [year, monthIndex] = periodFilter.split('-').map(Number);
                     const startDate = new Date(year, monthIndex, 1);
+                    const today = new Date();
                     const endDate = new Date(year, monthIndex + 1, 0);
                     
+                    // إذا كان الشهر المختار هو الشهر الحالي، استخدم اليوم الحالي كنهاية
+                    const actualEndDate = (year === today.getFullYear() && monthIndex === today.getMonth()) 
+                        ? today 
+                        : endDate;
+                    
                     fromDate.valueAsDate = startDate;
-                    toDate.valueAsDate = endDate;
+                    toDate.valueAsDate = actualEndDate;
                     
                     this.state.fromDate = this.formatDate(startDate);
-                    this.state.toDate = this.formatDate(endDate);
+                    this.state.toDate = this.formatDate(actualEndDate);
                     
                     console.log(`📅 Selected period: ${this.state.fromDate} to ${this.state.toDate}`);
                     
