@@ -856,24 +856,38 @@
                 if (!container) return;
                 
                 console.log('📊 [STATS] Rendering for period:', this.state.fromDate, 'to', this.state.toDate);
+                console.log('📊 [STATS] Total records available:', this.state.financialsByDate.length);
                 
-                // فلترة البيانات حسب النطاق المختار
+                // فلترة البيانات حسب النطاق المختار (مقارنة نصية للتواريخ تعمل مع YYYY-MM-DD)
                 const filteredFinancials = this.state.financialsByDate.filter(record => {
-                    const recordDate = record.date;
-                    return recordDate >= this.state.fromDate && recordDate <= this.state.toDate;
+                    const recordDate = record.date; // format: YYYY-MM-DD
+                    const isInRange = recordDate >= this.state.fromDate && recordDate <= this.state.toDate;
+                    return isInRange;
                 });
                 
                 console.log(`📊 [STATS] Filtered ${filteredFinancials.length} financial records`);
                 
-                // 1. إجمالي الإيرادات
-                const totalRevenue = filteredFinancials.reduce((sum, r) => 
-                    sum + parseFloat(r.delivery_price || 0), 0
-                );
+                // طباعة عينة للتحقق
+                if (filteredFinancials.length > 0) {
+                    console.log('📊 [STATS] Sample record:', filteredFinancials[0]);
+                    console.log('📊 [STATS] First date:', filteredFinancials[0].date);
+                    console.log('📊 [STATS] Last date:', filteredFinancials[filteredFinancials.length - 1].date);
+                }
+                
+                // 1. إجمالي الإيرادات - جمع جميع delivery_price
+                const totalRevenue = filteredFinancials.reduce((sum, r) => {
+                    const amount = parseFloat(r.delivery_price || 0);
+                    return sum + amount;
+                }, 0);
+                
+                console.log('📊 [STATS] Total Revenue:', totalRevenue);
                 
                 // 2. إجمالي الطلبات (حساب من orders_count)
                 const totalOrders = filteredFinancials.reduce((sum, r) => 
                     sum + parseInt(r.orders_count || 0), 0
                 );
+                
+                console.log('📊 [STATS] Total Orders:', totalOrders);
                 
                 // 3. عدد السائقين النشطين
                 const activeDriversSet = new Set();
@@ -1142,10 +1156,13 @@
                 if (!container) return;
                 
                 console.log('💰 [CASH] Rendering status for period:', this.state.fromDate, 'to', this.state.toDate);
+                console.log('💰 [CASH] Total financials available:', this.state.financialsByDate.length);
+                console.log('💰 [CASH] Total receipts available:', this.state.cashReceipts.length);
                 
                 // فلترة البيانات المالية حسب النطاق
                 const filteredFinancials = this.state.financialsByDate.filter(record => {
-                    return record.date >= this.state.fromDate && record.date <= this.state.toDate;
+                    const isInRange = record.date >= this.state.fromDate && record.date <= this.state.toDate;
+                    return isInRange;
                 });
                 
                 console.log('💰 [CASH] Filtered financials:', filteredFinancials.length);
@@ -1157,7 +1174,7 @@
                 
                 console.log('💰 [CASH] Total Expected:', totalExpected);
                 
-                // المستلم = مجموع cash_receipts للفترة
+                // المستلم = مجموع cash_receipts للفترة (already filtered in loadCashReceipts)
                 const totalCollected = this.state.cashReceipts.reduce((sum, receipt) => 
                     sum + parseFloat(receipt.amount || 0), 0
                 );
@@ -1170,9 +1187,11 @@
                 // جمع الكاش لكل سائق
                 const driversCashMap = {};
                 
-                // إضافة الكاش المتوقع
+                // إضافة الكاش المتوقع من financials
                 filteredFinancials.forEach(record => {
                     const driverId = record.driver_id;
+                    const cashAmount = parseFloat(record.cash_collected || 0);
+                    
                     if (!driversCashMap[driverId]) {
                         driversCashMap[driverId] = {
                             driver_id: driverId,
@@ -1182,14 +1201,18 @@
                             collected: 0
                         };
                     }
-                    driversCashMap[driverId].expected += parseFloat(record.cash_collected || 0);
+                    driversCashMap[driverId].expected += cashAmount;
                 });
                 
-                // إضافة الكاش المسلّم
+                console.log('💰 [CASH] Drivers from financials:', Object.keys(driversCashMap).length);
+                
+                // إضافة الكاش المسلّم من receipts
                 this.state.cashReceipts.forEach(receipt => {
                     const driverId = receipt.driver_id;
+                    const amount = parseFloat(receipt.amount || 0);
+                    
                     if (driversCashMap[driverId]) {
-                        driversCashMap[driverId].collected += parseFloat(receipt.amount || 0);
+                        driversCashMap[driverId].collected += amount;
                     } else {
                         // سائق عنده كاش مسلّم لكن ما عنده متوقع في الفترة
                         driversCashMap[driverId] = {
@@ -1197,16 +1220,19 @@
                             driver_name: receipt.driver_name,
                             driver_phone: receipt.driver_phone,
                             expected: 0,
-                            collected: parseFloat(receipt.amount || 0)
+                            collected: amount
                         };
                     }
                 });
+                
+                console.log('💰 [CASH] Total unique drivers:', Object.keys(driversCashMap).length);
                 
                 const driversArray = Object.values(driversCashMap)
                     .filter(d => d.expected > 0 || d.collected > 0)
                     .sort((a, b) => b.expected - a.expected);
                 
                 console.log('💰 [CASH] Drivers with cash:', driversArray.length);
+                console.log('💰 [CASH] Drivers list:', driversArray);
                 
                 container.innerHTML = `
                     <div class="chart-header">
@@ -1413,12 +1439,12 @@
                     const [year, monthIndex] = periodFilter.split('-').map(Number);
                     const startDate = new Date(year, monthIndex, 1);
                     const today = new Date();
-                    const endDate = new Date(year, monthIndex + 1, 0);
+                    const endOfMonth = new Date(year, monthIndex + 1, 0);
                     
-                    // إذا كان الشهر المختار هو الشهر الحالي، استخدم اليوم الحالي كنهاية
-                    const actualEndDate = (year === today.getFullYear() && monthIndex === today.getMonth()) 
-                        ? today 
-                        : endDate;
+                    // ✅ إذا كان الشهر المختار هو الشهر الحالي، استخدم اليوم الحالي
+                    // ✅ إذا كان شهر سابق، استخدم آخر يوم في الشهر
+                    const isCurrentMonth = (year === today.getFullYear() && monthIndex === today.getMonth());
+                    const actualEndDate = isCurrentMonth ? today : endOfMonth;
                     
                     fromDate.valueAsDate = startDate;
                     toDate.valueAsDate = actualEndDate;
@@ -1426,7 +1452,7 @@
                     this.state.fromDate = this.formatDate(startDate);
                     this.state.toDate = this.formatDate(actualEndDate);
                     
-                    console.log(`📅 Selected period: ${this.state.fromDate} to ${this.state.toDate}`);
+                    console.log(`📅 Selected period: ${this.state.fromDate} to ${this.state.toDate} (${isCurrentMonth ? 'current month' : 'past month'})`);
                     
                     this.loadAllData();
                 }
