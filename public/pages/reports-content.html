@@ -649,6 +649,7 @@
                 driversPerformance: [],
                 cashReceipts: [],
                 financialsByDate: [],
+                ordersData: [],
                 fromDate: null,
                 toDate: null,
                 revenueChart: null,
@@ -658,10 +659,7 @@
             init: async function() {
                 console.log('📊 [REPORTS] Initializing...');
                 
-                // ملء قائمة الأشهر
                 this.populateMonthsFilter();
-                
-                // تعيين تواريخ الشهر الحالي قبل التحميل
                 this.setCurrentMonthDates();
                 
                 try {
@@ -679,7 +677,6 @@
                 this.state.fromDate = this.formatDate(startOfMonth);
                 this.state.toDate = this.formatDate(today);
                 
-                // تحديث حقول التاريخ في الواجهة
                 const fromDateInput = document.getElementById('fromDate');
                 const toDateInput = document.getElementById('toDate');
                 if (fromDateInput) fromDateInput.value = this.state.fromDate;
@@ -699,7 +696,6 @@
                 const currentMonth = today.getMonth();
                 const currentYear = today.getFullYear();
                 
-                // إضافة آخر 12 شهر
                 for (let i = 0; i < 12; i++) {
                     const monthIndex = (currentMonth - i + 12) % 12;
                     const year = currentYear - Math.floor((currentMonth - i) / 12);
@@ -712,7 +708,6 @@
                     select.appendChild(option);
                 }
                 
-                // خيار مخصص
                 const customOption = document.createElement('option');
                 customOption.value = 'custom';
                 customOption.textContent = 'مخصص';
@@ -720,7 +715,7 @@
             },
 
             loadAllData: async function() {
-                console.log(`📊 [REPORTS] Loading all data for period: ${this.state.fromDate} to ${this.state.toDate}`);
+                console.log(`📊 [REPORTS] Loading for: ${this.state.fromDate} to ${this.state.toDate}`);
                 
                 this.showLoading();
                 
@@ -730,6 +725,7 @@
                         this.loadCurrentPeriod(),
                         this.loadDriversPerformance(),
                         this.loadFinancialsByDate(),
+                        this.loadOrdersData(),
                         this.loadCashReceipts()
                     ]);
                     
@@ -752,11 +748,9 @@
 
             loadCashSummary: async function() {
                 try {
-                    console.log('📡 [REPORTS/CASH] Loading summary...');
                     const data = await API.getCashSummary();
                     if (data.success) {
                         this.state.cashSummary = data;
-                        console.log('✅ [REPORTS/CASH] Summary loaded:', data);
                     }
                 } catch (error) {
                     console.error('❌ [REPORTS/CASH] Error:', error);
@@ -765,11 +759,9 @@
 
             loadCurrentPeriod: async function() {
                 try {
-                    console.log('📡 [REPORTS/PERIOD] Loading current period...');
                     const data = await API.getCurrentPeriod();
                     if (data.success) {
                         this.state.currentPeriod = data.period;
-                        console.log('✅ [REPORTS/PERIOD] Period loaded:', data.period);
                     }
                 } catch (error) {
                     console.error('❌ [REPORTS/PERIOD] Error:', error);
@@ -778,11 +770,10 @@
 
             loadDriversPerformance: async function() {
                 try {
-                    console.log('📡 [REPORTS/DRIVERS] Loading performance...');
                     const data = await API.getDriverPerformance(this.state.fromDate, this.state.toDate);
                     if (data.success) {
                         this.state.driversPerformance = data.performance || [];
-                        console.log(`✅ [REPORTS/DRIVERS] Loaded ${this.state.driversPerformance.length} drivers`);
+                        console.log(`✅ Loaded ${this.state.driversPerformance.length} drivers performance`);
                     }
                 } catch (error) {
                     console.error('❌ [REPORTS/DRIVERS] Error:', error);
@@ -791,31 +782,55 @@
 
             loadFinancialsByDate: async function() {
                 try {
-                    console.log('📡 [REPORTS/FINANCIALS] Loading by date...');
                     const data = await API.getDriverFinancialsByDate(null, this.state.fromDate, this.state.toDate);
                     if (data.success) {
                         this.state.financialsByDate = data.financials || [];
-                        console.log(`✅ [REPORTS/FINANCIALS] Loaded ${this.state.financialsByDate.length} records`);
+                        console.log(`✅ Loaded ${this.state.financialsByDate.length} financial records`);
                     }
                 } catch (error) {
                     console.error('❌ [REPORTS/FINANCIALS] Error:', error);
                 }
             },
 
+            loadOrdersData: async function() {
+                try {
+                    const token = localStorage.getItem('token');
+                    const response = await fetch(
+                        `https://api.flemaster.com/api/drivers/orders?from_date=${this.state.fromDate}&to_date=${this.state.toDate}`,
+                        {
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                            }
+                        }
+                    );
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        this.state.ordersData = data.data || [];
+                        console.log(`✅ Loaded ${this.state.ordersData.length} orders records`);
+                    } else {
+                        this.state.ordersData = [];
+                    }
+                } catch (error) {
+                    console.error('❌ [REPORTS/ORDERS] Error:', error);
+                    this.state.ordersData = [];
+                }
+            },
+
             loadCashReceipts: async function() {
                 try {
-                    console.log(`📡 [REPORTS/RECEIPTS] Loading receipts for active period`);
-                    
-                    // الحصول على period_id للفترة النشطة
                     let periodId = null;
                     if (this.state.currentPeriod && this.state.currentPeriod.id) {
                         periodId = this.state.currentPeriod.id;
-                        console.log(`📡 [REPORTS/RECEIPTS] Using active period ID: ${periodId}`);
                     }
                     
                     const token = localStorage.getItem('token');
-                    
-                    // استدعاء API بدون تصفية - نأخذ كل شيء ثم نفلتر في الـ frontend
                     const url = periodId 
                         ? `https://api.flemaster.com/api/cash/receipts?period_id=${periodId}`
                         : `https://api.flemaster.com/api/cash/receipts`;
@@ -834,14 +849,13 @@
                     const data = await response.json();
                     
                     if (data.success) {
-                        // فلترة الـ receipts حسب التواريخ المحددة في الـ frontend
                         const allReceipts = data.receipts || [];
                         this.state.cashReceipts = allReceipts.filter(receipt => {
                             const receiptDate = receipt.receipt_date;
                             return receiptDate >= this.state.fromDate && receiptDate <= this.state.toDate;
                         });
                         
-                        console.log(`✅ [REPORTS/RECEIPTS] Loaded ${allReceipts.length} receipts, filtered to ${this.state.cashReceipts.length} for period ${this.state.fromDate} to ${this.state.toDate}`);
+                        console.log(`✅ Loaded ${this.state.cashReceipts.length} cash receipts (from ${allReceipts.length} total)`);
                     } else {
                         this.state.cashReceipts = [];
                     }
@@ -855,55 +869,39 @@
                 const container = document.getElementById('statsContainer');
                 if (!container) return;
                 
-                console.log('📊 [STATS] Rendering for period:', this.state.fromDate, 'to', this.state.toDate);
-                console.log('📊 [STATS] Total records available:', this.state.financialsByDate.length);
+                console.log('📊 [STATS] ===================');
+                console.log('📊 Period:', this.state.fromDate, 'to', this.state.toDate);
+                console.log('📊 Financials records:', this.state.financialsByDate.length);
+                console.log('📊 Orders records:', this.state.ordersData.length);
                 
-                // فلترة البيانات حسب النطاق المختار (مقارنة نصية للتواريخ تعمل مع YYYY-MM-DD)
-                const filteredFinancials = this.state.financialsByDate.filter(record => {
-                    const recordDate = record.date; // format: YYYY-MM-DD
-                    const isInRange = recordDate >= this.state.fromDate && recordDate <= this.state.toDate;
-                    return isInRange;
-                });
+                // 1. إجمالي الإيرادات - جمع كل delivery_price
+                const totalRevenue = this.state.financialsByDate.reduce((sum, r) => 
+                    sum + parseFloat(r.delivery_price || 0), 0
+                );
+                console.log('💰 Total Revenue:', totalRevenue);
                 
-                console.log(`📊 [STATS] Filtered ${filteredFinancials.length} financial records`);
-                
-                // طباعة عينة للتحقق
-                if (filteredFinancials.length > 0) {
-                    console.log('📊 [STATS] Sample record:', filteredFinancials[0]);
-                    console.log('📊 [STATS] First date:', filteredFinancials[0].date);
-                    console.log('📊 [STATS] Last date:', filteredFinancials[filteredFinancials.length - 1].date);
-                }
-                
-                // 1. إجمالي الإيرادات - جمع جميع delivery_price
-                const totalRevenue = filteredFinancials.reduce((sum, r) => {
-                    const amount = parseFloat(r.delivery_price || 0);
-                    return sum + amount;
-                }, 0);
-                
-                console.log('📊 [STATS] Total Revenue:', totalRevenue);
-                
-                // 2. إجمالي الطلبات (حساب من orders_count)
-                const totalOrders = filteredFinancials.reduce((sum, r) => 
+                // 2. إجمالي الطلبات - جمع كل orders_count
+                const totalOrders = this.state.ordersData.reduce((sum, r) => 
                     sum + parseInt(r.orders_count || 0), 0
                 );
-                
-                console.log('📊 [STATS] Total Orders:', totalOrders);
+                console.log('📦 Total Orders:', totalOrders);
                 
                 // 3. عدد السائقين النشطين
                 const activeDriversSet = new Set();
-                filteredFinancials.forEach(r => {
+                this.state.financialsByDate.forEach(r => {
                     if (r.driver_id) activeDriversSet.add(r.driver_id);
                 });
                 const activeDrivers = activeDriversSet.size;
+                console.log('👥 Active Drivers:', activeDrivers);
                 
                 // 4. متوسط التوصيل اليومي
-                const totalActiveDays = filteredFinancials.length;
+                const totalActiveDays = this.state.financialsByDate.length;
                 const avgDeliveryPerDriver = totalActiveDays > 0 
                     ? (totalRevenue / totalActiveDays).toFixed(0)
                     : 0;
                 
                 // 5. إجمالي الغرامات
-                const totalViolations = filteredFinancials.reduce((sum, r) => {
+                const totalViolations = this.state.financialsByDate.reduce((sum, r) => {
                     const penalty = parseFloat(r.penalty || 0);
                     const debit = parseFloat(r.driver_debit || 0);
                     return sum + penalty + debit;
@@ -914,14 +912,7 @@
                     ? (totalRevenue / activeDrivers).toFixed(0)
                     : 0;
                 
-                console.log('📊 [STATS] Calculated:', {
-                    totalRevenue,
-                    totalOrders,
-                    activeDrivers,
-                    avgDeliveryPerDriver,
-                    totalViolations,
-                    revenuePerDriver
-                });
+                console.log('📊 [STATS] ===================');
                 
                 // حساب مقارنة بالشهر الماضي
                 const now = new Date();
@@ -986,7 +977,7 @@
                             <div class="stat-icon"><i data-lucide="package" style="width: 20px; height: 20px;"></i></div>
                         </div>
                         <div class="stat-value">${totalOrders.toLocaleString()}</div>
-                        <div class="stat-footer"><span class="stat-footer-text">${filteredFinancials.length} يوم عمل</span></div>
+                        <div class="stat-footer"><span class="stat-footer-text">${this.state.ordersData.length} سجل</span></div>
                     </div>
                     <div class="stat-card warning">
                         <div class="stat-top">
@@ -1021,18 +1012,14 @@
                 const canvas = document.getElementById('revenueChart');
                 if (!canvas) return;
                 
-                // تجميع delivery_price لكل تاريخ
                 const revenueByDate = {};
                 this.state.financialsByDate.forEach(record => {
                     const date = record.date;
-                    if (date >= this.state.fromDate && date <= this.state.toDate) {
-                        const revenue = parseFloat(record.delivery_price || 0);
-                        if (!revenueByDate[date]) revenueByDate[date] = 0;
-                        revenueByDate[date] += revenue;
-                    }
+                    const revenue = parseFloat(record.delivery_price || 0);
+                    if (!revenueByDate[date]) revenueByDate[date] = 0;
+                    revenueByDate[date] += revenue;
                 });
                 
-                // ترتيب التواريخ
                 const sortedDates = Object.keys(revenueByDate).sort();
                 
                 if (sortedDates.length === 0) {
@@ -1043,11 +1030,9 @@
                     return;
                 }
                 
-                // تحديد نطاق العرض بناءً على الـ offset
                 const endIndex = sortedDates.length + this.state.currentWeekOffset;
                 const startIndex = Math.max(0, endIndex - 7);
                 const displayDates = sortedDates.slice(startIndex, endIndex);
-                
                 const weekDates = displayDates.slice(-7);
                 
                 const labels = weekDates.map(date => {
@@ -1058,11 +1043,10 @@
                 
                 const data = weekDates.map(date => revenueByDate[date] || 0);
                 
-                // حساب نطاق التواريخ للعرض
                 if (weekDates.length > 0) {
                     const startDate = new Date(weekDates[0]);
                     const endDate = new Date(weekDates[weekDates.length - 1]);
-                    const dateRangeText = `${startDate.toLocaleDateString('en-US', { day: 'numeric', month: 'short' })} - ${endDate.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}`;
+                    const dateRangeText = `${startDate.toLocaleDateString('ar-SA', { day: 'numeric', month: 'short' })} - ${endDate.toLocaleDateString('ar-SA', { day: 'numeric', month: 'short', year: 'numeric' })}`;
                     
                     const dateDisplay = document.getElementById('chartDateRange');
                     if (dateDisplay) {
@@ -1097,7 +1081,7 @@
                                 callbacks: {
                                     label: (context) => {
                                         const date = new Date(weekDates[context.dataIndex]);
-                                        const dateStr = date.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+                                        const dateStr = date.toLocaleDateString('ar-SA', { day: 'numeric', month: 'short' });
                                         return [
                                             dateStr,
                                             'الإيرادات: ' + context.parsed.y.toLocaleString() + ' ر.س'
@@ -1128,9 +1112,7 @@
             previousWeek: function() {
                 const revenueByDate = {};
                 this.state.financialsByDate.forEach(record => {
-                    if (record.date >= this.state.fromDate && record.date <= this.state.toDate) {
-                        revenueByDate[record.date] = true;
-                    }
+                    revenueByDate[record.date] = true;
                 });
                 
                 const sortedDates = Object.keys(revenueByDate).sort();
@@ -1155,31 +1137,21 @@
                 const container = document.getElementById('cashStatusCard');
                 if (!container) return;
                 
-                console.log('💰 [CASH] Rendering status for period:', this.state.fromDate, 'to', this.state.toDate);
-                console.log('💰 [CASH] Total financials available:', this.state.financialsByDate.length);
-                console.log('💰 [CASH] Total receipts available:', this.state.cashReceipts.length);
-                
-                // فلترة البيانات المالية حسب النطاق
-                const filteredFinancials = this.state.financialsByDate.filter(record => {
-                    const isInRange = record.date >= this.state.fromDate && record.date <= this.state.toDate;
-                    return isInRange;
-                });
-                
-                console.log('💰 [CASH] Filtered financials:', filteredFinancials.length);
+                console.log('💰 [CASH] ===================');
+                console.log('💰 Financials:', this.state.financialsByDate.length);
+                console.log('💰 Receipts:', this.state.cashReceipts.length);
                 
                 // المتوقع = مجموع cash_collected
-                const totalExpected = filteredFinancials.reduce((sum, record) => 
+                const totalExpected = this.state.financialsByDate.reduce((sum, record) => 
                     sum + parseFloat(record.cash_collected || 0), 0
                 );
+                console.log('💰 Total Expected:', totalExpected);
                 
-                console.log('💰 [CASH] Total Expected:', totalExpected);
-                
-                // المستلم = مجموع cash_receipts للفترة (already filtered in loadCashReceipts)
+                // المستلم = مجموع cash_receipts
                 const totalCollected = this.state.cashReceipts.reduce((sum, receipt) => 
                     sum + parseFloat(receipt.amount || 0), 0
                 );
-                
-                console.log('💰 [CASH] Total Collected:', totalCollected, 'from', this.state.cashReceipts.length, 'receipts');
+                console.log('💰 Total Collected:', totalCollected);
                 
                 const remaining = totalExpected - totalCollected;
                 const percentage = totalExpected > 0 ? ((totalCollected / totalExpected) * 100).toFixed(1) : 0;
@@ -1187,8 +1159,8 @@
                 // جمع الكاش لكل سائق
                 const driversCashMap = {};
                 
-                // إضافة الكاش المتوقع من financials
-                filteredFinancials.forEach(record => {
+                // إضافة المتوقع من financials
+                this.state.financialsByDate.forEach(record => {
                     const driverId = record.driver_id;
                     const cashAmount = parseFloat(record.cash_collected || 0);
                     
@@ -1204,9 +1176,7 @@
                     driversCashMap[driverId].expected += cashAmount;
                 });
                 
-                console.log('💰 [CASH] Drivers from financials:', Object.keys(driversCashMap).length);
-                
-                // إضافة الكاش المسلّم من receipts
+                // إضافة المسلّم من receipts
                 this.state.cashReceipts.forEach(receipt => {
                     const driverId = receipt.driver_id;
                     const amount = parseFloat(receipt.amount || 0);
@@ -1214,7 +1184,6 @@
                     if (driversCashMap[driverId]) {
                         driversCashMap[driverId].collected += amount;
                     } else {
-                        // سائق عنده كاش مسلّم لكن ما عنده متوقع في الفترة
                         driversCashMap[driverId] = {
                             driver_id: driverId,
                             driver_name: receipt.driver_name,
@@ -1225,14 +1194,12 @@
                     }
                 });
                 
-                console.log('💰 [CASH] Total unique drivers:', Object.keys(driversCashMap).length);
-                
                 const driversArray = Object.values(driversCashMap)
                     .filter(d => d.expected > 0 || d.collected > 0)
                     .sort((a, b) => b.expected - a.expected);
                 
-                console.log('💰 [CASH] Drivers with cash:', driversArray.length);
-                console.log('💰 [CASH] Drivers list:', driversArray);
+                console.log('💰 Unique drivers with cash:', driversArray.length);
+                console.log('💰 [CASH] ===================');
                 
                 container.innerHTML = `
                     <div class="chart-header">
@@ -1317,7 +1284,7 @@
                                 </table>
                             </div>
                         </div>
-                        ` : '<p style="text-align: center; color: var(--text-light); margin-top: 1rem;">لا توجد بيانات كاش للفترة المحددة</p>'}
+                        ` : '<p style="text-align: center; color: var(--text-light); margin-top: 1rem;">لا توجد بيانات كاش</p>'}
                     </div>
                 `;
                 
@@ -1441,8 +1408,6 @@
                     const today = new Date();
                     const endOfMonth = new Date(year, monthIndex + 1, 0);
                     
-                    // ✅ إذا كان الشهر المختار هو الشهر الحالي، استخدم اليوم الحالي
-                    // ✅ إذا كان شهر سابق، استخدم آخر يوم في الشهر
                     const isCurrentMonth = (year === today.getFullYear() && monthIndex === today.getMonth());
                     const actualEndDate = isCurrentMonth ? today : endOfMonth;
                     
@@ -1452,7 +1417,7 @@
                     this.state.fromDate = this.formatDate(startDate);
                     this.state.toDate = this.formatDate(actualEndDate);
                     
-                    console.log(`📅 Selected period: ${this.state.fromDate} to ${this.state.toDate} (${isCurrentMonth ? 'current month' : 'past month'})`);
+                    console.log(`📅 Period: ${this.state.fromDate} to ${this.state.toDate} (${isCurrentMonth ? 'current' : 'past'})`);
                     
                     this.loadAllData();
                 }
@@ -1489,10 +1454,8 @@
     </script>
     
     <script>
-        // Initialize
         lucide.createIcons();
         
-        // Auto-load when page loads
         if (typeof ReportsApp !== 'undefined') {
             ReportsApp.init();
         }
