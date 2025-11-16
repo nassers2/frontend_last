@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flee Master - نظام إدارة المناديب الأذكى في السعودية</title>
+    <title>Smart Fleet - نظام إدارة المناديب الأذكى في السعودية</title>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- Google Fonts -->
@@ -1106,13 +1106,13 @@ input:checked + .slider:before {
     margin-top: 0.5rem;
 }
 
-.yearly-note {
+.quarterly-note {
     font-size: 0.9rem;
     color: #10b981;
     font-weight: 600;
 }
 
-.pricing-card.featured .yearly-note {
+.pricing-card.featured .quarterly-note {
     color: rgba(255, 255, 255, 0.9);
 }
     </style>
@@ -1126,7 +1126,7 @@ input:checked + .slider:before {
                 <div class="logo-icon">
                     <i data-lucide="truck"></i>
                 </div>
-                <span>Flee Master</span>
+                <span>Smart Fleet</span>
             </div>
             <div class="nav-links">
                 <a href="#features">المميزات</a>
@@ -1150,7 +1150,8 @@ input:checked + .slider:before {
                     <span>بتكامل كامل مع جاهز</span>
                 </h1>
                 <p>
-ودّع تعب الإكسل والحسابات اليدوية. نظامك يتابع عمل المناديب يومياً ويجهّز رواتبهم تلقائياً بنهاية الشهر دون أي مجهود                </p>
+                    تخلص من الإكسل والفوضى اليومية. منصتك تجمع كل شيء تلقائياً: متابعة المناديب لحظة بلحظة ورواتب جاهزة بنهاية الشهر دون أي مجهود
+                </p>
                 <div class="cta-buttons">
                     <a href="index.html" class="btn btn-primary btn-large">ابدأ تجربتك المجانية</a>
                     <a href="#features" class="btn btn-outline-white btn-large">تعرف على المزيد</a>
@@ -1290,7 +1291,7 @@ input:checked + .slider:before {
     <section class="benefits" id="benefits">
         <div class="benefits-container">
             <div class="section-header">
-                <span class="section-tag">لماذا Flee Master؟</span>
+                <span class="section-tag">لماذا Smart Fleet؟</span>
                 <h2>القيمة المضافة لشركتك</h2>
                 <p>استثمر في نظام يوفر عليك الوقت والجهد ويزيد من كفاءة عملك</p>
             </div>
@@ -1342,7 +1343,6 @@ input:checked + .slider:before {
     </section>
 
     <!-- Pricing Section -->
-    <!-- Pricing Section -->
 <section class="pricing" id="pricing">
     <div class="pricing-container">
         <div class="section-header">
@@ -1350,16 +1350,16 @@ input:checked + .slider:before {
             <h2>خطط مرنة تناسب احتياجاتك</h2>
             <p>اختر الخطة المناسبة لحجم أسطولك وابدأ فوراً</p>
             
-            <!-- Toggle شهري/سنوي -->
+            <!-- Toggle شهري/3 أشهر -->
             <div class="pricing-toggle">
                 <span class="toggle-label" id="monthly-label">شهري</span>
                 <label class="switch">
                     <input type="checkbox" id="pricing-switch" onchange="togglePricing()">
                     <span class="slider"></span>
                 </label>
-                <span class="toggle-label" id="yearly-label">
-                    سنوي 
-                    <span class="discount-badge">وفّر 10%</span>
+                <span class="toggle-label" id="quarterly-label">
+                    3 أشهر
+                    <span class="discount-badge">وفّر 15%</span>
                 </span>
             </div>
         </div>
@@ -1369,12 +1369,12 @@ input:checked + .slider:before {
             <div class="pricing-card">
                 <h3>الباقة الأساسية</h3>
                 <div class="pricing-price">
-                    <span class="price-amount" data-monthly="299" data-yearly="3229">299</span>
+                    <span class="price-amount" data-monthly="299" data-quarterly="762">299</span>
                     <span class="price-currency">ر.س</span>
                     <span class="price-period">/شهرياً</span>
                 </div>
                 <div class="price-note">
-                    <span class="yearly-note" style="display: none;">3,229 ر.س سنوياً (وفّر 359 ر.س)</span>
+                    <span class="quarterly-note" style="display: none;">762 ر.س لـ 3 أشهر (وفّر 135 ر.س)</span>
                 </div>
                 <ul class="pricing-features">
                     <li>حتى 20 مندوب</li>
@@ -1391,12 +1391,12 @@ input:checked + .slider:before {
                 <div class="pricing-badge">الأكثر شعبية</div>
                 <h3>الباقة الاحترافية</h3>
                 <div class="pricing-price">
-                    <span class="price-amount" data-monthly="599" data-yearly="6469">599</span>
+                    <span class="price-amount" data-monthly="599" data-quarterly="1527">599</span>
                     <span class="price-currency">ر.س</span>
                     <span class="price-period">/شهرياً</span>
                 </div>
                 <div class="price-note">
-                    <span class="yearly-note" style="display: none;">6,469 ر.س سنوياً (وفّر 719 ر.س)</span>
+                    <span class="quarterly-note" style="display: none;">1,527 ر.س لـ 3 أشهر (وفّر 270 ر.س)</span>
                 </div>
                 <ul class="pricing-features">
                     <li>حتى 60 مندوب</li>
@@ -1416,7 +1416,7 @@ input:checked + .slider:before {
         <div class="cta-container">
             <h2>جاهز للبدء؟</h2>
             <p>
-                انضم إلى 40+ شركة توصيل في السعودية تستخدم Flee Master لإدارة أساطيلها بكفاءة
+                انضم إلى 30+ شركة توصيل في السعودية تستخدم Smart Fleet لإدارة أساطيلها بكفاءة
             </p>
             <div class="cta-buttons-group">
                 <a href="index.html" class="btn btn-white btn-large">
@@ -1434,7 +1434,7 @@ input:checked + .slider:before {
     <footer class="footer">
         <div class="footer-container">
             <div class="footer-about">
-                <h3>Flee Master</h3>
+                <h3>Smart Fleet</h3>
                 <p>
                     نظام متكامل لإدارة ومتابعة مناديب التوصيل مع تكامل كامل مع منصة جاهز. نساعدك على توفير الوقت وزيادة الكفاءة.
                 </p>
@@ -1463,7 +1463,7 @@ input:checked + .slider:before {
             </div>
         </div>
         <div class="footer-bottom">
-            <p>© 2025 Flee Master. جميع الحقوق محفوظة.</p>
+            <p>© 2025 Smart Fleet. جميع الحقوق محفوظة.</p>
         </div>
     </footer>
 
@@ -1515,36 +1515,36 @@ input:checked + .slider:before {
 
        
 function togglePricing() {
-    const isYearly = document.getElementById('pricing-switch').checked;
+    const isQuarterly = document.getElementById('pricing-switch').checked;
     const priceAmounts = document.querySelectorAll('.price-amount');
     const pricePeriods = document.querySelectorAll('.price-period');
-    const yearlyNotes = document.querySelectorAll('.yearly-note');
+    const quarterlyNotes = document.querySelectorAll('.quarterly-note');
     const pricingBtns = document.querySelectorAll('.pricing-btn');
     
     priceAmounts.forEach(amount => {
         const monthly = amount.getAttribute('data-monthly');
-        const yearly = amount.getAttribute('data-yearly');
-        amount.textContent = isYearly ? yearly : monthly;
+        const quarterly = amount.getAttribute('data-quarterly');
+        amount.textContent = isQuarterly ? quarterly : monthly;
     });
     
     pricePeriods.forEach(period => {
-        period.textContent = isYearly ? '/سنوياً' : '/شهرياً';
+        period.textContent = isQuarterly ? '/3 أشهر' : '/شهرياً';
     });
     
-    yearlyNotes.forEach(note => {
-        note.style.display = isYearly ? 'block' : 'none';
+    quarterlyNotes.forEach(note => {
+        note.style.display = isQuarterly ? 'block' : 'none';
     });
     
     
     pricingBtns.forEach(btn => {
         const plan = btn.getAttribute('data-plan');
-        const type = isYearly ? 'yearly' : 'monthly';
+        const type = isQuarterly ? 'quarterly' : 'monthly';
         btn.href = `./payment-details.html?plan=${plan}&type=${type}`;
     });
     
     
-    document.getElementById('monthly-label').classList.toggle('active', !isYearly);
-    document.getElementById('yearly-label').classList.toggle('active', isYearly);
+    document.getElementById('monthly-label').classList.toggle('active', !isQuarterly);
+    document.getElementById('quarterly-label').classList.toggle('active', isQuarterly);
 }
 
 
