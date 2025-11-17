@@ -220,6 +220,12 @@
             text-align: left;
         }
 
+        .bank-logo {
+            height: 40px;
+            margin-left: 1rem;
+            border-radius: 8px;
+        }
+
         .copy-btn {
             background: var(--primary);
             color: white;
@@ -404,6 +410,11 @@
                 text-align: center;
             }
 
+            .bank-logo {
+                margin-left: 0;
+                margin-bottom: 0.5rem;
+            }
+
             .contact-buttons {
                 flex-direction: column;
             }
@@ -499,14 +510,22 @@
                 
                 <div class="info-grid">
                     <div class="info-item">
-                        <span class="info-label">اسم المؤسسة</span>
-                        <span class="info-value">سمارت فليت</span>
+                        <span class="info-label">اسم المستفيد</span>
+                        <span class="info-value">مؤسسة سمارت فليت</span>
+                    </div>
+                    
+                    <div class="info-item">
+                        <span class="info-label">اسم البنك</span>
+                        <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                            <img src="https://upload.wikimedia.org/wikipedia/ar/thumb/4/45/Al_Rajhi_Bank_Logo.svg/200px-Al_Rajhi_Bank_Logo.svg.png" alt="الراجحي" class="bank-logo">
+                            <span class="info-value">مصرف الراجحي</span>
+                        </div>
                     </div>
                     
                     <div class="info-item">
                         <span class="info-label">رقم الحساب البنكي</span>
-                        <div style="display: flex; gap: 1rem; align-items: center;">
-                            <span class="info-value" id="account-number">SA1234567890123456789012</span>
+                        <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                            <span class="info-value" id="account-number">389000010006086143662</span>
                             <button class="copy-btn" onclick="copyToClipboard('account-number')">
                                 <i data-lucide="copy"></i>
                                 نسخ
@@ -516,8 +535,8 @@
                     
                     <div class="info-item">
                         <span class="info-label">رقم الآيبان (IBAN)</span>
-                        <div style="display: flex; gap: 1rem; align-items: center;">
-                            <span class="info-value" id="iban">SA1234567890123456789012</span>
+                        <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                            <span class="info-value" id="iban">SA6180000389608016143662</span>
                             <button class="copy-btn" onclick="copyToClipboard('iban')">
                                 <i data-lucide="copy"></i>
                                 نسخ
@@ -536,5 +555,75 @@
                         <li>قم بتحويل المبلغ المذكور أعلاه إلى الحساب البنكي</li>
                         <li>احتفظ بإيصال التحويل أو لقطة شاشة</li>
                         <li>تواصل معنا عبر <strong>واتساب</strong> أو <strong>البريد الإلكتروني</strong> وأرفق الإيصال</li>
-                        <li>سيتم تفعيل حسابك خلال <strong>ساعة</strong> من استلام التحويل</li>
-                       
+                        <li>سيتم تفعيل حسابك خلال <strong>ساعة واحدة</strong> من استلام التحويل</li>
+                    </ol>
+                </div>
+            </div>
+
+            <!-- Contact Section -->
+            <div class="contact-section">
+                <h3>تواصل معنا بعد إتمام التحويل</h3>
+                <div class="contact-buttons">
+                    <a href="https://wa.me/966500000000" class="contact-btn whatsapp-btn" target="_blank">
+                        <i data-lucide="message-circle"></i>
+                        واتساب
+                    </a>
+                    <a href="mailto:info@smartfleet.sa" class="contact-btn email-btn">
+                        <i data-lucide="mail"></i>
+                        البريد الإلكتروني
+                    </a>
+                </div>
+
+                <!-- Alert -->
+                <div class="alert">
+                    <i data-lucide="info"></i>
+                    <div class="alert-content">
+                        <strong>ملاحظة هامة</strong>
+                        <p>يرجى إرسال إيصال التحويل مع ذكر اسم الباقة المختارة لتسريع عملية التفعيل</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <i data-lucide="check-circle"></i>
+        <span>تم النسخ بنجاح!</span>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Copy to clipboard function
+        function copyToClipboard(elementId) {
+            const text = document.getElementById(elementId).textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                showToast();
+            });
+        }
+
+        // Show toast notification
+        function showToast() {
+            const toast = document.getElementById('toast');
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Get URL parameters for dynamic content
+        const urlParams = new URLSearchParams(window.location.search);
+        const plan = urlParams.get('plan');
+        const amount = urlParams.get('amount');
+        const type = urlParams.get('type');
+
+        if (plan) document.getElementById('plan-title').textContent = plan;
+        if (amount) document.getElementById('total-amount').textContent = amount + ' ر.س';
+        if (type) document.getElementById('subscription-type').textContent = type;
+    </script>
+
+</body>
+</html>
