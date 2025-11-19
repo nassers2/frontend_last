@@ -177,6 +177,76 @@ window.formatDate = function(dateStr) {
     }).format(new Date(dateStr));
 };
 
+// دالة التحقق من اتصال جاهز
+window.checkJahezConnection = async function() {
+    try {
+        console.log('🔍 Checking Jahez connection...');
+        
+        const result = await API.getCompanyInfo();
+        
+        if (!result.success || !result.company) {
+            showJahezWarning();
+            return false;
+        }
+        
+        const jahezCheck = await API.getDriverFinancialsByDate(null, selectedDate, selectedDate);
+        
+        if (!jahezCheck.success || !jahezCheck.financials || jahezCheck.financials.length === 0) {
+            showJahezWarning();
+            return false;
+        }
+        
+        return true;
+    } catch (error) {
+        console.error('❌ Error checking Jahez connection:', error);
+        showJahezWarning();
+        return false;
+    }
+};
+
+// دالة عرض رسالة التحذير
+window.showJahezWarning = function() {
+    const warningHTML = `
+        <div style="max-width: 500px; margin: 80px auto; text-align: center; padding: 40px;">
+            <div style="width: 80px; height: 80px; margin: 0 auto 24px; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 40px;">
+                ⚠️
+            </div>
+            
+            <h2 style="color: #92400e; font-size: 24px; margin-bottom: 16px; font-weight: 700;">
+                حساب جاهز غير مربوط
+            </h2>
+            
+            <p style="color: #78716c; font-size: 16px; line-height: 1.6; margin-bottom: 32px;">
+                يرجى ربط حساب جاهز من الإعدادات لعرض البيانات والتقارير
+            </p>
+            
+            <button onclick="goToSettings()" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; border: none; padding: 14px 32px; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3); transition: all 0.3s;">
+                <span>⚙️</span>
+                <span>الذهاب إلى الإعدادات</span>
+            </button>
+        </div>
+    `;
+    
+    document.getElementById('performance-table-content').innerHTML = warningHTML;
+    
+    document.getElementById('total-drivers').textContent = '--';
+    document.getElementById('total-orders').textContent = '--';
+    document.getElementById('avg-orders').textContent = '--';
+    document.getElementById('total-delivery').textContent = '--';
+    document.getElementById('total-tips').textContent = '--';
+    document.getElementById('total-bonuses').textContent = '--';
+    document.getElementById('total-penalties').textContent = '--';
+};
+
+// دالة الانتقال للإعدادات
+window.goToSettings = function() {
+    if (typeof showPage === 'function') {
+        showPage('settings');
+    } else {
+        console.error('❌ showPage function not found');
+    }
+};
+
 window.changeDate = function() {
     const dateInput = document.getElementById('selected-date');
     selectedDate = dateInput.value;
@@ -209,9 +279,18 @@ window.loadCompanyInfo = async function() {
     }
 };
 
+
 window.loadDriversPerformance = async function() {
     try {
         console.log('📊 Loading performance for date:', selectedDate);
+        
+        // التحقق من الاتصال أولاً
+        const isConnected = await checkJahezConnection();
+        
+        if (!isConnected) {
+            console.log('⚠️ No Jahez connection detected');
+            return;
+        }
         
         const finResult = await API.getDriverFinancialsByDate(null, selectedDate, selectedDate);
         const ordersResult = await API.getDriverOrders(null, selectedDate, selectedDate);
@@ -219,11 +298,9 @@ window.loadDriversPerformance = async function() {
         console.log('📦 Financial:', finResult);
         console.log('📦 Orders:', ordersResult);
 
-        // ✅ التصحيح: finResult.financials بدلاً من finResult.drivers
         if (finResult.success && finResult.financials) {
             const driversMap = new Map();
             
-            // ✅ التصحيح: finResult.financials بدلاً من finResult.drivers
             finResult.financials.forEach(d => {
                 driversMap.set(d.driver_id, {
                     ...d,
@@ -244,15 +321,13 @@ window.loadDriversPerformance = async function() {
             const mergedDrivers = Array.from(driversMap.values());
             mergedDrivers.sort((a, b) => (b.total_orders || 0) - (a.total_orders || 0));
             
-            let totalTips = 0, totalBonuses = 0, totalPenalties = 0, totalOrders = 0, totalDelivery = 0, totalDebit = 0, totalCredit = 0;
+            let totalTips = 0, totalBonuses = 0, totalPenalties = 0, totalOrders = 0, totalDelivery = 0;
             mergedDrivers.forEach(d => {
                 totalTips += parseFloat(d.total_tips) || 0;
                 totalBonuses += parseFloat(d.total_bonuses) || 0;
                 totalPenalties += parseFloat(d.total_penalties) || 0;
                 totalOrders += parseInt(d.total_orders) || 0;
                 totalDelivery += parseFloat(d.total_delivery || d.delivery_price) || 0;
-                totalDebit += parseFloat(d.driver_debit) || 0;     
-                totalCredit  += parseFloat(d.driver_credit) || 0; 
             });
             
             const avgOrders = mergedDrivers.length > 0 ? Math.round(totalOrders / mergedDrivers.length) : 0;
@@ -275,9 +350,7 @@ window.loadDriversPerformance = async function() {
                                 <th>الحالة</th>
                                 <th>الطلبات</th>
                                 <th>سعر التوصيل</th>
-                                <th>Debit</th>
-                                <th>Credit</th>
-                                <th>الاكراميات</th>
+                                <th>الإكراميات</th>
                                 <th>المكافآت</th>
                                 <th>الغرامات</th>
                                 <th>النقد</th>
@@ -288,9 +361,9 @@ window.loadDriversPerformance = async function() {
                                 <tr>
                                     <td>
                                         <div class="driver-info">
-                                            <div class="driver-avatar">${d.driver_name  ? d.driver_name .charAt(0) : '?'}</div>
+                                            <div class="driver-avatar">${d.driver_name ? d.driver_name.charAt(0) : '?'}</div>
                                             <div class="driver-details">
-                                                <div class="driver-name">${d.driver_name  || 'غير محدد'}</div>
+                                                <div class="driver-name">${d.driver_name || 'غير محدد'}</div>
                                                 <div class="driver-phone">${d.driver_phone || 'غير متوفر'}</div>
                                             </div>
                                         </div>
@@ -298,13 +371,11 @@ window.loadDriversPerformance = async function() {
                                     <td><code style="background: #f1f5f9; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 600; color: #475569;">${d.driver_id || 'N/A'}</code></td>
                                     <td><span class="status-badge ${d.online ? 'status-online' : 'status-offline'}">${d.online ? '🟢 متصل' : '⚫ غير متصل'}</span></td>
                                     <td><span class="metric-badge metric-orders">${formatNumber(d.total_orders || 0)}</span></td>
-                                    <td><span class="metric-badge metric-delivery">${formatCurrency(d.delivery_price || d.delivery_price || 0)}</span></td>
-                                    <td><span class="metric-badge metric-danger">${formatCurrency(parseFloat(d.driver_debit) || 0)}</span></td>
-                                    <td><span class="metric-badge metric-success">${formatCurrency(parseFloat(d.driver_credit) || 0)}</span></td>
-                                    <td><span class="metric-badge metric-tips">${formatCurrency(d.tips || 0)}</span></td>
-                                    <td><span class="metric-badge metric-bonuses">${formatCurrency(d.bonuses || 0)}</span></td>
-                                    <td><span class="metric-badge metric-penalties">${formatCurrency(d.penalty || 0)}</span></td>
-                                    <td><span class="metric-badge metric-neutral">${formatCurrency(d.cash_collected || 0)}</span></td>
+                                    <td><span class="metric-badge metric-delivery">${formatCurrency(d.total_delivery || d.delivery_price || 0)}</span></td>
+                                    <td><span class="metric-badge metric-tips">${formatCurrency(d.total_tips || 0)}</span></td>
+                                    <td><span class="metric-badge metric-bonuses">${formatCurrency(d.total_bonuses || 0)}</span></td>
+                                    <td><span class="metric-badge metric-penalties">${formatCurrency(d.total_penalties || 0)}</span></td>
+                                    <td><span class="metric-badge metric-neutral">${formatCurrency(d.total_cash || 0)}</span></td>
                                 </tr>
                             `).join('')}
                         </tbody>
@@ -315,12 +386,12 @@ window.loadDriversPerformance = async function() {
             document.getElementById('performance-table-content').innerHTML = html;
             console.log('✅ Table rendered with', mergedDrivers.length, 'drivers');
         } else {
-            console.log('⚠️ No data found');
-            document.getElementById('performance-table-content').innerHTML = '<div style="text-align:center;padding:60px;">📭 لا توجد بيانات</div>';
+            console.log('⚠️ No financial data found');
+            showJahezWarning();
         }
     } catch (error) {
         console.error('❌ Error:', error);
-        document.getElementById('performance-table-content').innerHTML = '<div style="text-align:center;padding:60px;">❌ خطأ في التحميل</div>';
+        showJahezWarning();
     }
 };
 
