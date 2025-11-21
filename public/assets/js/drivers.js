@@ -5,6 +5,7 @@
 let allDrivers = [];
 let allGroups = [];
 let ungroupedDrivers = [];
+let groupedDriversMap = new Map(); // Track which drivers are in which groups
 let currentFilter = 'all';
 
 // ========================================
@@ -40,7 +41,7 @@ async function loadData() {
       console.log('✅ Loaded groups:', allGroups.length);
     }
     
-    processData();
+    await processData();
     updateStats();
     renderGroups();
     renderUngroupedDrivers();
@@ -61,21 +62,28 @@ async function loadData() {
 // ========================================
 // 🔄 Process Data
 // ========================================
-function processData() {
-  // Get all driver IDs that are in groups
-  const groupedDriverIds = new Set();
+async function processData() {
+  // Clear grouped drivers map
+  groupedDriversMap.clear();
   
-  allGroups.forEach(group => {
-    if (group.members && Array.isArray(group.members)) {
-      group.members.forEach(member => {
-        groupedDriverIds.add(member.driver_id);
-      });
+  // Load members for each group and track them
+  for (const group of allGroups) {
+    try {
+      const result = await API.getGroupById(group.id);
+      if (result.success && result.group && result.group.members) {
+        result.group.members.forEach(member => {
+          groupedDriversMap.set(member.driver_id, group.id);
+        });
+      }
+    } catch (error) {
+      console.error(`Error loading group ${group.id}:`, error);
     }
-  });
+  }
   
-  // Find ungrouped drivers
-  ungroupedDrivers = allDrivers.filter(driver => !groupedDriverIds.has(driver.driver_id));
+  // Find ungrouped drivers - those NOT in any group
+  ungroupedDrivers = allDrivers.filter(driver => !groupedDriversMap.has(driver.driver_id));
   
+  console.log('📊 Grouped drivers:', groupedDriversMap.size);
   console.log('📊 Ungrouped drivers:', ungroupedDrivers.length);
 }
 
@@ -184,7 +192,7 @@ function createGroupSection(group) {
               <th>الجنسية</th>
               <th>الحالة</th>
               <th>الحالة الوظيفية</th>
-              <th width="120">الإجراءات</th>
+              <th width="100">الإجراءات</th>
             </tr>
           </thead>
           <tbody>
@@ -237,17 +245,12 @@ function createDriverRow(driver, groupId = null) {
       </td>
       <td>
         <div class="table-actions">
-          <button class="action-icon-btn" onclick="viewDriverDetails('${driver.driver_id}')" title="عرض التفاصيل">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-              <circle cx="12" cy="12" r="3"/>
-            </svg>
-          </button>
           ${groupId !== null ? `
           <button class="action-icon-btn" onclick="openChangeGroupModal('${driver.driver_id}', '${driver.name}', ${groupId})" title="تغيير المجموعة">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="12" y1="5" x2="12" y2="19"/>
-              <line x1="5" y1="12" x2="19" y2="12"/>
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M22 8.5V12l-4 1-4-1V8.5"/>
             </svg>
           </button>
           <button class="action-icon-btn" onclick="removeDriverFromCurrentGroup(${groupId}, '${driver.driver_id}')" title="إزالة من المجموعة">
@@ -279,7 +282,7 @@ function renderUngroupedDrivers() {
   
   const filteredDrivers = filterDrivers(ungroupedDrivers);
   
-  if (filteredDrivers.length === 0 && currentFilter === 'all') {
+  if (ungroupedDrivers.length === 0) {
     section.style.display = 'none';
     return;
   }
@@ -373,11 +376,11 @@ function setupEventListeners() {
   // Filter buttons
   const filterButtons = document.querySelectorAll('.filter-btn');
   filterButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', async () => {
       filterButtons.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       currentFilter = btn.dataset.filter;
-      renderGroups();
+      await renderGroups();
       renderUngroupedDrivers();
     });
   });
@@ -397,10 +400,10 @@ function setupEventListeners() {
   // View all drivers button
   const viewAllBtn = document.getElementById('viewAllDriversBtn');
   if (viewAllBtn) {
-    viewAllBtn.addEventListener('click', () => {
+    viewAllBtn.addEventListener('click', async () => {
       currentFilter = 'all';
       document.querySelector('.filter-btn[data-filter="all"]')?.classList.add('active');
-      renderGroups();
+      await renderGroups();
       renderUngroupedDrivers();
     });
   }
@@ -409,7 +412,7 @@ function setupEventListeners() {
   const selectAllDrivers = document.getElementById('selectAllDrivers');
   if (selectAllDrivers) {
     selectAllDrivers.addEventListener('change', (e) => {
-      const checkboxes = document.querySelectorAll('.driver-checkbox-item input[type="checkbox"]');
+      const checkboxes = document.querySelectorAll('#groupDriversCheckboxes input[type="checkbox"]');
       checkboxes.forEach(cb => cb.checked = e.target.checked);
     });
   }
@@ -428,24 +431,24 @@ function openCreateGroupModal() {
   document.getElementById('groupColorInput').value = '#667eea';
   document.getElementById('selectAllDrivers').checked = false;
   
-  // Generate checkboxes for ungrouped drivers
-  checkboxesContainer.innerHTML = ungroupedDrivers.map(driver => `
-    <div class="driver-checkbox-item">
-      <input type="checkbox" value="${driver.driver_id}">
-      <div class="driver-cell">
-        <div class="driver-avatar-table" style="width: 32px; height: 32px; font-size: 14px;">
-          ${driver.name ? driver.name.charAt(0) : '؟'}
-        </div>
-        <div>
-          <div class="driver-name-cell" style="font-size: 14px;">${driver.name || 'غير محدد'}</div>
-          <div class="driver-id-small">${driver.phone || 'لا يوجد'}</div>
+  // Generate checkboxes for ONLY ungrouped drivers
+  if (ungroupedDrivers.length === 0) {
+    checkboxesContainer.innerHTML = '<p style="text-align: center; color: #a0aec0; padding: 20px;">جميع المناديب في مجموعات بالفعل</p>';
+  } else {
+    checkboxesContainer.innerHTML = ungroupedDrivers.map(driver => `
+      <div class="driver-checkbox-item">
+        <input type="checkbox" value="${driver.driver_id}">
+        <div class="driver-cell">
+          <div class="driver-avatar-table" style="width: 32px; height: 32px; font-size: 14px;">
+            ${driver.name ? driver.name.charAt(0) : '؟'}
+          </div>
+          <div>
+            <div class="driver-name-cell" style="font-size: 14px;">${driver.name || 'غير محدد'}</div>
+            <div class="driver-id-small">${driver.phone || 'لا يوجد'}</div>
+          </div>
         </div>
       </div>
-    </div>
-  `).join('');
-  
-  if (ungroupedDrivers.length === 0) {
-    checkboxesContainer.innerHTML = '<p style="text-align: center; color: #a0aec0; padding: 20px;">جميع المناديب في مجموعات</p>';
+    `).join('');
   }
   
   modal.style.display = 'flex';
@@ -585,6 +588,7 @@ function openChangeGroupModal(driverId, driverName, currentGroupId) {
   const select = document.getElementById('newGroupSelect');
   select.innerHTML = '<option value="">-- اختر المجموعة --</option>';
   
+  // Show only OTHER groups (not current one)
   allGroups.forEach(group => {
     if (group.id !== currentGroupId) {
       select.innerHTML += `<option value="${group.id}">${group.group_name}</option>`;
@@ -617,17 +621,7 @@ async function confirmChangeGroup() {
   }
   
   // Find current group
-  let currentGroupId = null;
-  for (const group of allGroups) {
-    const result = await API.getGroupById(group.id);
-    if (result.success && result.group.members) {
-      const hasMember = result.group.members.some(m => m.driver_id === driverId);
-      if (hasMember) {
-        currentGroupId = group.id;
-        break;
-      }
-    }
-  }
+  const currentGroupId = groupedDriversMap.get(driverId);
   
   try {
     // Remove from current group
@@ -655,7 +649,18 @@ async function confirmChangeGroup() {
 // ➕ Open Add To Group Modal
 // ========================================
 function openAddToGroupModal(driverId, driverName) {
-  openChangeGroupModal(driverId, driverName, null);
+  document.getElementById('changeDriverId').value = driverId;
+  document.getElementById('changeDriverName').textContent = driverName;
+  
+  const select = document.getElementById('newGroupSelect');
+  select.innerHTML = '<option value="">-- اختر المجموعة --</option>';
+  
+  // Show all groups for ungrouped drivers
+  allGroups.forEach(group => {
+    select.innerHTML += `<option value="${group.id}">${group.group_name}</option>`;
+  });
+  
+  document.getElementById('changeGroupModal').style.display = 'flex';
 }
 
 // ========================================
@@ -677,14 +682,6 @@ async function removeDriverFromCurrentGroup(groupId, driverId) {
     console.error('❌ Error removing driver:', error);
     showMessage(error.message || 'حدث خطأ في إزالة المندوب', 'error');
   }
-}
-
-// ========================================
-// 👁️ View Driver Details
-// ========================================
-function viewDriverDetails(driverId) {
-  console.log('View driver details:', driverId);
-  showMessage('صفحة التفاصيل قيد التطوير', 'info');
 }
 
 // ========================================
@@ -801,7 +798,6 @@ window.closeChangeGroupModal = closeChangeGroupModal;
 window.confirmChangeGroup = confirmChangeGroup;
 window.openAddToGroupModal = openAddToGroupModal;
 window.removeDriverFromCurrentGroup = removeDriverFromCurrentGroup;
-window.viewDriverDetails = viewDriverDetails;
 window.selectAllInGroup = selectAllInGroup;
 
 // Add animations
