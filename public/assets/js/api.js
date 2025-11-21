@@ -343,8 +343,63 @@ async changePassword(currentPassword, newPassword) {
 
   async updatePayrollStatus(recordId, status) {
     return await this.call(`/payroll/record/${recordId}/status`, 'PUT', { status });
+  },
+
+  // ========================================
+  // 👥 Groups APIs
+  // ========================================
+
+  async getGroups() {
+    return await this.call('/groups', 'GET');
+  },
+
+  async getGroupById(groupId) {
+    return await this.call(`/groups/${groupId}`, 'GET');
+  },
+
+  async createGroup(groupName, description, color, driverIds) {
+    return await this.call('/groups', 'POST', {
+      group_name: groupName,
+      description: description,
+      color: color,
+      driver_ids: driverIds
+    });
+  },
+
+  async updateGroup(groupId, groupName, description, color) {
+    return await this.call(`/groups/${groupId}`, 'PUT', {
+      group_name: groupName,
+      description: description,
+      color: color
+    });
+  },
+
+  async deleteGroup(groupId) {
+    return await this.call(`/groups/${groupId}`, 'DELETE');
+  },
+
+  async addDriversToGroup(groupId, driverIds) {
+    return await this.call(`/groups/${groupId}/members`, 'POST', {
+      driver_ids: driverIds
+    });
+  },
+
+  async removeDriverFromGroup(groupId, driverId) {
+    return await this.call(`/groups/${groupId}/members/${driverId}`, 'DELETE');
+  },
+
+  async getGroupPerformance(groupId, startDate, endDate) {
+    const params = new URLSearchParams();
+    if (startDate) params.append('start_date', startDate);
+    if (endDate) params.append('end_date', endDate);
+    
+    const queryString = params.toString();
+    return await this.call(`/groups/${groupId}/performance${queryString ? '?' + queryString : ''}`, 'GET');
   }
 };
+
+
+
 // ========================================
 // 🔐 Auto-verify token on page load
 // ========================================
@@ -414,4 +469,8 @@ async changePassword(currentPassword, newPassword) {
   } else {
     runAuthCheck();
   }
-})();
+})
+(
+
+)
+;
