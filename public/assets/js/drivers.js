@@ -1,443 +1,417 @@
 // ========================================
-// 👥 Drivers Page Manager
+// 👥 Drivers Groups Page Manager
 // ========================================
 
 let allDrivers = [];
-let filteredDrivers = [];
-let currentFilter = 'all';
 let allGroups = [];
+let ungroupedDrivers = [];
+let currentFilter = 'all';
 
 // ========================================
-// 🚀 Initialize Drivers Page
+// 🚀 Initialize Page
 // ========================================
 function initializeDriversPage() {
-  console.log('🚗 Initializing Drivers Page...');
+  console.log('🚗 Initializing Drivers Groups Page...');
   
-  loadDrivers();
-  loadGroups();
+  loadData();
   setupEventListeners();
 }
 
 // ========================================
-// 📊 Load Drivers
+// 📊 Load All Data
 // ========================================
-async function loadDrivers() {
-  const loadingState = document.getElementById('loadingState');
-  const driversContainer = document.getElementById('driversContainer');
-  const emptyState = document.getElementById('emptyState');
-  
-  loadingState.style.display = 'block';
-  driversContainer.style.display = 'none';
-  emptyState.style.display = 'none';
+async function loadData() {
+  showLoading();
   
   try {
-    console.log('📡 Fetching drivers from API...');
+    // Load drivers and groups in parallel
+    const [driversResult, groupsResult] = await Promise.all([
+      API.getCompanyDrivers(),
+      API.getGroups()
+    ]);
     
-    const data = await API.getCompanyDrivers();
-    
-    console.log('📊 Response data:', data);
-    
-    if (data.success) {
-      allDrivers = data.drivers;
-      filteredDrivers = allDrivers;
-      
-      console.log('✅ Loaded', allDrivers.length, 'drivers');
-      
-      updateStats(data.stats);
-      
-      if (allDrivers.length === 0) {
-        console.log('⚠️ No drivers found. Showing empty state.');
-        emptyState.style.display = 'block';
-        driversContainer.style.display = 'none';
-      } else {
-        displayDrivers(allDrivers);
-        console.log('✅ Drivers displayed successfully');
-      }
-      
-    } else {
-      console.error('❌ API returned error:', data.message);
-      showMessage(data.message || 'فشل تحميل البيانات', 'error');
-      
-      emptyState.style.display = 'block';
-      driversContainer.style.display = 'none';
+    if (driversResult.success) {
+      allDrivers = driversResult.drivers;
+      console.log('✅ Loaded drivers:', allDrivers.length);
     }
-  } catch (error) {
-    console.error('❌ Error loading drivers:', error);
-    showMessage('حدث خطأ أثناء تحميل البيانات: ' + error.message, 'error');
-    emptyState.style.display = 'block';
-    driversContainer.style.display = 'none';
-  } finally {
-    loadingState.style.display = 'none';
-  }
-}
-
-// ========================================
-// 📊 Load Groups
-// ========================================
-async function loadGroups() {
-  try {
-    const result = await API.getGroups();
-    if (result.success) {
-      allGroups = result.groups;
+    
+    if (groupsResult.success) {
+      allGroups = groupsResult.groups;
       console.log('✅ Loaded groups:', allGroups.length);
-      renderGroupsList();
     }
+    
+    processData();
+    updateStats();
+    renderGroups();
+    renderUngroupedDrivers();
+    
+    if (allDrivers.length === 0) {
+      showEmptyState();
+    }
+    
   } catch (error) {
-    console.error('❌ Error loading groups:', error);
+    console.error('❌ Error loading data:', error);
+    showMessage('حدث خطأ في تحميل البيانات', 'error');
+    showEmptyState();
+  } finally {
+    hideLoading();
   }
 }
 
 // ========================================
-// 📋 Render Groups List
+// 🔄 Process Data
 // ========================================
-function renderGroupsList() {
-  const container = document.getElementById('groupsList');
+function processData() {
+  // Get all driver IDs that are in groups
+  const groupedDriverIds = new Set();
   
-  if (!container) return;
+  allGroups.forEach(group => {
+    if (group.members && Array.isArray(group.members)) {
+      group.members.forEach(member => {
+        groupedDriverIds.add(member.driver_id);
+      });
+    }
+  });
   
-  if (allGroups.length === 0) {
-    container.innerHTML = '<p class="no-groups">لا توجد مجموعات حالياً</p>';
-    return;
-  }
+  // Find ungrouped drivers
+  ungroupedDrivers = allDrivers.filter(driver => !groupedDriverIds.has(driver.driver_id));
   
-  container.innerHTML = allGroups.map(group => `
-    <div class="group-item" style="border-right: 4px solid ${group.color}">
-      <div class="group-info">
-        <h4 class="group-name">${group.group_name}</h4>
-        <p class="group-desc">${group.description || 'لا يوجد وصف'}</p>
-        <span class="group-count">${group.members_count} مندوب</span>
-      </div>
-      <div class="group-actions">
-        <button class="group-action-btn" onclick="viewGroup(${group.id})" title="عرض">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-            <circle cx="12" cy="12" r="3"/>
-          </svg>
-        </button>
-        <button class="group-action-btn" onclick="deleteGroup(${group.id})" title="حذف">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="3 6 5 6 21 6"/>
-            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-          </svg>
-        </button>
-      </div>
-    </div>
-  `).join('');
+  console.log('📊 Ungrouped drivers:', ungroupedDrivers.length);
 }
 
 // ========================================
 // 📊 Update Stats
 // ========================================
-function updateStats(stats) {
-  document.getElementById('totalDrivers').textContent = stats.total || 0;
-  document.getElementById('onlineDrivers').textContent = stats.online || 0;
-  document.getElementById('offlineDrivers').textContent = stats.offline || 0;
-  document.getElementById('activeDrivers').textContent = stats.active || 0;
+function updateStats() {
+  const total = allDrivers.length;
+  const online = allDrivers.filter(d => d.online).length;
+  const groups = allGroups.length;
+  const ungrouped = ungroupedDrivers.length;
+  
+  document.getElementById('totalDrivers').textContent = total;
+  document.getElementById('onlineDrivers').textContent = online;
+  document.getElementById('totalGroups').textContent = groups;
+  document.getElementById('ungroupedDrivers').textContent = ungrouped;
   
   // Update filter counts
-  document.getElementById('countAll').textContent = stats.total || 0;
-  document.getElementById('countOnline').textContent = stats.online || 0;
-  document.getElementById('countOffline').textContent = stats.offline || 0;
-  document.getElementById('countSuspended').textContent = stats.suspended || 0;
+  document.getElementById('filterCountAll').textContent = total;
+  document.getElementById('filterCountOnline').textContent = online;
+  document.getElementById('filterCountOffline').textContent = total - online;
+  
+  document.getElementById('ungroupedCount').textContent = ungrouped;
 }
 
 // ========================================
-// 🎨 Display Drivers
+// 🎨 Render Groups
 // ========================================
-function displayDrivers(drivers) {
-  const container = document.getElementById('driversContainer');
-  const emptyState = document.getElementById('emptyState');
+async function renderGroups() {
+  const container = document.getElementById('groupsContainer');
   
-  if (!drivers || drivers.length === 0) {
-    container.style.display = 'none';
-    emptyState.style.display = 'block';
+  if (allGroups.length === 0) {
+    container.innerHTML = '';
     return;
   }
   
-  container.style.display = 'grid';
-  emptyState.style.display = 'none';
+  // Load members for each group
+  const groupsWithMembers = await Promise.all(
+    allGroups.map(async (group) => {
+      try {
+        const result = await API.getGroupById(group.id);
+        if (result.success && result.group) {
+          return result.group;
+        }
+        return group;
+      } catch (error) {
+        console.error(`Error loading group ${group.id}:`, error);
+        return group;
+      }
+    })
+  );
   
-  container.innerHTML = drivers.map(driver => createDriverCard(driver)).join('');
+  container.innerHTML = groupsWithMembers.map(group => createGroupSection(group)).join('');
 }
 
 // ========================================
-// 🎴 Create Driver Card
+// 🎴 Create Group Section
 // ========================================
-function createDriverCard(driver) {
-  const statusClass = driver.suspended ? 'suspended' : (driver.online ? 'online' : 'offline');
-  const statusLabel = driver.suspended ? 'موقوف' : (driver.online ? 'متصل' : 'غير متصل');
-  const statusBadgeClass = driver.suspended ? 'status-suspended' : (driver.online ? 'status-online' : 'status-offline');
+function createGroupSection(group) {
+  const members = group.members || [];
+  const filteredMembers = filterDrivers(members);
   
-  const nationalExpiry = driver.national_expiry_date ? formatDate(driver.national_expiry_date) : 'غير متوفر';
-  const expiryWarning = isExpiryNear(driver.national_expiry_date);
+  if (currentFilter !== 'all' && filteredMembers.length === 0) {
+    return '';
+  }
   
   return `
-    <div class="driver-card ${statusClass}" data-driver-id="${driver.driver_id}">
-      <div class="driver-header">
-        <div>
-          <h3 class="driver-name">${driver.name || 'بدون اسم'}</h3>
-          ${driver.nationality ? `<span style="font-size: 12px; color: #666;">🌍 ${driver.nationality}</span>` : ''}
-        </div>
-        <span class="driver-status ${statusBadgeClass}">
-          <span class="status-indicator"></span>
-          ${statusLabel}
-        </span>
-      </div>
-      
-      <div class="driver-info">
-        <div class="info-row">
-          <div class="info-icon">🆔</div>
-          <div class="info-content">
-            <div class="info-label">رقم الإقامة</div>
-            <div class="info-value">${driver.iqama_id || 'غير متوفر'}</div>
+    <div class="group-section" data-group-id="${group.id}">
+      <div class="group-header" style="border-right-color: ${group.color || '#667eea'};">
+        <div class="group-title-area">
+          <div class="group-icon" style="color: ${group.color || '#667eea'};">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="7" height="7"/>
+              <rect x="14" y="3" width="7" height="7"/>
+              <rect x="14" y="14" width="7" height="7"/>
+              <rect x="3" y="14" width="7" height="7"/>
+            </svg>
+          </div>
+          <div class="group-info">
+            <h2 class="group-name">${group.group_name}</h2>
+            <p class="group-desc">${group.description || 'لا يوجد وصف'}</p>
           </div>
         </div>
-        
-        <div class="info-row">
-          <div class="info-icon">📱</div>
-          <div class="info-content">
-            <div class="info-label">رقم الهاتف</div>
-            <div class="info-value">${driver.phone || 'غير متوفر'}</div>
-          </div>
-        </div>
-        
-        ${driver.plate_number ? `
-        <div class="info-row">
-          <div class="info-icon">🚗</div>
-          <div class="info-content">
-            <div class="info-label">رقم اللوحة</div>
-            <div class="info-value">${driver.plate_number}</div>
-          </div>
-        </div>
-        ` : ''}
-        
-        <div class="info-row">
-          <div class="info-icon">📅</div>
-          <div class="info-content">
-            <div class="info-label">انتهاء الإقامة ${expiryWarning ? '⚠️' : ''}</div>
-            <div class="info-value" style="color: ${expiryWarning ? '#ef4444' : '#1a1a1a'}">
-              ${nationalExpiry}
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <div class="driver-footer">
-        <span class="driver-id">ID: ${driver.driver_id}</span>
-        <div class="driver-actions">
-          <button class="action-btn" onclick="viewDriverDetails('${driver.driver_id}')">
-            عرض التفاصيل
+        <div class="group-actions">
+          <button class="btn-icon" onclick="openEditGroupModal(${group.id})" title="تعديل المجموعة">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
           </button>
+          <span class="members-count">
+            <span>${filteredMembers.length}</span> مندوب
+          </span>
         </div>
+      </div>
+      <div class="drivers-table-wrapper">
+        <table class="drivers-table">
+          <thead>
+            <tr>
+              <th width="40">
+                <input type="checkbox" class="select-all-checkbox" onchange="selectAllInGroup(${group.id}, this.checked)">
+              </th>
+              <th>المندوب</th>
+              <th>رقم الإقامة</th>
+              <th>رقم الهاتف</th>
+              <th>الجنسية</th>
+              <th>الحالة</th>
+              <th>الحالة الوظيفية</th>
+              <th width="120">الإجراءات</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${filteredMembers.length > 0 ? filteredMembers.map(driver => createDriverRow(driver, group.id)).join('') : '<tr><td colspan="8" style="text-align: center; padding: 40px; color: #a0aec0;">لا توجد نتائج</td></tr>'}
+          </tbody>
+        </table>
       </div>
     </div>
   `;
 }
 
 // ========================================
-// 📅 Format Date
+// 🎴 Create Driver Row
 // ========================================
-function formatDate(dateString) {
-  if (!dateString) return 'غير متوفر';
+function createDriverRow(driver, groupId = null) {
+  const statusClass = driver.online ? 'online' : 'offline';
+  const statusText = driver.online ? 'متصل' : 'غير متصل';
+  const employmentClass = driver.employment_status === 'active' ? 'active' : 'inactive';
+  const employmentText = driver.employment_status === 'active' ? 'نشط' : driver.employment_status || 'غير محدد';
+  const initial = driver.name ? driver.name.charAt(0) : '؟';
   
-  try {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ar-SA', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  } catch (error) {
-    return dateString;
+  return `
+    <tr data-driver-id="${driver.driver_id}">
+      <td>
+        <input type="checkbox" class="driver-checkbox" value="${driver.driver_id}">
+      </td>
+      <td>
+        <div class="driver-cell">
+          <div class="driver-avatar-table">
+            ${initial}
+            <div class="driver-status-badge ${statusClass}"></div>
+          </div>
+          <div>
+            <div class="driver-name-cell">${driver.name || 'غير محدد'}</div>
+            <div class="driver-id-small">ID: ${driver.driver_id}</div>
+          </div>
+        </div>
+      </td>
+      <td>${driver.iqama_id || 'غير متوفر'}</td>
+      <td style="direction: ltr; text-align: right;">${driver.phone || 'غير متوفر'}</td>
+      <td>${driver.nationality || 'غير محدد'}</td>
+      <td>
+        <span class="status-badge ${statusClass}">
+          <span class="status-dot ${statusClass}"></span>
+          ${statusText}
+        </span>
+      </td>
+      <td>
+        <span class="employment-badge ${employmentClass}">${employmentText}</span>
+      </td>
+      <td>
+        <div class="table-actions">
+          <button class="action-icon-btn" onclick="viewDriverDetails('${driver.driver_id}')" title="عرض التفاصيل">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+          ${groupId !== null ? `
+          <button class="action-icon-btn" onclick="openChangeGroupModal('${driver.driver_id}', '${driver.name}', ${groupId})" title="تغيير المجموعة">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+          </button>
+          <button class="action-icon-btn" onclick="removeDriverFromCurrentGroup(${groupId}, '${driver.driver_id}')" title="إزالة من المجموعة">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="3 6 5 6 21 6"/>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+            </svg>
+          </button>
+          ` : `
+          <button class="action-icon-btn" onclick="openAddToGroupModal('${driver.driver_id}', '${driver.name}')" title="إضافة لمجموعة">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+          </button>
+          `}
+        </div>
+      </td>
+    </tr>
+  `;
+}
+
+// ========================================
+// 🎴 Render Ungrouped Drivers
+// ========================================
+function renderUngroupedDrivers() {
+  const tbody = document.getElementById('ungroupedTableBody');
+  const section = document.getElementById('ungroupedSection');
+  
+  const filteredDrivers = filterDrivers(ungroupedDrivers);
+  
+  if (filteredDrivers.length === 0 && currentFilter === 'all') {
+    section.style.display = 'none';
+    return;
+  }
+  
+  section.style.display = 'block';
+  
+  if (filteredDrivers.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px; color: #a0aec0;">لا توجد نتائج</td></tr>';
+  } else {
+    tbody.innerHTML = filteredDrivers.map(driver => createDriverRow(driver, null)).join('');
   }
 }
 
 // ========================================
-// ⚠️ Check Expiry Near
+// 🎯 Filter Drivers
 // ========================================
-function isExpiryNear(expiryDate) {
-  if (!expiryDate) return false;
-  
-  try {
-    const expiry = new Date(expiryDate);
-    const today = new Date();
-    const diffDays = Math.ceil((expiry - today) / (1000 * 60 * 60 * 24));
-    
-    return diffDays < 60 && diffDays > 0;
-  } catch (error) {
-    return false;
+function filterDrivers(drivers) {
+  if (currentFilter === 'all') {
+    return drivers;
+  } else if (currentFilter === 'online') {
+    return drivers.filter(d => d.online);
+  } else if (currentFilter === 'offline') {
+    return drivers.filter(d => !d.online);
   }
+  return drivers;
+}
+
+// ========================================
+// 🔍 Global Search
+// ========================================
+function handleGlobalSearch(query) {
+  const searchTerm = query.toLowerCase().trim();
+  
+  if (!searchTerm) {
+    // Reset to show all
+    renderGroups();
+    renderUngroupedDrivers();
+    return;
+  }
+  
+  // Filter all drivers
+  const matchedDrivers = allDrivers.filter(driver => 
+    (driver.name?.toLowerCase().includes(searchTerm)) ||
+    (driver.iqama_id?.toLowerCase().includes(searchTerm)) ||
+    (driver.phone?.includes(searchTerm)) ||
+    (driver.driver_id?.toLowerCase().includes(searchTerm))
+  );
+  
+  // Filter groups and their members
+  allGroups.forEach(group => {
+    const groupSection = document.querySelector(`[data-group-id="${group.id}"]`);
+    if (groupSection) {
+      const rows = groupSection.querySelectorAll('tbody tr');
+      let visibleCount = 0;
+      
+      rows.forEach(row => {
+        const driverId = row.dataset.driverId;
+        const isMatch = matchedDrivers.some(d => d.driver_id === driverId);
+        row.style.display = isMatch ? '' : 'none';
+        if (isMatch) visibleCount++;
+      });
+      
+      groupSection.style.display = visibleCount > 0 ? 'block' : 'none';
+    }
+  });
+  
+  // Filter ungrouped table
+  const ungroupedRows = document.querySelectorAll('#ungroupedTableBody tr');
+  let ungroupedVisibleCount = 0;
+  
+  ungroupedRows.forEach(row => {
+    const driverId = row.dataset.driverId;
+    const isMatch = matchedDrivers.some(d => d.driver_id === driverId);
+    row.style.display = isMatch ? '' : 'none';
+    if (isMatch) ungroupedVisibleCount++;
+  });
+  
+  document.getElementById('ungroupedSection').style.display = ungroupedVisibleCount > 0 ? 'block' : 'none';
 }
 
 // ========================================
 // 🎧 Setup Event Listeners
 // ========================================
 function setupEventListeners() {
-  // Sync button
-  const syncBtn = document.getElementById('syncDriversBtn');
-  if (syncBtn) {
-    syncBtn.addEventListener('click', syncDriversFromJahez);
-  }
-  
-  // Search
-  const searchInput = document.getElementById('searchInput');
+  // Global search
+  const searchInput = document.getElementById('globalSearch');
   if (searchInput) {
-    searchInput.addEventListener('input', handleSearch);
+    searchInput.addEventListener('input', (e) => handleGlobalSearch(e.target.value));
   }
   
-  // Clear search button
-  const clearSearch = document.getElementById('clearSearch');
-  if (clearSearch) {
-    clearSearch.addEventListener('click', () => {
-      searchInput.value = '';
-      clearSearch.style.display = 'none';
-      handleSearch({ target: { value: '' } });
+  // Filter buttons
+  const filterButtons = document.querySelectorAll('.filter-btn');
+  filterButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      filterButtons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentFilter = btn.dataset.filter;
+      renderGroups();
+      renderUngroupedDrivers();
     });
-  }
-  
-  // Filter tabs
-  const filterTabs = document.querySelectorAll('.filter-tab');
-  filterTabs.forEach(tab => {
-    tab.addEventListener('click', () => handleFilter(tab));
   });
   
-  // Create Group button
+  // Create group button
   const createGroupBtn = document.getElementById('createGroupBtn');
   if (createGroupBtn) {
     createGroupBtn.addEventListener('click', openCreateGroupModal);
   }
   
-  // Select all drivers checkbox
+  // Sync drivers button
+  const syncBtn = document.getElementById('syncDriversBtn');
+  if (syncBtn) {
+    syncBtn.addEventListener('click', syncDrivers);
+  }
+  
+  // View all drivers button
+  const viewAllBtn = document.getElementById('viewAllDriversBtn');
+  if (viewAllBtn) {
+    viewAllBtn.addEventListener('click', () => {
+      currentFilter = 'all';
+      document.querySelector('.filter-btn[data-filter="all"]')?.classList.add('active');
+      renderGroups();
+      renderUngroupedDrivers();
+    });
+  }
+  
+  // Select all drivers in modal
   const selectAllDrivers = document.getElementById('selectAllDrivers');
   if (selectAllDrivers) {
     selectAllDrivers.addEventListener('change', (e) => {
-      const checkboxes = document.querySelectorAll('.driver-checkbox-input');
+      const checkboxes = document.querySelectorAll('.driver-checkbox-item input[type="checkbox"]');
       checkboxes.forEach(cb => cb.checked = e.target.checked);
     });
-  }
-}
-
-// ========================================
-// 🔍 Handle Search
-// ========================================
-function handleSearch(event) {
-  const searchTerm = event.target.value.toLowerCase().trim();
-  const clearBtn = document.getElementById('clearSearch');
-  
-  if (clearBtn) {
-    clearBtn.style.display = searchTerm ? 'flex' : 'none';
-  }
-  
-  if (!searchTerm) {
-    filteredDrivers = filterByStatus(allDrivers, currentFilter);
-  } else {
-    const filtered = allDrivers.filter(driver => {
-      const name = (driver.name || '').toLowerCase();
-      const iqama = (driver.iqama_id || '').toLowerCase();
-      const phone = (driver.phone || '').toLowerCase();
-      
-      return name.includes(searchTerm) || 
-             iqama.includes(searchTerm) || 
-             phone.includes(searchTerm);
-    });
-    
-    filteredDrivers = filterByStatus(filtered, currentFilter);
-  }
-  
-  displayDrivers(filteredDrivers);
-}
-
-// ========================================
-// 🎯 Handle Filter
-// ========================================
-function handleFilter(button) {
-  document.querySelectorAll('.filter-tab').forEach(btn => {
-    btn.classList.remove('active');
-  });
-  button.classList.add('active');
-  
-  currentFilter = button.dataset.filter;
-  filteredDrivers = filterByStatus(allDrivers, currentFilter);
-  
-  const searchInput = document.getElementById('searchInput');
-  if (searchInput && searchInput.value) {
-    handleSearch({ target: searchInput });
-  } else {
-    displayDrivers(filteredDrivers);
-  }
-}
-
-// ========================================
-// 📊 Filter By Status
-// ========================================
-function filterByStatus(drivers, status) {
-  switch(status) {
-    case 'online':
-      return drivers.filter(d => d.online === true);
-    case 'offline':
-      return drivers.filter(d => d.online === false && !d.suspended);
-    case 'suspended':
-      return drivers.filter(d => d.suspended === true);
-    default:
-      return drivers;
-  }
-}
-
-// ========================================
-// 🔄 Sync Drivers from Jahez
-// ========================================
-async function syncDriversFromJahez() {
-  const syncBtn = document.getElementById('syncDriversBtn');
-  const originalText = syncBtn.innerHTML;
-  
-  syncBtn.disabled = true;
-  syncBtn.innerHTML = `
-    <svg class="animate-spin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
-    </svg>
-    <span>جاري المزامنة...</span>
-  `;
-  
-  try {
-    const data = await API.syncDrivers();
-    
-    if (data.success) {
-      showMessage(
-        `✅ تمت المزامنة بنجاح! تم إضافة ${data.added || 0} وتحديث ${data.updated || 0} مندوب`,
-        'success'
-      );
-      
-      setTimeout(() => loadDrivers(), 1000);
-    } else {
-      showMessage(data.message || 'فشلت المزامنة', 'error');
-    }
-  } catch (error) {
-    console.error('❌ Sync error:', error);
-    showMessage('حدث خطأ أثناء المزامنة: ' + error.message, 'error');
-  } finally {
-    syncBtn.disabled = false;
-    syncBtn.innerHTML = originalText;
-  }
-}
-
-// ========================================
-// 👁️ View Driver Details
-// ========================================
-async function viewDriverDetails(driverId) {
-  try {
-    console.log('📡 Loading driver details:', driverId);
-    
-    const data = await API.getDriverById(driverId);
-    
-    if (data.success) {
-      console.log('Driver details:', data.driver);
-      showMessage('ميزة عرض التفاصيل قيد التطوير', 'info');
-    } else {
-      showMessage('فشل تحميل التفاصيل', 'error');
-    }
-  } catch (error) {
-    console.error('❌ Error loading driver details:', error);
-    showMessage('حدث خطأ أثناء تحميل التفاصيل', 'error');
   }
 }
 
@@ -454,18 +428,25 @@ function openCreateGroupModal() {
   document.getElementById('groupColorInput').value = '#667eea';
   document.getElementById('selectAllDrivers').checked = false;
   
-  // Generate checkboxes
-  checkboxesContainer.innerHTML = allDrivers.map(driver => `
-    <label class="driver-checkbox">
-      <input type="checkbox" value="${driver.driver_id}" class="driver-checkbox-input">
-      <span class="driver-checkbox-label">
-        <span class="driver-checkbox-name">${driver.name}</span>
-        <span class="driver-checkbox-status ${driver.online ? 'online' : 'offline'}">
-          ${driver.online ? 'متصل' : 'غير متصل'}
-        </span>
-      </span>
-    </label>
+  // Generate checkboxes for ungrouped drivers
+  checkboxesContainer.innerHTML = ungroupedDrivers.map(driver => `
+    <div class="driver-checkbox-item">
+      <input type="checkbox" value="${driver.driver_id}">
+      <div class="driver-cell">
+        <div class="driver-avatar-table" style="width: 32px; height: 32px; font-size: 14px;">
+          ${driver.name ? driver.name.charAt(0) : '؟'}
+        </div>
+        <div>
+          <div class="driver-name-cell" style="font-size: 14px;">${driver.name || 'غير محدد'}</div>
+          <div class="driver-id-small">${driver.phone || 'لا يوجد'}</div>
+        </div>
+      </div>
+    </div>
   `).join('');
+  
+  if (ungroupedDrivers.length === 0) {
+    checkboxesContainer.innerHTML = '<p style="text-align: center; color: #a0aec0; padding: 20px;">جميع المناديب في مجموعات</p>';
+  }
   
   modal.style.display = 'flex';
 }
@@ -485,16 +466,11 @@ async function saveGroup() {
   const description = document.getElementById('groupDescInput').value.trim();
   const color = document.getElementById('groupColorInput').value;
   
-  const checkboxes = document.querySelectorAll('.driver-checkbox-input:checked');
+  const checkboxes = document.querySelectorAll('#groupDriversCheckboxes input[type="checkbox"]:checked');
   const driverIds = Array.from(checkboxes).map(cb => cb.value);
   
   if (!groupName) {
     showMessage('الرجاء إدخال اسم المجموعة', 'error');
-    return;
-  }
-  
-  if (driverIds.length === 0) {
-    showMessage('الرجاء اختيار مندوب واحد على الأقل', 'error');
     return;
   }
   
@@ -504,7 +480,7 @@ async function saveGroup() {
     if (result.success) {
       showMessage('تم إنشاء المجموعة بنجاح', 'success');
       closeCreateGroupModal();
-      await loadGroups();
+      await loadData();
     }
   } catch (error) {
     console.error('❌ Error creating group:', error);
@@ -513,15 +489,21 @@ async function saveGroup() {
 }
 
 // ========================================
-// 👁️ View Group
+// ✏️ Open Edit Group Modal
 // ========================================
-async function viewGroup(groupId) {
+async function openEditGroupModal(groupId) {
   try {
     const result = await API.getGroupById(groupId);
     
-    if (result.success) {
-      console.log('Group details:', result.group);
-      showMessage('عرض تفاصيل المجموعة قيد التطوير', 'info');
+    if (result.success && result.group) {
+      const group = result.group;
+      
+      document.getElementById('editGroupId').value = group.id;
+      document.getElementById('editGroupNameInput').value = group.group_name;
+      document.getElementById('editGroupDescInput').value = group.description || '';
+      document.getElementById('editGroupColorInput').value = group.color || '#667eea';
+      
+      document.getElementById('editGroupModal').style.display = 'flex';
     }
   } catch (error) {
     console.error('❌ Error loading group:', error);
@@ -530,28 +512,225 @@ async function viewGroup(groupId) {
 }
 
 // ========================================
-// 🗑️ Delete Group
+// ❌ Close Edit Group Modal
 // ========================================
-async function deleteGroup(groupId) {
-  if (!confirm('هل أنت متأكد من حذف هذه المجموعة؟')) {
+function closeEditGroupModal() {
+  document.getElementById('editGroupModal').style.display = 'none';
+}
+
+// ========================================
+// 💾 Update Group
+// ========================================
+async function updateGroup() {
+  const groupId = document.getElementById('editGroupId').value;
+  const groupName = document.getElementById('editGroupNameInput').value.trim();
+  const description = document.getElementById('editGroupDescInput').value.trim();
+  const color = document.getElementById('editGroupColorInput').value;
+  
+  if (!groupName) {
+    showMessage('الرجاء إدخال اسم المجموعة', 'error');
     return;
   }
   
+  try {
+    const result = await API.updateGroup(groupId, groupName, description, color);
+    
+    if (result.success) {
+      showMessage('تم تحديث المجموعة بنجاح', 'success');
+      closeEditGroupModal();
+      await loadData();
+    }
+  } catch (error) {
+    console.error('❌ Error updating group:', error);
+    showMessage(error.message || 'حدث خطأ في تحديث المجموعة', 'error');
+  }
+}
+
+// ========================================
+// 🗑️ Confirm Delete Group
+// ========================================
+function confirmDeleteGroup() {
+  const groupId = document.getElementById('editGroupId').value;
+  
+  if (confirm('هل أنت متأكد من حذف هذه المجموعة؟ سيتم نقل المناديب إلى قائمة "بدون مجموعة"')) {
+    deleteGroup(groupId);
+  }
+}
+
+// ========================================
+// 🗑️ Delete Group
+// ========================================
+async function deleteGroup(groupId) {
   try {
     const result = await API.deleteGroup(groupId);
     
     if (result.success) {
       showMessage('تم حذف المجموعة بنجاح', 'success');
-      await loadGroups();
+      closeEditGroupModal();
+      await loadData();
     }
   } catch (error) {
     console.error('❌ Error deleting group:', error);
-    showMessage('حدث خطأ في حذف المجموعة', 'error');
+    showMessage(error.message || 'حدث خطأ في حذف المجموعة', 'error');
   }
 }
 
 // ========================================
-// 🔔 Show Message Notification
+// 🔄 Open Change Group Modal
+// ========================================
+function openChangeGroupModal(driverId, driverName, currentGroupId) {
+  document.getElementById('changeDriverId').value = driverId;
+  document.getElementById('changeDriverName').textContent = driverName;
+  
+  const select = document.getElementById('newGroupSelect');
+  select.innerHTML = '<option value="">-- اختر المجموعة --</option>';
+  
+  allGroups.forEach(group => {
+    if (group.id !== currentGroupId) {
+      select.innerHTML += `<option value="${group.id}">${group.group_name}</option>`;
+    }
+  });
+  
+  // Add option to remove from group
+  select.innerHTML += '<option value="remove">إزالة من المجموعة</option>';
+  
+  document.getElementById('changeGroupModal').style.display = 'flex';
+}
+
+// ========================================
+// ❌ Close Change Group Modal
+// ========================================
+function closeChangeGroupModal() {
+  document.getElementById('changeGroupModal').style.display = 'none';
+}
+
+// ========================================
+// ✅ Confirm Change Group
+// ========================================
+async function confirmChangeGroup() {
+  const driverId = document.getElementById('changeDriverId').value;
+  const newGroupId = document.getElementById('newGroupSelect').value;
+  
+  if (!newGroupId) {
+    showMessage('الرجاء اختيار المجموعة', 'error');
+    return;
+  }
+  
+  // Find current group
+  let currentGroupId = null;
+  for (const group of allGroups) {
+    const result = await API.getGroupById(group.id);
+    if (result.success && result.group.members) {
+      const hasMember = result.group.members.some(m => m.driver_id === driverId);
+      if (hasMember) {
+        currentGroupId = group.id;
+        break;
+      }
+    }
+  }
+  
+  try {
+    // Remove from current group
+    if (currentGroupId) {
+      await API.removeDriverFromGroup(currentGroupId, driverId);
+    }
+    
+    // Add to new group (if not removing)
+    if (newGroupId !== 'remove') {
+      await API.addDriversToGroup(newGroupId, [driverId]);
+      showMessage('تم نقل المندوب بنجاح', 'success');
+    } else {
+      showMessage('تم إزالة المندوب من المجموعة', 'success');
+    }
+    
+    closeChangeGroupModal();
+    await loadData();
+  } catch (error) {
+    console.error('❌ Error changing group:', error);
+    showMessage(error.message || 'حدث خطأ في نقل المندوب', 'error');
+  }
+}
+
+// ========================================
+// ➕ Open Add To Group Modal
+// ========================================
+function openAddToGroupModal(driverId, driverName) {
+  openChangeGroupModal(driverId, driverName, null);
+}
+
+// ========================================
+// 🗑️ Remove Driver From Current Group
+// ========================================
+async function removeDriverFromCurrentGroup(groupId, driverId) {
+  if (!confirm('هل أنت متأكد من إزالة هذا المندوب من المجموعة؟')) {
+    return;
+  }
+  
+  try {
+    const result = await API.removeDriverFromGroup(groupId, driverId);
+    
+    if (result.success) {
+      showMessage('تم إزالة المندوب من المجموعة', 'success');
+      await loadData();
+    }
+  } catch (error) {
+    console.error('❌ Error removing driver:', error);
+    showMessage(error.message || 'حدث خطأ في إزالة المندوب', 'error');
+  }
+}
+
+// ========================================
+// 👁️ View Driver Details
+// ========================================
+function viewDriverDetails(driverId) {
+  console.log('View driver details:', driverId);
+  showMessage('صفحة التفاصيل قيد التطوير', 'info');
+}
+
+// ========================================
+// ☑️ Select All In Group
+// ========================================
+function selectAllInGroup(groupId, checked) {
+  const section = document.querySelector(`[data-group-id="${groupId}"]`);
+  if (section) {
+    const checkboxes = section.querySelectorAll('.driver-checkbox');
+    checkboxes.forEach(cb => cb.checked = checked);
+  }
+}
+
+// ========================================
+// 🔄 Sync Drivers
+// ========================================
+async function syncDrivers() {
+  const btn = document.getElementById('syncDriversBtn');
+  const originalHTML = btn.innerHTML;
+  
+  try {
+    btn.disabled = true;
+    btn.innerHTML = `
+      <svg class="spinner" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+      </svg>
+      <span>جاري المزامنة...</span>
+    `;
+    
+    const result = await API.syncDrivers();
+    
+    if (result.success) {
+      showMessage(`تم مزامنة ${result.synced_count || 0} مندوب بنجاح`, 'success');
+      await loadData();
+    }
+  } catch (error) {
+    console.error('❌ Sync error:', error);
+    showMessage('فشلت عملية المزامنة', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalHTML;
+  }
+}
+
+// ========================================
+// 🔔 Show Message
 // ========================================
 function showMessage(message, type = 'info') {
   const colors = {
@@ -569,51 +748,84 @@ function showMessage(message, type = 'info') {
     color: white;
     padding: 16px 24px;
     border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
     z-index: 10000;
     font-weight: 600;
-    animation: slideIn 0.3s ease;
+    font-family: 'Cairo', sans-serif;
+    animation: slideInRight 0.3s ease;
   `;
   notification.textContent = message;
   
   document.body.appendChild(notification);
   
   setTimeout(() => {
-    notification.style.animation = 'slideOut 0.3s ease';
+    notification.style.animation = 'slideOutRight 0.3s ease';
     setTimeout(() => notification.remove(), 300);
   }, 3000);
+}
+
+// ========================================
+// 🎬 Show/Hide States
+// ========================================
+function showLoading() {
+  document.getElementById('loadingState').style.display = 'block';
+  document.getElementById('groupsContainer').style.display = 'none';
+  document.getElementById('ungroupedSection').style.display = 'none';
+  document.getElementById('emptyState').style.display = 'none';
+}
+
+function hideLoading() {
+  document.getElementById('loadingState').style.display = 'none';
+  document.getElementById('groupsContainer').style.display = 'block';
+}
+
+function showEmptyState() {
+  document.getElementById('emptyState').style.display = 'block';
+  document.getElementById('groupsContainer').style.display = 'none';
+  document.getElementById('ungroupedSection').style.display = 'none';
 }
 
 // ========================================
 // 🚀 Export Functions
 // ========================================
 window.initializeDriversPage = initializeDriversPage;
-window.loadDrivers = loadDrivers;
-window.syncDriversFromJahez = syncDriversFromJahez;
-window.viewDriverDetails = viewDriverDetails;
 window.openCreateGroupModal = openCreateGroupModal;
 window.closeCreateGroupModal = closeCreateGroupModal;
 window.saveGroup = saveGroup;
-window.viewGroup = viewGroup;
-window.deleteGroup = deleteGroup;
+window.openEditGroupModal = openEditGroupModal;
+window.closeEditGroupModal = closeEditGroupModal;
+window.updateGroup = updateGroup;
+window.confirmDeleteGroup = confirmDeleteGroup;
+window.openChangeGroupModal = openChangeGroupModal;
+window.closeChangeGroupModal = closeChangeGroupModal;
+window.confirmChangeGroup = confirmChangeGroup;
+window.openAddToGroupModal = openAddToGroupModal;
+window.removeDriverFromCurrentGroup = removeDriverFromCurrentGroup;
+window.viewDriverDetails = viewDriverDetails;
+window.selectAllInGroup = selectAllInGroup;
 
-// Add animation styles
+// Add animations
 const style = document.createElement('style');
 style.textContent = `
-  @keyframes slideIn {
-    from { transform: translateX(100%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
+  @keyframes slideInRight {
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
   }
-  @keyframes slideOut {
-    from { transform: translateX(0); opacity: 1; }
-    to { transform: translateX(100%); opacity: 0; }
-  }
-  .animate-spin {
-    animation: spin 1s linear infinite;
-  }
-  @keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+  @keyframes slideOutRight {
+    from {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    to {
+      transform: translateX(100%);
+      opacity: 0;
+    }
   }
 `;
 document.head.appendChild(style);
