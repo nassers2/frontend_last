@@ -11,6 +11,7 @@
      API Configuration
   ============================= */
   const API_BASE_URL = 'https://api.flemaster.com/api/payroll';
+  const GROUPS_API_URL = 'https://api.flemaster.com/api/groups';
 
   // Helper function to get auth headers
   function getAuthHeaders() {
@@ -147,6 +148,18 @@
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
       return await response.json();
+    },
+
+    // Get groups
+    getGroups: async () => {
+      const response = await fetch(GROUPS_API_URL, {
+        method: 'GET',
+        headers: getAuthHeaders()
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      return await response.json();
     }
   };
 
@@ -253,6 +266,32 @@
       loadSettings();
     }
   };
+
+  // Load groups into dropdown
+  async function loadGroups() {
+    try {
+      const result = await API.getGroups();
+      if (result.success && result.groups) {
+        const groupFilter = document.getElementById('group-filter');
+        if (!groupFilter) return;
+
+        // Clear existing options except "الكل"
+        groupFilter.innerHTML = '<option value="all">جميع المناديب</option>';
+
+        // Add groups
+        result.groups.forEach(group => {
+          const option = document.createElement('option');
+          option.value = group.id;
+          option.textContent = `${group.group_name} (${group.members_count})`;
+          groupFilter.appendChild(option);
+        });
+
+        console.log(`✅ [GROUPS] Loaded ${result.groups.length} groups`);
+      }
+    } catch (err) {
+      console.error('❌ [GROUPS] Load error:', err);
+    }
+  }
 
   // Handle calculation type change
   window.onCalculationTypeChange = function() {
@@ -658,6 +697,7 @@
     if (endDateEl) endDateEl.value = lastDay.toISOString().split('T')[0];
 
     loadSettings();
+    loadGroups(); // Load groups on init
 
     // Attach approve button listener
     const approveBtn = document.getElementById('approve-all-btn');
@@ -692,5 +732,6 @@
   window.exportToExcel = window.exportToExcel;
   window.printPayroll = window.printPayroll;
   window.onCalculationTypeChange = window.onCalculationTypeChange;
+  window.loadGroups = loadGroups;
 
 })();

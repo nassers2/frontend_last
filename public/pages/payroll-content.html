@@ -1,10 +1,10 @@
-<!-- 💰 Payroll Management Page - v5.0 with Freelancer System -->
+<!-- 💰 Payroll Management Page - v6.0 with Groups Filter -->
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>إدارة الرواتب — v5.0</title>
+  <title>إدارة الرواتب — v6.0</title>
   <style>
     body { padding: 0; margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; background: #f1f5f9; }
     /* ===== Shell ===== */
@@ -100,9 +100,9 @@
         <!-- Calculation Type Selector -->
         <div style="margin-bottom:20px;">
           <label>🎯 نظام حساب الرواتب</label>
-          <select id="calculation-type" onchange="onCalculationTypeChange()">
+          <select id="calculation-type" onchange="onCalculationTypeChange()" style="font-size: 15px;">
             <option value="target_orders">تارجت عدد الطلبات</option>
-            <option value="freelancer">فري لانسر (خصم يومي)</option>
+            <option value="freelancer">فري لانسر</option>
           </select>
         </div>
 
@@ -170,6 +170,13 @@
           <input type="date" id="payroll-end-date" />
         </div>
         <div>
+          <label>👥 المجموعة</label>
+          <select id="group-filter">
+            <option value="all">جميع المناديب</option>
+            <!-- سيتم ملؤها ديناميكياً -->
+          </select>
+        </div>
+        <div>
           <label>📋 الحالة</label>
           <select id="status-filter" onchange="filterByStatus()">
             <option value="draft">مسودة</option>
@@ -178,7 +185,7 @@
             <option value="all">الكل</option>
           </select>
         </div>
-        <div style="display:flex; gap:12px;">
+        <div style="display:flex; gap:12px; grid-column: span 2;">
           <button class="btn btn-primary" style="flex:1; display:flex; align-items:center; justify-content:center; gap:8px;" onclick="fetchPayrollData()">🔄 حساب الرواتب</button>
           <button class="btn btn-outline" style="display:flex; align-items:center; gap:8px;" onclick="loadPayrollRecords()">📋 عرض</button>
         </div>
@@ -249,7 +256,7 @@
 
   </div>
 
-  <!-- ✅ Updated to version 5 -->
-  <script src="../assets/js/payroll.js?v=5"></script>
+  <!-- ✅ Updated to version 6 -->
+  <script src="../assets/js/payroll.js?v=6"></script>
 </body>
 </html>
