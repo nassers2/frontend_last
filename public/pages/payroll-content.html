@@ -1,10 +1,10 @@
-<!-- 💰 Payroll Management Page - Refactored v3 (single file) -->
+<!-- 💰 Payroll Management Page - v5.0 with Freelancer System -->
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>إدارة الرواتب — Refactored v3</title>
+  <title>إدارة الرواتب — v5.0</title>
   <style>
     body { padding: 0; margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; background: #f1f5f9; }
     /* ===== Shell ===== */
@@ -59,6 +59,8 @@
     @keyframes spin { to { transform: rotate(360deg); } }
 
     .notice { background: #fffbeb; border: 1px solid #fbbf24; border-radius: 8px; padding: 12px; margin-bottom: 16px; color: #92400e; font-size: 12px; }
+    
+    .formula-box { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-top: 12px; font-size: 12px; color: #475569; line-height: 1.6; }
 
     @media print {
       body * { visibility: hidden; }
@@ -95,35 +97,64 @@
       </div>
 
       <div id="settings-container" style="display:none;">
-        <div class="grid auto-200" style="margin-bottom:16px;">
-          <div>
-            <label>💰 الراتب الأساسي (ر.س)</label>
-            <input type="number" id="base-salary" step="0.01" placeholder="0.00" />
+        <!-- Calculation Type Selector -->
+        <div style="margin-bottom:20px;">
+          <label>🎯 نظام حساب الرواتب</label>
+          <select id="calculation-type" onchange="onCalculationTypeChange()">
+            <option value="target_orders">تارجت عدد الطلبات</option>
+            <option value="freelancer">فري لانسر (خصم يومي)</option>
+          </select>
+        </div>
+
+        <!-- Common Settings -->
+        <div style="margin-bottom:20px;">
+          <label>💰 الراتب الأساسي (ر.س)</label>
+          <input type="number" id="base-salary" step="0.01" placeholder="0.00" />
+          <small style="color:#64748b; font-size:11px; display:block; margin-top:4px;">الراتب الثابت المضاف لجميع الأنظمة</small>
+        </div>
+
+        <!-- Target Orders Settings (Default visible) -->
+        <div id="target-orders-group">
+          <div class="grid auto-200" style="margin-bottom:16px;">
+            <div>
+              <label>🎯 تارجت عدد الطلبات</label>
+              <input type="number" id="target-orders" placeholder="450" />
+            </div>
+            <div>
+              <label>🎁 مكافأة التارجت (ر.س)</label>
+              <input type="number" id="target-bonus" step="0.01" placeholder="0.00" />
+            </div>
+            <div>
+              <label>📦 قيمة الطلب الافتراضية (ر.س)</label>
+              <input type="number" id="order-value-default" step="0.01" value="4.4" />
+            </div>
+            <div>
+              <label>🚀 قيمة الطلب بعد التارجت (ر.س)</label>
+              <input type="number" id="order-value-after-target" step="0.01" value="4.4" />
+            </div>
           </div>
-          <div>
-            <label>🎯 تارجت عدد الطلبات</label>
-            <input type="number" id="target-orders" placeholder="450" />
-          </div>
-          <div>
-            <label>🎁 مكافأة التارجت (ر.س)</label>
-            <input type="number" id="target-bonus" step="0.01" placeholder="0.00" />
-          </div>
-          <div>
-            <label>📦 قيمة الطلب الافتراضية (ر.س)</label>
-            <input type="number" id="order-value-default" step="0.01" value="4.4" />
-          </div>
-          <div>
-            <label>🚀 قيمة الطلب بعد التارجت (ر.س)</label>
-            <input type="number" id="order-value-after-target" step="0.01" value="4.4" />
+          
+          <div class="formula-box">
+            <strong>📐 المعادلة:</strong><br>
+            إيرادات الطلبات + الراتب الأساسي + مكافأة التارجت + (الإكراميات + المكافآت + الدائن) - ((النقد - الكاش المستلم) + الغرامات + المدين)
           </div>
         </div>
 
-        <div class="notice">
-  <strong>💡 المعادلة:</strong>
-  (((النقد - الكاش المستلم) + الغرامات + المدين) - (الدائن + المكافآت + الإكراميات)) + إيرادات الطلبات + الراتب الأساسي + مكافأة التارجت
-</div>
+        <!-- Freelancer Settings (Hidden by default) -->
+        <div id="freelancer-group" style="display:none;">
+          <div style="margin-bottom:16px;">
+            <label>💼 تكلفة الحساب اليومية (ر.س)</label>
+            <input type="number" id="account-cost" step="0.01" placeholder="30.00" />
+            <small style="color:#64748b; font-size:11px; display:block; margin-top:4px;">المبلغ الذي يُخصم من المندوب عن كل يوم عمل</small>
+          </div>
+          
+          <div class="formula-box">
+            <strong>📐 المعادلة:</strong><br>
+            (سعر التوصيل + الإكراميات + المكافآت + الدائن) - (النقد المحصل + المدين + الغرامات) - (عدد الأيام × التكلفة اليومية)
+          </div>
+        </div>
 
-        <button class="btn btn-warn" style="width:100%;" onclick="saveSettings()">💾 حفظ الإعدادات</button>
+        <button class="btn btn-warn" style="width:100%; margin-top:16px;" onclick="saveSettings()">💾 حفظ الإعدادات</button>
       </div>
     </div>
 
@@ -218,7 +249,7 @@
 
   </div>
 
- <!-- ✅ تم إضافة ?v=4 لتجاوز الـ cache -->
-<script src="../assets/js/payroll.js?v=4"></script>
+  <!-- ✅ Updated to version 5 -->
+  <script src="../assets/js/payroll.js?v=5"></script>
 </body>
 </html>

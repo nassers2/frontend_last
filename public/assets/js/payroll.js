@@ -1,7 +1,7 @@
 /* =============================
    Payroll Management JavaScript
-   Version: 4.0
-   Updated to use API from payroll.routes.js
+   Version: 5.0
+   Added Freelancer Calculation System
 ============================= */
 
 (function() {
@@ -254,29 +254,62 @@
     }
   };
 
+  // Handle calculation type change
+  window.onCalculationTypeChange = function() {
+    const calcType = document.getElementById('calculation-type')?.value;
+    
+    // Hide all setting groups first
+    const targetOrdersGroup = document.getElementById('target-orders-group');
+    const freelancerGroup = document.getElementById('freelancer-group');
+    
+    if (targetOrdersGroup) targetOrdersGroup.style.display = 'none';
+    if (freelancerGroup) freelancerGroup.style.display = 'none';
+    
+    // Show relevant group
+    if (calcType === 'target_orders') {
+      if (targetOrdersGroup) targetOrdersGroup.style.display = 'block';
+    } else if (calcType === 'freelancer') {
+      if (freelancerGroup) freelancerGroup.style.display = 'block';
+    }
+  };
+
   async function loadSettings() {
     try {
       const result = await API.getPayrollSettings();
       if (result.success && result.settings) {
         const s = result.settings;
+        
+        // Calculation type
+        const calcType = document.getElementById('calculation-type');
+        if (calcType) {
+          calcType.value = s.calculation_type || 'target_orders';
+          window.onCalculationTypeChange();
+        }
+        
+        // Common settings
         const baseSalary = document.getElementById('base-salary');
+        if (baseSalary) baseSalary.value = s.base_salary || 0;
+        
+        // Target orders settings
         const targetOrders = document.getElementById('target-orders');
         const targetBonus = document.getElementById('target-bonus');
         const orderValueDefault = document.getElementById('order-value-default');
         const orderValueAfterTarget = document.getElementById('order-value-after-target');
-
-        if (baseSalary) baseSalary.value = s.base_salary || 0;
+        
         if (targetOrders) targetOrders.value = s.target_orders || 0;
         if (targetBonus) targetBonus.value = s.target_bonus || 0;
         if (orderValueDefault) orderValueDefault.value = s.order_value_default || 4.4;
         if (orderValueAfterTarget) orderValueAfterTarget.value = s.order_value_after_target || 4.4;
+        
+        // Freelancer settings
+        const accountCost = document.getElementById('account-cost');
+        if (accountCost) accountCost.value = s.account_cost || 0;
 
-        setSettingsVisibility(Boolean(s.target_orders && s.target_orders > 0));
+        setSettingsVisibility(true);
         console.log('✅ [SETTINGS] Settings loaded successfully');
       }
     } catch (err) {
       console.error('❌ [SETTINGS] Load error:', err);
-      // Don't show error notification on initial load, settings might not exist yet
       if (err.message && !err.message.includes('404')) {
         showNotification('❌ حدث خطأ أثناء تحميل الإعدادات', 'error');
       }
@@ -284,18 +317,22 @@
   }
 
   window.saveSettings = async function() {
+    const calcType = document.getElementById('calculation-type')?.value;
     const baseSalary = document.getElementById('base-salary')?.value;
     const targetOrders = document.getElementById('target-orders')?.value;
     const targetBonus = document.getElementById('target-bonus')?.value;
     const orderValueDefault = document.getElementById('order-value-default')?.value;
     const orderValueAfterTarget = document.getElementById('order-value-after-target')?.value;
+    const accountCost = document.getElementById('account-cost')?.value;
 
     const payload = {
+      calculation_type: calcType,
       base_salary: baseSalary,
       target_orders: targetOrders,
       target_bonus: targetBonus,
       order_value_default: orderValueDefault,
       order_value_after_target: orderValueAfterTarget,
+      account_cost: accountCost
     };
 
     try {
@@ -628,6 +665,12 @@
       approveBtn.removeEventListener('click', approveAllDrafts);
       approveBtn.addEventListener('click', approveAllDrafts);
     }
+    
+    // Attach calculation type change listener
+    const calcTypeSelect = document.getElementById('calculation-type');
+    if (calcTypeSelect) {
+      calcTypeSelect.addEventListener('change', window.onCalculationTypeChange);
+    }
   }
 
   // Auto-init when DOM is ready
@@ -642,11 +685,12 @@
   // =============================
   window.initPayroll = initPayroll;
   window.loadPayrollRecords = loadPayrollRecords;
-  window.fetchPayrollData = window.fetchPayrollData; // Already exported above
-  window.filterByStatus = window.filterByStatus; // Already exported above
-  window.toggleSettings = window.toggleSettings; // Already exported above
-  window.saveSettings = window.saveSettings; // Already exported above
-  window.exportToExcel = window.exportToExcel; // Already exported above
-  window.printPayroll = window.printPayroll; // Already exported above
+  window.fetchPayrollData = window.fetchPayrollData;
+  window.filterByStatus = window.filterByStatus;
+  window.toggleSettings = window.toggleSettings;
+  window.saveSettings = window.saveSettings;
+  window.exportToExcel = window.exportToExcel;
+  window.printPayroll = window.printPayroll;
+  window.onCalculationTypeChange = window.onCalculationTypeChange;
 
 })();
