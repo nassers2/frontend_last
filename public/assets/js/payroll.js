@@ -394,6 +394,7 @@
     const { ok, error, start, end } = validatePeriod();
     if (!ok) return showNotification(error, 'error');
 
+    const groupId = document.getElementById('group-filter')?.value || 'all';
     const tableContent = document.getElementById('payroll-table-content');
     const statsEl = document.getElementById('payroll-stats');
     const approveBtn = document.getElementById('approve-all-btn');
@@ -402,10 +403,26 @@
 
     if (statsEl) statsEl.style.display = 'none';
     if (approveBtn) approveBtn.style.display = 'none';
-    tableContent.innerHTML = spinnerHTML('جاري حساب الرواتب من البيانات المحفوظة...', 'يتم الحساب من قاعدة البيانات');
+    
+    const groupText = groupId === 'all' ? 'جميع المناديب' : 'المجموعة المحددة';
+    tableContent.innerHTML = spinnerHTML(`جاري حساب الرواتب لـ ${groupText}...`, 'يتم الحساب من قاعدة البيانات');
 
     try {
-      const result = await API.calculatePayroll(start, end);
+      const response = await fetch(`${API_BASE_URL}/calculate-period`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({
+          start_date: start,
+          end_date: end,
+          group_id: groupId
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const result = await response.json();
 
       if (result.success) {
         const data = result.data || {};
@@ -678,10 +695,6 @@
     }
   };
 
-  window.printPayroll = function() { 
-    window.print(); 
-  };
-
   /* =============================
      Init
   ============================= */
@@ -730,7 +743,6 @@
   window.toggleSettings = window.toggleSettings;
   window.saveSettings = window.saveSettings;
   window.exportToExcel = window.exportToExcel;
-  window.printPayroll = window.printPayroll;
   window.onCalculationTypeChange = window.onCalculationTypeChange;
   window.loadGroups = loadGroups;
 
