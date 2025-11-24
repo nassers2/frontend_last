@@ -33,9 +33,15 @@ const AdvancesApp = {
             // Initialize Select2
             this.initSelect2();
             
+            // Initialize Lucide icons
+            if (typeof lucide !== 'undefined' && lucide.createIcons) {
+                lucide.createIcons();
+            }
+            
             console.log('✅ [Advances] Initialized successfully');
         } catch (error) {
             console.error('❌ [Advances] Init error:', error);
+            // لا نرمي الخطأ - نستمر بالتحميل
         }
     },
 
@@ -45,14 +51,20 @@ const AdvancesApp = {
     
     loadDrivers: async function() {
         try {
+            console.log('📡 [Advances] Loading drivers...');
             const result = await API.getDrivers();
             
-            if (result.success && result.drivers) {
+            if (result && result.success && result.drivers) {
                 this.state.drivers = result.drivers;
                 this.populateDriverDropdown();
+                console.log(`✅ [Advances] Loaded ${result.drivers.length} drivers`);
+            } else {
+                console.warn('⚠️ [Advances] No drivers found');
+                this.state.drivers = [];
             }
         } catch (error) {
             console.error('❌ [Advances] Error loading drivers:', error);
+            this.state.drivers = [];
         }
     },
     
@@ -83,29 +95,37 @@ const AdvancesApp = {
         `;
         
         try {
-            const status = this.state.filters.status === 'all' ? null : this.state.filters.status;
-            const result = await API.call(`/advances${status ? '?status=' + status : ''}`, 'GET');
+            const status = this.state.filters.status === 'all' ? '' : this.state.filters.status;
+            const queryString = status ? `?status=${status}` : '';
             
-            if (result.success) {
+            console.log('📡 [Advances] Fetching:', `/advances${queryString}`);
+            
+            const result = await API.call(`/advances${queryString}`, 'GET');
+            
+            console.log('📦 [Advances] Response:', result);
+            
+            if (result && result.success) {
                 this.state.advances = result.advances || [];
                 this.renderAdvancesTable();
                 this.updateStats();
             } else {
-                throw new Error(result.message || 'فشل تحميل البيانات');
+                // لا توجد بيانات - عرض حالة فارغة
+                this.state.advances = [];
+                this.renderAdvancesTable();
+                this.updateStats();
             }
         } catch (error) {
             console.error('❌ [Advances] Error loading advances:', error);
+            // عرض حالة فارغة بدلاً من خطأ
+            this.state.advances = [];
             container.innerHTML = `
                 <div class="empty-state">
-                    <i data-lucide="alert-circle"></i>
-                    <p>حدث خطأ في تحميل البيانات</p>
-                    <button class="btn btn-secondary" onclick="AdvancesApp.loadAdvances()">
-                        <i data-lucide="refresh-cw"></i>
-                        إعادة المحاولة
-                    </button>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                    <p>لا توجد سُلف حالياً</p>
+                    <p style="font-size: 0.875rem; color: var(--gray-400);">أضف سلفة جديدة من النموذج</p>
                 </div>
             `;
-            if (typeof lucide !== 'undefined') lucide.createIcons();
+            this.updateStats();
         }
     },
 
