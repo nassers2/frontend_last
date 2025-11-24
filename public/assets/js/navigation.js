@@ -21,6 +21,7 @@ function showPage(pageName) {
         'reports': 'التقارير',
         'payroll': 'إدارة الرواتب',
         'cash-management': 'إدارة الكاش',
+        'advances': 'إدارة السلفه', 
         'settings': 'الإعدادات'
     };
 
@@ -264,6 +265,31 @@ function initializePage(pageName) {
     }, 300);
 }
     
+if (pageName === 'advances') {
+    console.log('💰 [Init] Starting advances page...');
+    setTimeout(() => {
+        if (typeof window.AdvancesApp !== 'undefined' && window.AdvancesApp.init) {
+            console.log('🔄 [Init] Re-initializing existing AdvancesApp');
+            window.AdvancesApp.init();
+        } else {
+            const existingScript = document.querySelector('script[src="/assets/js/advances.js"]');
+            
+            if (!existingScript) {
+                console.log('📥 [Init] Loading AdvancesApp script');
+                const script = document.createElement('script');
+                script.src = '/assets/js/advances.js';
+                script.onload = () => {
+                    console.log('✅ [Init] AdvancesApp script loaded');
+                    if (typeof window.AdvancesApp !== 'undefined' && window.AdvancesApp.init) {
+                        window.AdvancesApp.init();
+                    }
+                };
+                document.body.appendChild(script);
+            }
+        }
+    }, 300);
+}
+
     if (pageName === 'settings') {
         console.log('⚙️ [Init] Starting settings page...');
         setTimeout(() => {
