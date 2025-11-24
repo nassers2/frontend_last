@@ -1167,17 +1167,17 @@
                 });
             });
             
-            // Re-initialize icons on dynamic content
-            const observer = new MutationObserver(() => {
-                if (typeof lucide !== 'undefined') {
-                    lucide.createIcons();
-                }
-            });
-            
-            const container = document.getElementById('advancesTableContainer');
-            if (container) {
-                observer.observe(container, { childList: true, subtree: true });
-            }
+            // Re-initialize icons on dynamic content - DISABLED to prevent freezing
+            // const observer = new MutationObserver(() => {
+            //     if (typeof lucide !== 'undefined') {
+            //         lucide.createIcons();
+            //     }
+            // });
+            // 
+            // const container = document.getElementById('advancesTableContainer');
+            // if (container) {
+            //     observer.observe(container, { childList: true, subtree: true });
+            // }
         });
     })();
 </script>

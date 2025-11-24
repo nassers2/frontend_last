@@ -661,6 +661,11 @@ const AdvancesApp = {
     },
     
     initSelect2: function() {
+        // تعطيل Select2 مؤقتاً للاختبار
+        console.log('⏭️ [Advances] Select2 disabled for testing');
+        return;
+        
+        /*
         if (typeof jQuery !== 'undefined' && jQuery.fn.select2) {
             jQuery('#driverId').select2({
                 placeholder: 'اختر المندوب...',
@@ -669,6 +674,7 @@ const AdvancesApp = {
                 width: '100%'
             });
         }
+        */
     }
 };
 
