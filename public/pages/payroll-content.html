@@ -1,255 +1,252 @@
-<!-- 💰 Payroll Management Page - v6.0 with Groups Filter -->
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>إدارة الرواتب — v6.0</title>
-  <style>
-    body { padding: 0; margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; background: #f1f5f9; }
-    /* ===== Shell ===== */
-    .container { padding: 24px; max-width: 1600px; margin: 0 auto; min-height: 100vh; }
-    .card { background: #fff; padding: 24px; border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-    .accent-violet { border-right: 4px solid #8b5cf6; }
-    .accent-amber { border-right: 4px solid #f59e0b; }
+<!-- 💰 Payroll Management Page - v7.0 with Advance Deduction -->
+<style>
+  .payroll-container { padding: 0; margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; background: #f1f5f9; }
+  /* ===== Shell ===== */
+  .card { background: #fff; padding: 24px; border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+  .accent-violet { border-right: 4px solid #8b5cf6; }
+  .accent-amber { border-right: 4px solid #f59e0b; }
 
-    /* ===== Header ===== */
-    .header-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px; }
-    .icon-box { width: 60px; height: 60px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 28px; background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%); }
-    .title { color: #1e293b; margin: 0; font-size: 24px; }
-    .subtitle { color: #64748b; font-size: 14px; margin: 6px 0 0 0; }
+  /* ===== Header ===== */
+  .header-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px; }
+  .icon-box { width: 60px; height: 60px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 28px; background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%); }
+  .title { color: #1e293b; margin: 0; font-size: 24px; }
+  .subtitle { color: #64748b; font-size: 14px; margin: 6px 0 0 0; }
 
-    /* ===== Controls ===== */
-    .grid { display: grid; gap: 16px; }
-    .grid.auto-200 { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
-    .grid.auto-250 { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); align-items: end; }
-    label { display: block; font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 8px; }
-    input[type="number"], input[type="date"], select { width: 100%; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; }
-    .btn { padding: 10px 16px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; border: none; }
-    .btn-outline { background: #fff; border: 1px solid #e2e8f0; color: #334155; }
-    .btn-primary { background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%); color: #fff; }
-    .btn-warn    { background: #f59e0b; color: #fff; }
-    .btn-green   { background: #10b981; color: #fff; }
-    .btn-blue    { background: #3b82f6; color: #fff; }
-    .btn-indigo  { background: #6366f1; color: #fff; }
+  /* ===== Controls ===== */
+  .grid { display: grid; gap: 16px; }
+  .grid.auto-200 { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+  .grid.auto-180 { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+  .grid.auto-250 { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); align-items: end; }
+  label { display: block; font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 8px; }
+  input[type="number"], input[type="date"], select { width: 100%; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; }
+  .btn { padding: 10px 16px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; border: none; }
+  .btn-outline { background: #fff; border: 1px solid #e2e8f0; color: #334155; }
+  .btn-primary { background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%); color: #fff; }
+  .btn-warn    { background: #f59e0b; color: #fff; }
+  .btn-green   { background: #10b981; color: #fff; }
+  .btn-blue    { background: #3b82f6; color: #fff; }
+  .btn-indigo  { background: #6366f1; color: #fff; }
 
-    /* ===== Table ===== */
-    table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    thead { background: #f8fafc; position: sticky; top: 0; z-index: 10; }
-    th { padding: 12px 10px; text-align: center; font-weight: 600; color: #475569; font-size: 12px; border-bottom: 2px solid #e2e8f0; white-space: nowrap; }
-    th:first-child { text-align: right; }
-    td { padding: 10px 10px; border-bottom: 1px solid #f1f5f9; color: #334155; text-align: center; vertical-align: middle; }
-    td:first-child { text-align: right; }
-    tbody tr:hover { background: #fafbfc; transition: all 0.2s; }
+  /* ===== Table ===== */
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead { background: #f8fafc; position: sticky; top: 0; z-index: 10; }
+  th { padding: 12px 10px; text-align: center; font-weight: 600; color: #475569; font-size: 12px; border-bottom: 2px solid #e2e8f0; white-space: nowrap; }
+  th:first-child { text-align: right; }
+  td { padding: 10px 10px; border-bottom: 1px solid #f1f5f9; color: #334155; text-align: center; vertical-align: middle; }
+  td:first-child { text-align: right; }
+  tbody tr:hover { background: #fafbfc; transition: all 0.2s; }
 
-    .driver-info { display: flex; align-items: center; gap: 10px; }
-    .driver-avatar { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 600; font-size: 13px; flex-shrink: 0; }
-    .driver-details { display: flex; flex-direction: column; justify-content: center; }
-    .driver-name { font-weight: 600; font-size: 13px; line-height: 1.3; margin-bottom: 2px; }
-    .driver-phone { font-size: 11px; color: #64748b; line-height: 1.3; }
+  .driver-info { display: flex; align-items: center; gap: 10px; }
+  .driver-avatar { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 600; font-size: 13px; flex-shrink: 0; }
+  .driver-details { display: flex; flex-direction: column; justify-content: center; }
+  .driver-name { font-weight: 600; font-size: 13px; line-height: 1.3; margin-bottom: 2px; }
+  .driver-phone { font-size: 11px; color: #64748b; line-height: 1.3; }
 
-    .status-badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
-    .status-draft { background: #e0e7ff; color: #3730a3; }
-    .status-approved { background: #d1fae5; color: #065f46; }
-    .status-paid { background: #dbeafe; color: #1e40af; }
+  .status-badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+  .status-draft { background: #e0e7ff; color: #3730a3; }
+  .status-approved { background: #d1fae5; color: #065f46; }
+  .status-paid { background: #dbeafe; color: #1e40af; }
 
-    .metric-value { font-weight: 600; font-size: 12px; padding: 4px 8px; border-radius: 6px; background: #f1f5f9; color: #475569; display: inline-block; min-width: 60px; text-align: center; }
+  .metric-value { font-weight: 600; font-size: 12px; padding: 4px 8px; border-radius: 6px; background: #f1f5f9; color: #475569; display: inline-block; min-width: 60px; text-align: center; }
 
-    .loading-spinner { display: inline-block; width: 40px; height: 40px; border: 4px solid #f3f4f6; border-top-color: #8b5cf6; border-radius: 50%; animation: spin 1s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-spinner { display: inline-block; width: 40px; height: 40px; border: 4px solid #f3f4f6; border-top-color: #8b5cf6; border-radius: 50%; animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
-    .notice { background: #fffbeb; border: 1px solid #fbbf24; border-radius: 8px; padding: 12px; margin-bottom: 16px; color: #92400e; font-size: 12px; }
-    
-    .formula-box { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-top: 12px; font-size: 12px; color: #475569; line-height: 1.6; }
-  </style>
-</head>
-<body>
-  <div class="container">
+  .notice { background: #fffbeb; border: 1px solid #fbbf24; border-radius: 8px; padding: 12px; margin-bottom: 16px; color: #92400e; font-size: 12px; }
+  
+  .formula-box { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-top: 12px; font-size: 12px; color: #475569; line-height: 1.6; }
+</style>
 
-    <!-- Header -->
-    <div class="card accent-violet" style="margin-bottom: 24px;">
-      <div class="header-row">
-        <div style="display:flex; align-items:center; gap:16px;">
-          <div class="icon-box">💰</div>
-          <div>
-            <h2 class="title">إدارة الرواتب</h2>
-            <p class="subtitle">عرض وإدارة رواتب المناديب حسب الفترة</p>
-          </div>
-        </div>
-      </div>
-    </div>
+<div class="payroll-container">
 
-    <!-- Settings Card -->
-    <div class="card accent-amber" style="margin-bottom: 24px;">
-      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
-        <h3 style="font-size:16px; font-weight:600; color:#1e293b; display:flex; align-items:center; gap:8px;">
-          <span>⚙️</span><span>إعدادات حساب الرواتب</span>
-        </h3>
-        <button id="toggle-settings-btn" class="btn btn-outline" onclick="toggleSettings()">
-          <span id="toggle-icon">▼</span> <span id="toggle-text">إظهار</span>
-        </button>
-      </div>
-
-      <div id="settings-container" style="display:none;">
-        <!-- Calculation Type Selector -->
-        <div style="margin-bottom:20px;">
-          <label>🎯 نظام حساب الرواتب</label>
-          <select id="calculation-type" onchange="onCalculationTypeChange()" style="font-size: 15px;">
-            <option value="target_orders">تارجت عدد الطلبات</option>
-            <option value="freelancer">فري لانسر</option>
-          </select>
-        </div>
-
-        <!-- Common Settings -->
-        <div style="margin-bottom:20px;">
-          <label>💰 الراتب الأساسي (ر.س)</label>
-          <input type="number" id="base-salary" step="0.01" placeholder="0.00" />
-          <small style="color:#64748b; font-size:11px; display:block; margin-top:4px;">الراتب الثابت المضاف لجميع الأنظمة</small>
-        </div>
-
-        <!-- Target Orders Settings (Default visible) -->
-        <div id="target-orders-group">
-          <div class="grid auto-200" style="margin-bottom:16px;">
-            <div>
-              <label>🎯 تارجت عدد الطلبات</label>
-              <input type="number" id="target-orders" placeholder="450" />
-            </div>
-            <div>
-              <label>🎁 مكافأة التارجت (ر.س)</label>
-              <input type="number" id="target-bonus" step="0.01" placeholder="0.00" />
-            </div>
-            <div>
-              <label>📦 قيمة الطلب الافتراضية (ر.س)</label>
-              <input type="number" id="order-value-default" step="0.01" value="4.4" />
-            </div>
-            <div>
-              <label>🚀 قيمة الطلب بعد التارجت (ر.س)</label>
-              <input type="number" id="order-value-after-target" step="0.01" value="4.4" />
-            </div>
-          </div>
-          
-          <div class="formula-box">
-            <strong>📐 المعادلة:</strong><br>
-            إيرادات الطلبات + الراتب الأساسي + مكافأة التارجت + (الإكراميات + المكافآت + الدائن) - ((النقد - الكاش المستلم) + الغرامات + المدين)
-          </div>
-        </div>
-
-        <!-- Freelancer Settings (Hidden by default) -->
-        <div id="freelancer-group" style="display:none;">
-          <div style="margin-bottom:16px;">
-            <label>💼 تكلفة الحساب اليومية (ر.س)</label>
-            <input type="number" id="account-cost" step="0.01" placeholder="30.00" />
-            <small style="color:#64748b; font-size:11px; display:block; margin-top:4px;">المبلغ الذي يُخصم من المندوب عن كل يوم عمل</small>
-          </div>
-          
-          <div class="formula-box">
-            <strong>📐 المعادلة:</strong><br>
-            (سعر التوصيل + الإكراميات + المكافآت + الدائن) - (النقد المحصل + المدين + الغرامات) - (عدد الأيام × التكلفة اليومية)
-          </div>
-        </div>
-
-        <button class="btn btn-warn" style="width:100%; margin-top:16px;" onclick="saveSettings()">💾 حفظ الإعدادات</button>
-      </div>
-    </div>
-
-    <!-- Period Selection & Actions -->
-    <div class="card" style="margin-bottom: 24px;">
-      <div class="grid auto-250">
+  <!-- Header -->
+  <div class="card accent-violet" style="margin-bottom: 24px;">
+    <div class="header-row">
+      <div style="display:flex; align-items:center; gap:16px;">
+        <div class="icon-box">💰</div>
         <div>
-          <label>📅 من تاريخ</label>
-          <input type="date" id="payroll-start-date" />
-        </div>
-        <div>
-          <label>📅 إلى تاريخ</label>
-          <input type="date" id="payroll-end-date" />
-        </div>
-        <div>
-          <label>👥 المجموعة</label>
-          <select id="group-filter">
-            <option value="all">جميع المناديب</option>
-            <!-- سيتم ملؤها ديناميكياً -->
-          </select>
-        </div>
-        <div>
-          <label>📋 الحالة</label>
-          <select id="status-filter" onchange="filterByStatus()">
-            <option value="draft">مسودة</option>
-            <option value="approved">معتمد</option>
-            <option value="paid">مدفوع</option>
-            <option value="all">الكل</option>
-          </select>
-        </div>
-        <div style="display:flex; gap:12px; grid-column: span 2;">
-          <button class="btn btn-primary" style="flex:1; display:flex; align-items:center; justify-content:center; gap:8px;" onclick="fetchPayrollData()">🔄 حساب الرواتب</button>
-          <button class="btn btn-outline" style="display:flex; align-items:center; gap:8px;" onclick="loadPayrollRecords()">📋 عرض</button>
+          <h2 class="title">إدارة الرواتب</h2>
+          <p class="subtitle">عرض وإدارة رواتب المناديب حسب الفترة</p>
         </div>
       </div>
     </div>
-
-    <!-- Stats Cards -->
-    <div id="payroll-stats" class="grid auto-200" style="display:none; margin-bottom:24px;">
-      <div class="card" style="border-right:4px solid #3b82f6;">
-        <div style="font-size:24px; margin-bottom:8px;">👥</div>
-        <div style="color:#64748b; font-size:12px; margin-bottom:6px;">إجمالي المناديب</div>
-        <div id="stat-drivers" style="font-size:24px; font-weight:700; color:#1e293b;">0</div>
-      </div>
-      <div class="card" style="border-right:4px solid #8b5cf6;">
-        <div style="font-size:24px; margin-bottom:8px;">📦</div>
-        <div style="color:#64748b; font-size:12px; margin-bottom:6px;">إجمالي الطلبات</div>
-        <div id="stat-orders" style="font-size:24px; font-weight:700; color:#1e293b;">0</div>
-      </div>
-      <div class="card" style="border-right:4px solid #06b6d4;">
-        <div style="font-size:24px; margin-bottom:8px;">🚚</div>
-        <div style="color:#64748b; font-size:12px; margin-bottom:6px;">سعر التوصيل</div>
-        <div id="stat-delivery" style="font-size:24px; font-weight:700; color:#1e293b;">0 ر.س</div>
-      </div>
-      <div class="card" style="border-right:4px solid #10b981;">
-        <div style="font-size:24px; margin-bottom:8px;">💰</div>
-        <div style="color:#64748b; font-size:12px; margin-bottom:6px;">الإكراميات</div>
-        <div id="stat-tips" style="font-size:24px; font-weight:700; color:#1e293b;">0 ر.س</div>
-      </div>
-      <div class="card" style="border-right:4px solid #f59e0b;">
-        <div style="font-size:24px; margin-bottom:8px;">🎁</div>
-        <div style="color:#64748b; font-size:12px; margin-bottom:6px;">المكافآت</div>
-        <div id="stat-bonuses" style="font-size:24px; font-weight:700; color:#1e293b;">0 ر.س</div>
-      </div>
-      <div class="card" style="border-right:4px solid #ef4444;">
-        <div style="font-size:24px; margin-bottom:8px;">⚠️</div>
-        <div style="color:#64748b; font-size:12px; margin-bottom:6px;">الغرامات</div>
-        <div id="stat-penalties" style="font-size:24px; font-weight:700; color:#1e293b;">0 ر.س</div>
-      </div>
-      <div class="card" style="border-right:4px solid #14b8a6;">
-        <div style="font-size:24px; margin-bottom:8px;">💵</div>
-        <div style="color:#64748b; font-size:12px; margin-bottom:6px;">النقد المحصل</div>
-        <div id="stat-cash" style="font-size:24px; font-weight:700; color:#1e293b;">0 ر.س</div>
-      </div>
-      <div class="card" style="border-right:4px solid #6366f1;">
-        <div style="font-size:24px; margin-bottom:8px;">💎</div>
-        <div style="color:#64748b; font-size:12px; margin-bottom:6px;">الراتب الصافي</div>
-        <div id="stat-net" style="font-size:24px; font-weight:700; color:#1e293b;">0 ر.س</div>
-      </div>
-    </div>
-
-    <!-- Payroll Table -->
-    <div class="card">
-      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; gap:16px; flex-wrap:wrap;">
-        <h2 style="font-size:20px; font-weight:600; color:#1e293b;">📊 جدول الرواتب التفصيلي</h2>
-        <div style="display:flex; gap:12px; flex-wrap:wrap;">
-          <button id="approve-all-btn" class="btn btn-green" style="display:none;">✅ إصدار تقرير الرواتب</button>
-          <button class="btn btn-blue" onclick="exportToExcel()">📥 تصدير Excel</button>
-        </div>
-      </div>
-      <div id="payroll-table-content">
-        <div style="text-align:center; padding:60px; color:#64748b;">
-          <div style="font-size:48px; margin-bottom:16px;">💰</div>
-          <p>قم بإعداد الإعدادات واختر الفترة ثم اضغط على "حساب الرواتب"</p>
-        </div>
-      </div>
-    </div>
-
   </div>
 
-  <!-- ✅ Updated to version 6 -->
-  <script src="../assets/js/payroll.js?v=6"></script>
-</body>
-</html>
+  <!-- Settings Card -->
+  <div class="card accent-amber" style="margin-bottom: 24px;">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
+      <h3 style="font-size:16px; font-weight:600; color:#1e293b; display:flex; align-items:center; gap:8px;">
+        <span>⚙️</span><span>إعدادات حساب الرواتب</span>
+      </h3>
+      <button id="toggle-settings-btn" class="btn btn-outline" onclick="toggleSettings()">
+        <span id="toggle-icon">▼</span> <span id="toggle-text">إظهار</span>
+      </button>
+    </div>
+
+    <div id="settings-container" style="display:none;">
+      <!-- Calculation Type Selector -->
+      <div style="margin-bottom:20px;">
+        <label>🎯 نظام حساب الرواتب</label>
+        <select id="calculation-type" onchange="onCalculationTypeChange()" style="font-size: 15px;">
+          <option value="target_orders">تارجت عدد الطلبات</option>
+          <option value="freelancer">فري لانسر</option>
+        </select>
+      </div>
+
+      <!-- Common Settings -->
+      <div style="margin-bottom:20px;">
+        <label>💰 الراتب الأساسي (ر.س)</label>
+        <input type="number" id="base-salary" step="0.01" placeholder="0.00" />
+        <small style="color:#64748b; font-size:11px; display:block; margin-top:4px;">الراتب الثابت المضاف لجميع الأنظمة</small>
+      </div>
+
+      <!-- Target Orders Settings (Default visible) -->
+      <div id="target-orders-group">
+        <div class="grid auto-200" style="margin-bottom:16px;">
+          <div>
+            <label>🎯 تارجت عدد الطلبات</label>
+            <input type="number" id="target-orders" placeholder="450" />
+          </div>
+          <div>
+            <label>🎁 مكافأة التارجت (ر.س)</label>
+            <input type="number" id="target-bonus" step="0.01" placeholder="0.00" />
+          </div>
+          <div>
+            <label>📦 قيمة الطلب الافتراضية (ر.س)</label>
+            <input type="number" id="order-value-default" step="0.01" value="4.4" />
+          </div>
+          <div>
+            <label>🚀 قيمة الطلب بعد التارجت (ر.س)</label>
+            <input type="number" id="order-value-after-target" step="0.01" value="4.4" />
+          </div>
+        </div>
+        
+        <div class="formula-box">
+          <strong>📐 المعادلة:</strong><br>
+          إيرادات الطلبات + الراتب الأساسي + مكافأة التارجت + (الإكراميات + المكافآت + الدائن) - ((النقد - الكاش المستلم) + الغرامات + المدين) - خصم السلفة
+        </div>
+      </div>
+
+      <!-- Freelancer Settings (Hidden by default) -->
+      <div id="freelancer-group" style="display:none;">
+        <div style="margin-bottom:16px;">
+          <label>💼 تكلفة الحساب اليومية (ر.س)</label>
+          <input type="number" id="account-cost" step="0.01" placeholder="30.00" />
+          <small style="color:#64748b; font-size:11px; display:block; margin-top:4px;">المبلغ الذي يُخصم من المندوب عن كل يوم عمل</small>
+        </div>
+        
+        <div class="formula-box">
+          <strong>📐 المعادلة:</strong><br>
+          (سعر التوصيل + الإكراميات + المكافآت + الدائن) - (النقد المحصل + المدين + الغرامات) - (عدد الأيام × التكلفة اليومية) - خصم السلفة
+        </div>
+      </div>
+
+      <button class="btn btn-warn" style="width:100%; margin-top:16px;" onclick="saveSettings()">💾 حفظ الإعدادات</button>
+    </div>
+  </div>
+
+  <!-- Period Selection & Actions -->
+  <div class="card" style="margin-bottom: 24px;">
+    <div class="grid auto-250">
+      <div>
+        <label>📅 من تاريخ</label>
+        <input type="date" id="payroll-start-date" />
+      </div>
+      <div>
+        <label>📅 إلى تاريخ</label>
+        <input type="date" id="payroll-end-date" />
+      </div>
+      <div>
+        <label>👥 المجموعة</label>
+        <select id="group-filter">
+          <option value="all">جميع المناديب</option>
+          <!-- سيتم ملؤها ديناميكياً -->
+        </select>
+      </div>
+      <div>
+        <label>📋 الحالة</label>
+        <select id="status-filter" onchange="filterByStatus()">
+          <option value="draft">مسودة</option>
+          <option value="approved">معتمد</option>
+          <option value="paid">مدفوع</option>
+          <option value="all">الكل</option>
+        </select>
+      </div>
+      <div style="display:flex; gap:12px; grid-column: span 2;">
+        <button class="btn btn-primary" style="flex:1; display:flex; align-items:center; justify-content:center; gap:8px;" onclick="fetchPayrollData()">🔄 حساب الرواتب</button>
+        <button class="btn btn-outline" style="display:flex; align-items:center; gap:8px;" onclick="loadPayrollRecords()">📋 عرض</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div id="payroll-stats" class="grid auto-180" style="display:none; margin-bottom:24px;">
+    <div class="card" style="border-right:4px solid #3b82f6;">
+      <div style="font-size:24px; margin-bottom:8px;">👥</div>
+      <div style="color:#64748b; font-size:12px; margin-bottom:6px;">إجمالي المناديب</div>
+      <div id="stat-drivers" style="font-size:24px; font-weight:700; color:#1e293b;">0</div>
+    </div>
+    <div class="card" style="border-right:4px solid #8b5cf6;">
+      <div style="font-size:24px; margin-bottom:8px;">📦</div>
+      <div style="color:#64748b; font-size:12px; margin-bottom:6px;">إجمالي الطلبات</div>
+      <div id="stat-orders" style="font-size:24px; font-weight:700; color:#1e293b;">0</div>
+    </div>
+    <div class="card" style="border-right:4px solid #06b6d4;">
+      <div style="font-size:24px; margin-bottom:8px;">🚚</div>
+      <div style="color:#64748b; font-size:12px; margin-bottom:6px;">سعر التوصيل</div>
+      <div id="stat-delivery" style="font-size:24px; font-weight:700; color:#1e293b;">0 ر.س</div>
+    </div>
+    <div class="card" style="border-right:4px solid #10b981;">
+      <div style="font-size:24px; margin-bottom:8px;">💰</div>
+      <div style="color:#64748b; font-size:12px; margin-bottom:6px;">الإكراميات</div>
+      <div id="stat-tips" style="font-size:24px; font-weight:700; color:#1e293b;">0 ر.س</div>
+    </div>
+    <div class="card" style="border-right:4px solid #f59e0b;">
+      <div style="font-size:24px; margin-bottom:8px;">🎁</div>
+      <div style="color:#64748b; font-size:12px; margin-bottom:6px;">المكافآت</div>
+      <div id="stat-bonuses" style="font-size:24px; font-weight:700; color:#1e293b;">0 ر.س</div>
+    </div>
+    <div class="card" style="border-right:4px solid #ef4444;">
+      <div style="font-size:24px; margin-bottom:8px;">⚠️</div>
+      <div style="color:#64748b; font-size:12px; margin-bottom:6px;">الغرامات</div>
+      <div id="stat-penalties" style="font-size:24px; font-weight:700; color:#1e293b;">0 ر.س</div>
+    </div>
+    <div class="card" style="border-right:4px solid #14b8a6;">
+      <div style="font-size:24px; margin-bottom:8px;">💵</div>
+      <div style="color:#64748b; font-size:12px; margin-bottom:6px;">النقد المحصل</div>
+      <div id="stat-cash" style="font-size:24px; font-weight:700; color:#1e293b;">0 ر.س</div>
+    </div>
+    <!-- 🆕 بطاقة خصم السلفة -->
+    <div class="card" style="border-right:4px solid #dc2626;">
+      <div style="font-size:24px; margin-bottom:8px;">💳</div>
+      <div style="color:#64748b; font-size:12px; margin-bottom:6px;">خصم السُلف</div>
+      <div id="stat-advance" style="font-size:24px; font-weight:700; color:#dc2626;">0 ر.س</div>
+    </div>
+    <div class="card" style="border-right:4px solid #6366f1;">
+      <div style="font-size:24px; margin-bottom:8px;">💎</div>
+      <div style="color:#64748b; font-size:12px; margin-bottom:6px;">الراتب الصافي</div>
+      <div id="stat-net" style="font-size:24px; font-weight:700; color:#1e293b;">0 ر.س</div>
+    </div>
+  </div>
+
+  <!-- Payroll Table -->
+  <div class="card">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; gap:16px; flex-wrap:wrap;">
+      <h2 style="font-size:20px; font-weight:600; color:#1e293b;">📊 جدول الرواتب التفصيلي</h2>
+      <div style="display:flex; gap:12px; flex-wrap:wrap;">
+        <button id="approve-all-btn" class="btn btn-green" style="display:none;">✅ إصدار تقرير الرواتب</button>
+        <button class="btn btn-blue" onclick="exportToExcel()">📥 تصدير Excel</button>
+      </div>
+    </div>
+    <div id="payroll-table-content">
+      <div style="text-align:center; padding:60px; color:#64748b;">
+        <div style="font-size:48px; margin-bottom:16px;">💰</div>
+        <p>قم بإعداد الإعدادات واختر الفترة ثم اضغط على "حساب الرواتب"</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ✅ Updated to version 7 -->
+<script src="/assets/js/payroll.js?v=7"></script>

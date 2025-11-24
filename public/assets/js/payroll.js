@@ -1,7 +1,7 @@
 /* =============================
    Payroll Management JavaScript
-   Version: 5.0
-   Added Freelancer Calculation System
+   Version: 7.0
+   Added Advance Deduction Column
 ============================= */
 
 (function() {
@@ -514,7 +514,11 @@
   window.loadPayrollRecords = loadPayrollRecords;
 
   function renderPayrollTable(records) {
-    const rows = records.map(record => `
+    const rows = records.map(record => {
+      const advanceDeduction = toNumber(record.advance_deduction);
+      const hasAdvance = advanceDeduction > 0;
+      
+      return `
       <tr>
         <td style="text-align:right;">
           <div style="font-weight:600; color:#1e293b;">${record.driver_name || 'غير محدد'}</div>
@@ -533,11 +537,14 @@
         <td>${formatCurrency(toNumber(record.total_credit))}</td>
         <td>${formatCurrency(toNumber(record.total_cash))}</td>
         <td>${formatCurrency(toNumber(record.cash_received || record.total_cash_received))}</td>
+        <td style="color: ${hasAdvance ? '#dc2626' : '#64748b'}; font-weight: ${hasAdvance ? '700' : '400'};">
+          ${hasAdvance ? formatCurrency(advanceDeduction) : '-'}
+        </td>
         <td>${formatCurrency(toNumber(record.gross_salary))}</td>
         <td style="font-weight:700; color:#059669;">${formatCurrency(toNumber(record.net_salary))}</td>
         <td>${getStatusBadge(record.status)}</td>
       </tr>
-    `).join('');
+    `}).join('');
 
     const html = `
       <div style="overflow-x:auto;">
@@ -555,6 +562,7 @@
               <th>الدائن</th>
               <th>النقد</th>
               <th>كاش مستلم</th>
+              <th style="color:#dc2626;">خصم السلفة</th>
               <th>الإجمالي</th>
               <th>الصافي</th>
               <th>الحالة</th>
@@ -576,6 +584,7 @@
     const totalBonuses   = sumBy(records, 'total_bonuses');
     const totalPenalties = sumBy(records, 'total_penalties');
     const totalCash      = sumBy(records, 'total_cash');
+    const totalAdvanceDeduction = sumBy(records, 'advance_deduction');
     const totalNet       = sumBy(records, 'net_salary');
 
     const elements = {
@@ -586,6 +595,7 @@
       'stat-bonuses': formatCurrency(totalBonuses),
       'stat-penalties': formatCurrency(totalPenalties),
       'stat-cash': formatCurrency(totalCash),
+      'stat-advance': formatCurrency(totalAdvanceDeduction),
       'stat-net': formatCurrency(totalNet)
     };
 
@@ -606,7 +616,15 @@
     const draftRecords = currentRecords.filter(r => r.status === 'draft');
     if (!draftRecords.length) return showNotification('⚠️ لا توجد سجلات بحالة "مسودة"', 'error');
 
-    const msg = `هل أنت متأكد من إصدار تقرير الرواتب؟\n\nسيتم اعتماد ${draftRecords.length} رواتب وتغيير الحالة من "مسودة" إلى "معتمد"`;
+    // حساب إجمالي خصم السلف
+    const totalAdvanceDeduction = draftRecords.reduce((sum, r) => sum + toNumber(r.advance_deduction), 0);
+    
+    let msg = `هل أنت متأكد من إصدار تقرير الرواتب؟\n\nسيتم اعتماد ${draftRecords.length} رواتب وتغيير الحالة من "مسودة" إلى "معتمد"`;
+    
+    if (totalAdvanceDeduction > 0) {
+      msg += `\n\n⚠️ سيتم خصم ${formatCurrency(totalAdvanceDeduction)} كأقساط سلف من المناديب`;
+    }
+    
     if (!confirm(msg)) return;
 
     const approveBtn = document.getElementById('approve-all-btn');
@@ -655,7 +673,7 @@
       const endDate = document.getElementById('payroll-end-date')?.value;
 
       const headers = [
-        'اسم المندوب','رقم الجوال','من تاريخ','إلى تاريخ','الطلبات','سعر التوصيل','الإكراميات','المكافآت','الغرامات','المدين','الدائن','النقد','كاش مستلم','الإجمالي','الصافي','الحالة'
+        'اسم المندوب','رقم الجوال','من تاريخ','إلى تاريخ','الطلبات','سعر التوصيل','الإكراميات','المكافآت','الغرامات','المدين','الدائن','النقد','كاش مستلم','خصم السلفة','الإجمالي','الصافي','الحالة'
       ];
 
       const rows = currentRecords.map(r => ([
@@ -672,6 +690,7 @@
         toNumber(r.total_credit),
         toNumber(r.total_cash),
         toNumber(r.cash_received || r.total_cash_received),
+        toNumber(r.advance_deduction),
         toNumber(r.gross_salary),
         toNumber(r.net_salary),
         `"${statusLabelAr(r.status)}"`
@@ -710,7 +729,7 @@
     if (endDateEl) endDateEl.value = lastDay.toISOString().split('T')[0];
 
     loadSettings();
-    loadGroups(); // Load groups on init
+    loadGroups();
 
     // Attach approve button listener
     const approveBtn = document.getElementById('approve-all-btn');
