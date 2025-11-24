@@ -339,7 +339,6 @@ const AdvancesApp = {
                 // Reload data
                 await this.loadAdvances();
                 
-                alert('✅ تم إضافة السلفة بنجاح');
             } else {
                 throw new Error(result.message || 'فشل في إضافة السلفة');
             }
@@ -403,7 +402,6 @@ const AdvancesApp = {
             if (result.success) {
                 this.closeModal('paymentModal');
                 await this.loadAdvances();
-                alert('✅ تم تسجيل السداد بنجاح');
             } else {
                 throw new Error(result.message || 'فشل في تسجيل السداد');
             }
@@ -461,7 +459,6 @@ const AdvancesApp = {
             if (result.success) {
                 this.closeModal('editAdvanceModal');
                 await this.loadAdvances();
-                alert('✅ تم تحديث السلفة بنجاح');
             } else {
                 throw new Error(result.message || 'فشل في تحديث السلفة');
             }
@@ -506,7 +503,6 @@ const AdvancesApp = {
             if (result.success) {
                 this.closeModal('deleteAdvanceModal');
                 await this.loadAdvances();
-                alert('✅ تم حذف السلفة بنجاح');
             } else {
                 throw new Error(result.message || 'فشل في حذف السلفة');
             }
@@ -644,7 +640,7 @@ const AdvancesApp = {
     },
     
     formatCurrency: function(amount) {
-        return new Intl.NumberFormat('ar-SA', {
+        return new Intl.NumberFormat('en-US', {
             minimumFractionDigits: 0,
             maximumFractionDigits: 2
         }).format(amount || 0) + ' ر.س';
@@ -653,7 +649,7 @@ const AdvancesApp = {
     formatDate: function(dateStr) {
         if (!dateStr) return '-';
         const date = new Date(dateStr);
-        return new Intl.DateTimeFormat('ar-SA', {
+        return new Intl.DateTimeFormat('en-US', {
             year: 'numeric',
             month: 'short',
             day: 'numeric'
