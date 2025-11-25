@@ -317,12 +317,24 @@
     if (targetOrdersGroup) targetOrdersGroup.style.display = 'none';
     if (freelancerGroup) freelancerGroup.style.display = 'none';
     
+    // Update cards
+    document.getElementById('calc-card-target')?.classList.remove('active');
+    document.getElementById('calc-card-freelancer')?.classList.remove('active');
+    
     // Show relevant group
     if (calcType === 'target_orders') {
       if (targetOrdersGroup) targetOrdersGroup.style.display = 'block';
+      document.getElementById('calc-card-target')?.classList.add('active');
     } else if (calcType === 'freelancer') {
       if (freelancerGroup) freelancerGroup.style.display = 'block';
+      document.getElementById('calc-card-freelancer')?.classList.add('active');
     }
+  };
+  
+  // Select calculation type from cards
+  window.selectCalculationType = function(type) {
+    document.getElementById('calculation-type').value = type;
+    window.onCalculationTypeChange();
   };
 
   async function loadSettings() {
@@ -653,8 +665,34 @@
      Approve (bulk)
   ============================= */
   
+  // Store current advance modal data
+  let currentAdvanceModal = {
+    recordId: null,
+    maxAmount: 0,
+    driverName: ''
+  };
+  
   // Handle advance deduction action
-  window.handleAdvanceAction = async function(recordId, action, maxAmount) {
+  window.handleAdvanceAction = function(recordId, action, maxAmount) {
+    if (action === 'custom') {
+      // Open custom modal
+      const record = currentRecords.find(r => r.id === recordId);
+      currentAdvanceModal = {
+        recordId: recordId,
+        maxAmount: maxAmount,
+        driverName: record?.driver_name || 'المندوب'
+      };
+      
+      document.getElementById('advance-modal-driver').textContent = currentAdvanceModal.driverName;
+      document.getElementById('advance-modal-max').textContent = formatCurrency(maxAmount);
+      document.getElementById('advance-modal-input').value = maxAmount;
+      document.getElementById('advance-modal-input').max = maxAmount;
+      document.getElementById('advance-modal').classList.add('active');
+      document.getElementById('advance-modal-input').focus();
+      return;
+    }
+    
+    // Handle full or postpone directly
     const amountDisplay = document.querySelector(`.advance-amount-display[data-record-id="${recordId}"]`);
     const netSalaryCell = document.querySelector(`.net-salary-cell[data-record-id="${recordId}"]`);
     
@@ -666,99 +704,137 @@
     let newAdvanceAmount = originalAdvance;
     
     if (action === 'full') {
-      // خصم كامل
       newAdvanceAmount = originalAdvance;
       amountDisplay.textContent = formatCurrency(originalAdvance);
       amountDisplay.style.color = '#dc2626';
-      
     } else if (action === 'postpone') {
-      // تأجيل
       newAdvanceAmount = 0;
       amountDisplay.textContent = 'مؤجل';
       amountDisplay.style.color = '#64748b';
-      
-    } else if (action === 'custom') {
-      // تعديل يدوي
-      const customAmount = prompt(
-        `أدخل المبلغ المراد خصمه:\n\nالحد الأقصى: ${formatCurrency(maxAmount)}`,
-        maxAmount
-      );
-      
-      if (customAmount === null) {
-        // ألغى المستخدم
-        const select = document.querySelector(`.advance-action-select[data-record-id="${recordId}"]`);
-        if (select) select.value = 'full';
-        return;
-      }
-      
-      const amount = parseFloat(customAmount);
-      
-      if (isNaN(amount) || amount < 0) {
-        showNotification('⚠️ الرجاء إدخال قيمة صحيحة', 'error');
-        const select = document.querySelector(`.advance-action-select[data-record-id="${recordId}"]`);
-        if (select) select.value = 'full';
-        return;
-      }
-      
-      if (amount > maxAmount) {
-        showNotification(`⚠️ المبلغ يجب ألا يتجاوز ${formatCurrency(maxAmount)}`, 'error');
-        const select = document.querySelector(`.advance-action-select[data-record-id="${recordId}"]`);
-        if (select) select.value = 'full';
-        return;
-      }
-      
-      newAdvanceAmount = amount;
-      amountDisplay.textContent = formatCurrency(amount);
-      amountDisplay.style.color = amount > 0 ? '#dc2626' : '#64748b';
     }
     
-    // تحديث الراتب الصافي مؤقتاً في الواجهة
+    // Update net salary
     const newNetSalary = grossSalary - newAdvanceAmount;
     netSalaryCell.textContent = formatCurrency(newNetSalary);
     
-    // حفظ التغيير في السيرفر
+    // Save to server
+    updateAdvanceOnServer(recordId, newAdvanceAmount, grossSalary, originalAdvance, amountDisplay, netSalaryCell);
+  };
+  
+  // Close advance modal
+  window.closeAdvanceModal = function() {
+    document.getElementById('advance-modal').classList.remove('active');
+    // Reset dropdown to full
+    const select = document.querySelector(`.advance-action-select[data-record-id="${currentAdvanceModal.recordId}"]`);
+    if (select) select.value = 'full';
+    currentAdvanceModal = { recordId: null, maxAmount: 0, driverName: '' };
+  };
+  
+  // Confirm advance amount from modal
+  window.confirmAdvanceAmount = function() {
+    const input = document.getElementById('advance-modal-input');
+    const amount = parseFloat(input.value);
+    
+    if (isNaN(amount) || amount < 0) {
+      showNotification('⚠️ الرجاء إدخال قيمة صحيحة', 'error');
+      return;
+    }
+    
+    if (amount > currentAdvanceModal.maxAmount) {
+      showNotification(`⚠️ المبلغ يجب ألا يتجاوز ${formatCurrency(currentAdvanceModal.maxAmount)}`, 'error');
+      return;
+    }
+    
+    const recordId = currentAdvanceModal.recordId;
+    const amountDisplay = document.querySelector(`.advance-amount-display[data-record-id="${recordId}"]`);
+    const netSalaryCell = document.querySelector(`.net-salary-cell[data-record-id="${recordId}"]`);
+    
+    if (!amountDisplay || !netSalaryCell) {
+      closeAdvanceModal();
+      return;
+    }
+    
+    const grossSalary = parseFloat(netSalaryCell.dataset.gross) || 0;
+    const originalAdvance = parseFloat(netSalaryCell.dataset.originalAdvance) || 0;
+    
+    // Update display
+    amountDisplay.textContent = amount > 0 ? formatCurrency(amount) : 'مؤجل';
+    amountDisplay.style.color = amount > 0 ? '#dc2626' : '#64748b';
+    
+    const newNetSalary = grossSalary - amount;
+    netSalaryCell.textContent = formatCurrency(newNetSalary);
+    
+    // Save to server
+    updateAdvanceOnServer(recordId, amount, grossSalary, originalAdvance, amountDisplay, netSalaryCell);
+    
+    // Close modal
+    document.getElementById('advance-modal').classList.remove('active');
+    currentAdvanceModal = { recordId: null, maxAmount: 0, driverName: '' };
+  };
+  
+  // Update advance on server
+  async function updateAdvanceOnServer(recordId, newAmount, grossSalary, originalAdvance, amountDisplay, netSalaryCell) {
     try {
-      const result = await API.updateAdvanceDeduction(recordId, newAdvanceAmount);
+      const result = await API.updateAdvanceDeduction(recordId, newAmount);
       if (result.success) {
-        // تحديث البيانات المحلية
         const record = currentRecords.find(r => r.id === recordId);
         if (record) {
-          record.advance_deduction = newAdvanceAmount;
-          record.net_salary = newNetSalary;
+          record.advance_deduction = newAmount;
+          record.net_salary = grossSalary - newAmount;
         }
-        
-        // تحديث الإحصائيات
         updateStats(currentRecords);
-        
         showNotification('✅ تم تحديث خصم السلفة بنجاح', 'success');
       }
     } catch (err) {
       console.error('❌ [UPDATE ADVANCE] Error:', err);
       showNotification('❌ حدث خطأ أثناء تحديث خصم السلفة', 'error');
       
-      // استرجاع القيمة الأصلية
+      // Revert
       amountDisplay.textContent = formatCurrency(originalAdvance);
+      amountDisplay.style.color = '#dc2626';
       netSalaryCell.textContent = formatCurrency(grossSalary - originalAdvance);
       const select = document.querySelector(`.advance-action-select[data-record-id="${recordId}"]`);
       if (select) select.value = 'full';
     }
+  }
+  
+  // Show approve modal
+  window.showApproveModal = function() {
+    if (!currentRecords.length) {
+      showNotification('⚠️ لا توجد سجلات لإصدار التقرير', 'error');
+      return;
+    }
+    
+    const draftRecords = currentRecords.filter(r => r.status === 'draft');
+    if (!draftRecords.length) {
+      showNotification('⚠️ لا توجد سجلات بحالة "مسودة"', 'error');
+      return;
+    }
+    
+    const totalNet = draftRecords.reduce((sum, r) => sum + toNumber(r.net_salary), 0);
+    const totalAdvance = draftRecords.reduce((sum, r) => sum + toNumber(r.advance_deduction), 0);
+    
+    document.getElementById('approve-modal-count').textContent = draftRecords.length;
+    document.getElementById('approve-modal-total').textContent = formatCurrency(totalNet);
+    document.getElementById('approve-modal-advance').textContent = formatCurrency(totalAdvance);
+    
+    document.getElementById('approve-modal').classList.add('active');
+  };
+  
+  // Close approve modal
+  window.closeApproveModal = function() {
+    document.getElementById('approve-modal').classList.remove('active');
+  };
+  
+  // Confirm approve all
+  window.confirmApproveAll = async function() {
+    closeApproveModal();
+    await approveAllDrafts();
   };
   
   async function approveAllDrafts() {
-    if (!currentRecords.length) return showNotification('⚠️ لا توجد سجلات لإصدار التقرير', 'error');
     const draftRecords = currentRecords.filter(r => r.status === 'draft');
-    if (!draftRecords.length) return showNotification('⚠️ لا توجد سجلات بحالة "مسودة"', 'error');
-
-    // حساب إجمالي خصم السلف
-    const totalAdvanceDeduction = draftRecords.reduce((sum, r) => sum + toNumber(r.advance_deduction), 0);
-    
-    let msg = `هل أنت متأكد من إصدار تقرير الرواتب؟\n\nسيتم اعتماد ${draftRecords.length} رواتب وتغيير الحالة من "مسودة" إلى "معتمد"`;
-    
-    if (totalAdvanceDeduction > 0) {
-      msg += `\n\n⚠️ سيتم خصم ${formatCurrency(totalAdvanceDeduction)} كأقساط سلف من المناديب`;
-    }
-    
-    if (!confirm(msg)) return;
+    if (!draftRecords.length) return;
 
     const approveBtn = document.getElementById('approve-all-btn');
     if (!approveBtn) return;
@@ -896,6 +972,12 @@
   window.saveSettings = window.saveSettings;
   window.exportToExcel = window.exportToExcel;
   window.onCalculationTypeChange = window.onCalculationTypeChange;
+  window.selectCalculationType = window.selectCalculationType;
   window.loadGroups = loadGroups;
+  window.showApproveModal = window.showApproveModal;
+  window.closeApproveModal = window.closeApproveModal;
+  window.confirmApproveAll = window.confirmApproveAll;
+  window.closeAdvanceModal = window.closeAdvanceModal;
+  window.confirmAdvanceAmount = window.confirmAdvanceAmount;
 
 })();
