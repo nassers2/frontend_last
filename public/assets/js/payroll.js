@@ -122,6 +122,19 @@
       return await response.json();
     },
 
+    // Update advance deduction
+    updateAdvanceDeduction: async (id, amount) => {
+      const response = await fetch(`${API_BASE_URL}/record/${id}/advance-deduction`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ advance_deduction: amount })
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      return await response.json();
+    },
+
     // Delete payroll record
     deletePayrollRecord: async (id) => {
       const response = await fetch(`${API_BASE_URL}/record/${id}`, {
@@ -517,9 +530,37 @@
     const rows = records.map(record => {
       const advanceDeduction = toNumber(record.advance_deduction);
       const hasAdvance = advanceDeduction > 0;
+      const isDraft = record.status === 'draft';
+      
+      // خلية خصم السلفة - قابلة للتعديل في حالة draft فقط
+      let advanceCell;
+      if (isDraft && hasAdvance) {
+        advanceCell = `
+          <div style="display: flex; flex-direction: column; gap: 6px; align-items: center;">
+            <select 
+              class="advance-action-select" 
+              data-record-id="${record.id}"
+              data-max="${advanceDeduction}"
+              onchange="handleAdvanceAction(${record.id}, this.value, ${advanceDeduction})"
+              style="width: 120px; padding: 6px 8px; border: 2px solid #e2e8f0; border-radius: 6px; font-weight: 600; font-size: 12px; background: white; cursor: pointer;"
+            >
+              <option value="full">خصم كامل</option>
+              <option value="postpone">تأجيل</option>
+              <option value="custom">تعديل المبلغ</option>
+            </select>
+            <div class="advance-amount-display" data-record-id="${record.id}" style="color: #dc2626; font-weight: 700; font-size: 13px;">
+              ${formatCurrency(advanceDeduction)}
+            </div>
+          </div>
+        `;
+      } else if (hasAdvance) {
+        advanceCell = `<span style="color: #dc2626; font-weight: 700;">${formatCurrency(advanceDeduction)}</span>`;
+      } else {
+        advanceCell = '<span style="color: #64748b;">-</span>';
+      }
       
       return `
-      <tr>
+      <tr data-record-id="${record.id}">
         <td style="text-align:right;">
           <div style="font-weight:600; color:#1e293b;">${record.driver_name || 'غير محدد'}</div>
           <small style="color:#64748b; display:block; margin-top:4px;">${record.driver_phone || 'غير متوفر'}</small>
@@ -537,11 +578,11 @@
         <td>${formatCurrency(toNumber(record.total_credit))}</td>
         <td>${formatCurrency(toNumber(record.total_cash))}</td>
         <td>${formatCurrency(toNumber(record.cash_received || record.total_cash_received))}</td>
-        <td style="color: ${hasAdvance ? '#dc2626' : '#64748b'}; font-weight: ${hasAdvance ? '700' : '400'};">
-          ${hasAdvance ? formatCurrency(advanceDeduction) : '-'}
+        <td style="padding: 8px;">
+          ${advanceCell}
         </td>
         <td>${formatCurrency(toNumber(record.gross_salary))}</td>
-        <td style="font-weight:700; color:#059669;">${formatCurrency(toNumber(record.net_salary))}</td>
+        <td style="font-weight:700; color:#059669;" class="net-salary-cell" data-record-id="${record.id}" data-gross="${toNumber(record.gross_salary)}" data-original-advance="${advanceDeduction}">${formatCurrency(toNumber(record.net_salary))}</td>
         <td>${getStatusBadge(record.status)}</td>
       </tr>
     `}).join('');
@@ -562,7 +603,7 @@
               <th>الدائن</th>
               <th>النقد</th>
               <th>كاش مستلم</th>
-              <th style="color:#dc2626;">خصم السلفة</th>
+              <th style="color:#dc2626; min-width: 140px;">خصم السلفة</th>
               <th>الإجمالي</th>
               <th>الصافي</th>
               <th>الحالة</th>
@@ -611,6 +652,98 @@
   /* =============================
      Approve (bulk)
   ============================= */
+  
+  // Handle advance deduction action
+  window.handleAdvanceAction = async function(recordId, action, maxAmount) {
+    const amountDisplay = document.querySelector(`.advance-amount-display[data-record-id="${recordId}"]`);
+    const netSalaryCell = document.querySelector(`.net-salary-cell[data-record-id="${recordId}"]`);
+    
+    if (!amountDisplay || !netSalaryCell) return;
+    
+    const grossSalary = parseFloat(netSalaryCell.dataset.gross) || 0;
+    const originalAdvance = parseFloat(netSalaryCell.dataset.originalAdvance) || 0;
+    
+    let newAdvanceAmount = originalAdvance;
+    
+    if (action === 'full') {
+      // خصم كامل
+      newAdvanceAmount = originalAdvance;
+      amountDisplay.textContent = formatCurrency(originalAdvance);
+      amountDisplay.style.color = '#dc2626';
+      
+    } else if (action === 'postpone') {
+      // تأجيل
+      newAdvanceAmount = 0;
+      amountDisplay.textContent = 'مؤجل';
+      amountDisplay.style.color = '#64748b';
+      
+    } else if (action === 'custom') {
+      // تعديل يدوي
+      const customAmount = prompt(
+        `أدخل المبلغ المراد خصمه:\n\nالحد الأقصى: ${formatCurrency(maxAmount)}`,
+        maxAmount
+      );
+      
+      if (customAmount === null) {
+        // ألغى المستخدم
+        const select = document.querySelector(`.advance-action-select[data-record-id="${recordId}"]`);
+        if (select) select.value = 'full';
+        return;
+      }
+      
+      const amount = parseFloat(customAmount);
+      
+      if (isNaN(amount) || amount < 0) {
+        showNotification('⚠️ الرجاء إدخال قيمة صحيحة', 'error');
+        const select = document.querySelector(`.advance-action-select[data-record-id="${recordId}"]`);
+        if (select) select.value = 'full';
+        return;
+      }
+      
+      if (amount > maxAmount) {
+        showNotification(`⚠️ المبلغ يجب ألا يتجاوز ${formatCurrency(maxAmount)}`, 'error');
+        const select = document.querySelector(`.advance-action-select[data-record-id="${recordId}"]`);
+        if (select) select.value = 'full';
+        return;
+      }
+      
+      newAdvanceAmount = amount;
+      amountDisplay.textContent = formatCurrency(amount);
+      amountDisplay.style.color = amount > 0 ? '#dc2626' : '#64748b';
+    }
+    
+    // تحديث الراتب الصافي مؤقتاً في الواجهة
+    const newNetSalary = grossSalary - newAdvanceAmount;
+    netSalaryCell.textContent = formatCurrency(newNetSalary);
+    
+    // حفظ التغيير في السيرفر
+    try {
+      const result = await API.updateAdvanceDeduction(recordId, newAdvanceAmount);
+      if (result.success) {
+        // تحديث البيانات المحلية
+        const record = currentRecords.find(r => r.id === recordId);
+        if (record) {
+          record.advance_deduction = newAdvanceAmount;
+          record.net_salary = newNetSalary;
+        }
+        
+        // تحديث الإحصائيات
+        updateStats(currentRecords);
+        
+        showNotification('✅ تم تحديث خصم السلفة بنجاح', 'success');
+      }
+    } catch (err) {
+      console.error('❌ [UPDATE ADVANCE] Error:', err);
+      showNotification('❌ حدث خطأ أثناء تحديث خصم السلفة', 'error');
+      
+      // استرجاع القيمة الأصلية
+      amountDisplay.textContent = formatCurrency(originalAdvance);
+      netSalaryCell.textContent = formatCurrency(grossSalary - originalAdvance);
+      const select = document.querySelector(`.advance-action-select[data-record-id="${recordId}"]`);
+      if (select) select.value = 'full';
+    }
+  };
+  
   async function approveAllDrafts() {
     if (!currentRecords.length) return showNotification('⚠️ لا توجد سجلات لإصدار التقرير', 'error');
     const draftRecords = currentRecords.filter(r => r.status === 'draft');
