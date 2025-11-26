@@ -345,6 +345,60 @@ async changePassword(currentPassword, newPassword) {
     return await this.call(`/payroll/record/${recordId}/status`, 'PUT', { status });
   },
 
+
+
+
+   // ========================================
+  // 💰 Costs Management APIs
+  // ========================================
+
+  async getCostsSummary() {
+    return await this.call('/costs/summary', 'GET');
+  },
+
+  async getCostItems() {
+    return await this.call('/costs/items', 'GET');
+  },
+
+  async getCostItemById(itemId) {
+    return await this.call(`/costs/items/${itemId}`, 'GET');
+  },
+
+  async createCostItem(name, amount, type, notes) {
+    return await this.call('/costs/items', 'POST', {
+      name: name,
+      amount: amount,
+      type: type,
+      notes: notes
+    });
+  },
+
+  async updateCostItem(itemId, name, amount, type, notes) {
+    return await this.call(`/costs/items/${itemId}`, 'PUT', {
+      name: name,
+      amount: amount,
+      type: type,
+      notes: notes
+    });
+  },
+
+  async deleteCostItem(itemId) {
+    return await this.call(`/costs/items/${itemId}`, 'DELETE');
+  },
+
+  async getCostsSettings() {
+    return await this.call('/costs/settings', 'GET');
+  },
+
+  async updateCostsSettings(driverCount) {
+    return await this.call('/costs/settings', 'PUT', {
+      driver_count: driverCount
+    });
+  },
+
+  async getCostsBreakdown() {
+    return await this.call('/costs/breakdown', 'GET');
+  },
   // ========================================
   // 👥 Groups APIs
   // ========================================
@@ -398,14 +452,14 @@ async changePassword(currentPassword, newPassword) {
   }
 };
 
-
+ 
 
 // ========================================
 // 🔐 Auto-verify token on page load
 // ========================================
 
 (function() {
-  // منع التنفيذ المتكرر
+  
   if (window.__authCheckExecuted) {
     return;
   }
@@ -413,13 +467,12 @@ async changePassword(currentPassword, newPassword) {
   
   const currentPage = window.location.pathname;
   
-  // دالة للتحقق من الصفحات العامة
   function isPublicPage(path) {
     const publicPatterns = [
-      /^\/$/,                      // /
-      /^\/index\.html$/,           // /index.html
-      /^\/landing-page\.html$/,    // /landing-page.html
-      /^\/auth\//                  // أي صفحة تحت /auth/
+      /^\/$/,                      
+      /^\/index\.html$/,          
+      /^\/landing-page\.html$/,    
+      /^\/auth\//                 
     ];
     
     return publicPatterns.some(pattern => pattern.test(path));
@@ -428,7 +481,7 @@ async changePassword(currentPassword, newPassword) {
   console.log('🔍 Checking auth for:', currentPage);
   console.log('🔍 Is public?', isPublicPage(currentPage));
   
-  // لو صفحة عامة، لا تسوي شي
+  
   if (isPublicPage(currentPage)) {
     console.log('✅ Public page, skipping auth');
     return;

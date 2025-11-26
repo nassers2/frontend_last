@@ -1,0 +1,886 @@
+<!-- jQuery من CDNJS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous"></script>
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    :root {
+        --primary: #3b82f6;
+        --primary-light: #dbeafe;
+        --primary-dark: #1e40af;
+        --secondary: #10b981;
+        --secondary-light: #d1fae5;
+        --danger: #ef4444;
+        --danger-light: #fee2e2;
+        --warning: #f59e0b;
+        --warning-light: #fef3c7;
+        --purple: #8b5cf6;
+        --purple-light: #ede9fe;
+        --purple-dark: #6d28d9;
+        --dark: #1e293b;
+        --gray-50: #f8fafc;
+        --gray-100: #f1f5f9;
+        --gray-200: #e2e8f0;
+        --gray-300: #cbd5e1;
+        --gray-400: #94a3b8;
+        --gray-500: #64748b;
+        --gray-600: #475569;
+        --gray-700: #334155;
+        --gray-800: #1e293b;
+        --gray-900: #0f172a;
+    }
+
+    body {
+        font-family: 'Cairo', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        background-color: var(--gray-50);
+        color: var(--gray-900);
+        line-height: 1.6;
+    }
+
+    /* Page Header */
+    .page-header {
+        background: linear-gradient(135deg, var(--purple) 0%, var(--purple-dark) 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 16px;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 6px -1px rgba(139, 92, 246, 0.3);
+    }
+
+    .page-header h1 {
+        font-size: 1.875rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .page-header p {
+        opacity: 0.95;
+        font-size: 1rem;
+    }
+
+    /* Driver Count Section */
+    .driver-count-section {
+        background: linear-gradient(135deg, var(--secondary-light) 0%, #a7f3d0 100%);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .driver-count-section .icon-box {
+        width: 50px;
+        height: 50px;
+        background: white;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--secondary);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .driver-count-section .content {
+        flex: 1;
+    }
+
+    .driver-count-section h3 {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #065f46;
+        margin-bottom: 0.25rem;
+    }
+
+    .driver-count-section p {
+        font-size: 0.875rem;
+        color: #047857;
+    }
+
+    .driver-count-section .input-group {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .driver-count-section input {
+        width: 100px;
+        padding: 0.75rem 1rem;
+        border: 2px solid white;
+        border-radius: 8px;
+        font-size: 1.25rem;
+        font-weight: 700;
+        text-align: center;
+        font-family: inherit;
+        background: white;
+    }
+
+    .driver-count-section input:focus {
+        outline: none;
+        border-color: var(--secondary);
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    .stat-card.purple { border-right: 4px solid var(--purple); }
+    .stat-card.primary { border-right: 4px solid var(--primary); }
+    .stat-card.success { border-right: 4px solid var(--secondary); }
+    .stat-card.warning { border-right: 4px solid var(--warning); }
+
+    .stat-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 0.75rem;
+    }
+
+    .stat-title {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .stat-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .stat-card.purple .stat-icon { background: var(--purple-light); color: var(--purple); }
+    .stat-card.primary .stat-icon { background: var(--primary-light); color: var(--primary); }
+    .stat-card.success .stat-icon { background: var(--secondary-light); color: var(--secondary); }
+    .stat-card.warning .stat-icon { background: var(--warning-light); color: var(--warning); }
+
+    .stat-value {
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: var(--gray-900);
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+        font-size: 0.8rem;
+        color: var(--gray-500);
+    }
+
+    /* Content Grid */
+    .content-grid {
+        display: grid;
+        gap: 1.5rem;
+        grid-template-columns: 1fr 1.5fr;
+    }
+
+    @media (max-width: 1024px) {
+        .content-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Card */
+    .card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+
+    .card-header {
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid var(--gray-200);
+        background: var(--gray-50);
+    }
+
+    .card-header h2 {
+        font-size: 1.125rem;
+        font-weight: 700;
+        color: var(--gray-900);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    /* Form */
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        color: var(--gray-700);
+        margin-bottom: 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    .form-group label .required {
+        color: var(--danger);
+        margin-right: 0.25rem;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 2px solid var(--gray-200);
+        border-radius: 8px;
+        font-size: 0.9375rem;
+        font-family: inherit;
+        transition: all 0.2s;
+        background: white;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--purple);
+        box-shadow: 0 0 0 3px var(--purple-light);
+    }
+
+    select.form-control {
+        cursor: pointer;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: left 0.75rem center;
+        background-size: 20px;
+        padding-left: 2.5rem;
+    }
+
+    /* Buttons */
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.9375rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-family: inherit;
+    }
+
+    .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn:active {
+        transform: translateY(0);
+    }
+
+    .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none !important;
+    }
+
+    .btn-primary {
+        background: var(--purple);
+        color: white;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+        background: var(--purple-dark);
+    }
+
+    .btn-secondary {
+        background: var(--gray-200);
+        color: var(--gray-700);
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+        background: var(--gray-300);
+    }
+
+    .btn-danger {
+        background: var(--danger);
+        color: white;
+    }
+
+    .btn-danger:hover:not(:disabled) {
+        background: #dc2626;
+    }
+
+    .btn-block {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* Table */
+    .table-container {
+        overflow-x: auto;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    thead {
+        background: var(--gray-50);
+    }
+
+    th {
+        padding: 1rem;
+        text-align: right;
+        font-weight: 700;
+        font-size: 0.8125rem;
+        color: var(--gray-700);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        border-bottom: 2px solid var(--gray-200);
+    }
+
+    td {
+        padding: 1rem;
+        border-bottom: 1px solid var(--gray-200);
+        font-size: 0.9375rem;
+    }
+
+    tbody tr:hover {
+        background: var(--gray-50);
+    }
+
+    .amount {
+        font-weight: 700;
+        color: var(--gray-900);
+        font-family: 'Courier New', monospace;
+    }
+
+    /* Badge */
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        padding: 0.375rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .badge-monthly {
+        background: var(--primary-light);
+        color: var(--primary-dark);
+    }
+
+    .badge-yearly {
+        background: var(--warning-light);
+        color: #92400e;
+    }
+
+    /* Action buttons */
+    .action-btn {
+        padding: 0.5rem;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        border-radius: 6px;
+        transition: all 0.2s;
+        color: var(--gray-500);
+    }
+
+    .action-btn:hover {
+        background: var(--gray-100);
+        color: var(--gray-700);
+    }
+
+    .action-btn.danger:hover {
+        background: var(--danger-light);
+        color: var(--danger);
+    }
+
+    /* Loading & Empty States */
+    .loading {
+        text-align: center;
+        padding: 3rem;
+        color: var(--gray-500);
+    }
+
+    .spinner {
+        width: 50px;
+        height: 50px;
+        border: 4px solid var(--gray-200);
+        border-top-color: var(--purple);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        margin: 0 auto 1rem;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: var(--gray-500);
+    }
+
+    .empty-state i {
+        width: 64px;
+        height: 64px;
+        margin: 0 auto 1rem;
+        color: var(--gray-300);
+    }
+
+    .error-state {
+        text-align: center;
+        padding: 3rem;
+        color: var(--danger);
+    }
+
+    /* Modal */
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(4px);
+    }
+
+    .modal.show {
+        display: flex;
+    }
+
+    .modal-content {
+        background: white;
+        border-radius: 16px;
+        max-width: 450px;
+        width: 90%;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        animation: modalSlideIn 0.3s ease;
+    }
+
+    @keyframes modalSlideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .modal-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--gray-200);
+        font-size: 1.125rem;
+        font-weight: 700;
+        color: var(--gray-900);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .modal-body {
+        padding: 1.5rem;
+    }
+
+    .modal-footer {
+        padding: 1.5rem;
+        border-top: 1px solid var(--gray-200);
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+    }
+
+    .warning-text {
+        background: var(--danger-light);
+        border-right: 4px solid var(--danger);
+        padding: 1rem;
+        border-radius: 8px;
+        margin-top: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        color: #991b1b;
+        font-weight: 600;
+        font-size: 0.875rem;
+    }
+
+    /* Highlight animation */
+    @keyframes highlight {
+        0% { background-color: var(--warning-light); }
+        100% { background-color: transparent; }
+    }
+
+    .highlight {
+        animation: highlight 1s ease;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .page-header h1 {
+            font-size: 1.5rem;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .stat-value {
+            font-size: 1.25rem;
+        }
+
+        .driver-count-section {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .modal-footer {
+            flex-direction: column-reverse;
+        }
+
+        .btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+
+<!-- Page Header -->
+<div class="page-header">
+    <h1>
+        <i data-lucide="calculator"></i>
+        إدارة التكاليف
+    </h1>
+    <p>إضافة وإدارة تكاليف التشغيل وحساب التكلفة الشهرية لكل مندوب</p>
+</div>
+
+<!-- Driver Count Section -->
+<div class="driver-count-section">
+    <div class="icon-box">
+        <i data-lucide="users"></i>
+    </div>
+    <div class="content">
+        <h3>عدد المناديب</h3>
+        <p>أدخل عدد المناديب لحساب التكلفة الشهرية لكل مندوب</p>
+    </div>
+    <div class="input-group">
+        <input type="number" id="driverCount" value="1" min="1" max="1000">
+        <span style="color: #065f46; font-weight: 600;">مندوب</span>
+    </div>
+</div>
+
+<!-- Stats Grid -->
+<div class="stats-grid">
+    <div class="stat-card purple">
+        <div class="stat-header">
+            <span class="stat-title">إجمالي شهري</span>
+            <div class="stat-icon">
+                <i data-lucide="calendar"></i>
+            </div>
+        </div>
+        <div class="stat-value" id="totalMonthly">0.00 ر.س</div>
+        <div class="stat-label">جميع التكاليف محولة للشهري</div>
+    </div>
+
+    <div class="stat-card primary">
+        <div class="stat-header">
+            <span class="stat-title">إجمالي سنوي</span>
+            <div class="stat-icon">
+                <i data-lucide="trending-up"></i>
+            </div>
+        </div>
+        <div class="stat-value" id="totalYearly">0.00 ر.س</div>
+        <div class="stat-label">الإجمالي الشهري × 12</div>
+    </div>
+
+    <div class="stat-card success">
+        <div class="stat-header">
+            <span class="stat-title">تكلفة المندوب</span>
+            <div class="stat-icon">
+                <i data-lucide="user"></i>
+            </div>
+        </div>
+        <div class="stat-value" id="costPerDriver">0.00 ر.س</div>
+        <div class="stat-label">التكلفة الشهرية لكل مندوب</div>
+    </div>
+
+    <div class="stat-card warning">
+        <div class="stat-header">
+            <span class="stat-title">عدد البنود</span>
+            <div class="stat-icon">
+                <i data-lucide="list"></i>
+            </div>
+        </div>
+        <div class="stat-value" id="totalItems">0</div>
+        <div class="stat-label">بند تكلفة مسجل</div>
+    </div>
+</div>
+
+<!-- Content Grid -->
+<div class="content-grid">
+    <!-- Add Cost Item Card -->
+    <div class="card">
+        <div class="card-header">
+            <h2>
+                <i data-lucide="plus-circle"></i>
+                إضافة بند تكلفة
+            </h2>
+        </div>
+        <div class="card-body">
+            <form id="costForm">
+                <div class="form-group">
+                    <label for="itemName">
+                        <span class="required">*</span>
+                        اسم البند
+                    </label>
+                    <input 
+                        type="text" 
+                        id="itemName" 
+                        class="form-control" 
+                        placeholder="مثال: وقود، تأمين، صيانة..."
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="itemAmount">
+                        <span class="required">*</span>
+                        المبلغ (ر.س)
+                    </label>
+                    <input 
+                        type="number" 
+                        id="itemAmount" 
+                        class="form-control" 
+                        placeholder="0.00"
+                        step="0.01"
+                        min="0.01"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="itemType">
+                        <span class="required">*</span>
+                        نوع التكرار
+                    </label>
+                    <select id="itemType" class="form-control" required>
+                        <option value="monthly">شهري</option>
+                        <option value="yearly">سنوي</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="itemNotes">ملاحظات</label>
+                    <input 
+                        type="text" 
+                        id="itemNotes" 
+                        class="form-control" 
+                        placeholder="ملاحظات إضافية (اختياري)"
+                    >
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block">
+                    <i data-lucide="plus"></i>
+                    إضافة البند
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Cost Items Table -->
+    <div class="card">
+        <div class="card-header">
+            <h2>
+                <i data-lucide="file-text"></i>
+                بنود التكاليف
+            </h2>
+        </div>
+        <div class="card-body">
+            <div id="costsTableContainer">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>جاري تحميل البيانات...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <i data-lucide="trash-2"></i>
+            تأكيد الحذف
+        </div>
+        <div class="modal-body">
+            <p><strong>هل أنت متأكد من حذف هذا البند؟</strong></p>
+            <p id="deleteItemName" style="color: var(--gray-600); margin-top: 0.5rem;"></p>
+            <div class="warning-text">
+                <i data-lucide="alert-circle"></i>
+                لا يمكن التراجع عن هذا الإجراء
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button id="confirmDeleteBtn" class="btn btn-danger">
+                <i data-lucide="trash-2"></i>
+                نعم، حذف
+            </button>
+            <button id="cancelDeleteBtn" class="btn btn-secondary">
+                <i data-lucide="x"></i>
+                إلغاء
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <i data-lucide="edit-3"></i>
+            تعديل البند
+        </div>
+        <div class="modal-body">
+            <form id="editForm">
+                <input type="hidden" id="editItemId">
+                
+                <div class="form-group">
+                    <label for="editItemName">
+                        <span class="required">*</span>
+                        اسم البند
+                    </label>
+                    <input type="text" id="editItemName" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="editItemAmount">
+                        <span class="required">*</span>
+                        المبلغ (ر.س)
+                    </label>
+                    <input type="number" id="editItemAmount" class="form-control" step="0.01" min="0.01" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="editItemType">
+                        <span class="required">*</span>
+                        نوع التكرار
+                    </label>
+                    <select id="editItemType" class="form-control" required>
+                        <option value="monthly">شهري</option>
+                        <option value="yearly">سنوي</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="editItemNotes">ملاحظات</label>
+                    <input type="text" id="editItemNotes" class="form-control">
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button id="saveEditBtn" class="btn btn-primary">
+                <i data-lucide="check"></i>
+                حفظ التعديلات
+            </button>
+            <button id="cancelEditBtn" class="btn btn-secondary">
+                <i data-lucide="x"></i>
+                إلغاء
+            </button>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/js/costs.js"></script>
+
+<script>
+    // Wait for jQuery and API to load
+    (function waitForDependencies() {
+        if (typeof jQuery === 'undefined' || typeof API === 'undefined') {
+            console.log('⏳ Waiting for dependencies...');
+            setTimeout(waitForDependencies, 100);
+            return;
+        }
+        
+        console.log('✅ Dependencies loaded');
+        
+        $(document).ready(function() {
+            console.log('✅ Document ready, initializing costs page...');
+            
+            // Initialize Lucide icons
+            if (typeof lucide !== 'undefined' && lucide.createIcons) {
+                try {
+                    lucide.createIcons();
+                } catch (e) {
+                    console.warn('⚠️ Lucide icons error:', e);
+                }
+            }
+            
+            // Initialize CostsApp
+            if (typeof CostsApp !== 'undefined' && CostsApp.init) {
+                CostsApp.init();
+            } else {
+                console.error('❌ CostsApp not found');
+            }
+            
+            // Re-initialize icons after dynamic content loads
+            let iconUpdateTimeout;
+            const observer = new MutationObserver(() => {
+                clearTimeout(iconUpdateTimeout);
+                iconUpdateTimeout = setTimeout(() => {
+                    if (typeof lucide !== 'undefined') {
+                        lucide.createIcons();
+                    }
+                }, 100);
+            });
+            
+            const container = document.getElementById('costsTableContainer');
+            if (container) {
+                observer.observe(container, {
+                    childList: true,
+                    subtree: false
+                });
+            }
+            
+            console.log('✅ Costs management page initialized');
+        });
+    })();
+</script>
