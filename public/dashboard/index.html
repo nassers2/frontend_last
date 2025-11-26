@@ -62,7 +62,7 @@
     position: fixed;
     right: 0;
     top: 0;
-    bottom: 0;  /* ← أضف هذا */
+    bottom: 0;
     height: 100vh;
     z-index: 1000;
     transition: all 0.3s ease;
@@ -695,13 +695,13 @@
     }
 
     table {
-        min-width: 800px; /* الجدول يحافظ على عرضه */
+        min-width: 800px;
         font-size: 0.8125rem;
     }
 
     th, td {
         padding: 0.75rem 0.5rem;
-        white-space: nowrap; /* يمنع النص من الانكسار */
+        white-space: nowrap;
     }
 
     .driver-avatar {
@@ -719,7 +719,6 @@
         justify-content: space-between;
     }
 
-    /* مؤشر بصري اختياري */
     .performance-table-card::after {
         content: '← اسحب لرؤية المزيد';
         display: block;
@@ -1367,7 +1366,7 @@
 <body>
     <div class="app-container">
         <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
-        <!-- Ssdefar -->
+        <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="logo">
@@ -1409,9 +1408,13 @@
                         <span>إدارة الكاش</span>
                     </a>
                     <a class="nav-item" onclick="showPage('advances')" data-page="advances">
-    <span class="icon"><i data-lucide="hand-coins"></i></span>
-    <span>إدارة السلفه</span>
-</a>
+                        <span class="icon"><i data-lucide="hand-coins"></i></span>
+                        <span>إدارة السلفه</span>
+                    </a>
+                    <a class="nav-item" onclick="showPage('costs')" data-page="costs">
+                        <span class="icon"><i data-lucide="calculator"></i></span>
+                        <span>إدارة التكاليف</span>
+                    </a>
                 </div>
 
                 <div class="nav-section">
@@ -1688,11 +1691,9 @@ window.loadDriversPerformance = async function() {
         console.log('📦 Financial:', finResult);
         console.log('📦 Orders:', ordersResult);
 
-        // ✅ التصحيح: finResult.financials بدلاً من finResult.drivers
         if (finResult.success && finResult.financials) {
             const driversMap = new Map();
             
-            // ✅ التصحيح: finResult.financials بدلاً من finResult.drivers
             finResult.financials.forEach(d => {
                 driversMap.set(d.driver_id, {
                     ...d,
@@ -1821,6 +1822,7 @@ window.loadDriversPerformance = async function() {
                 'payroll': { title: 'إدارة الرواتب', icon: 'wallet' },
                 'cash-management': { title: 'إدارة الكاش', icon: 'banknote' },
                 'advances': { title: 'إدارة السلفه', icon: 'hand-coins' },
+                'costs': { title: 'إدارة التكاليف', icon: 'calculator' },
                 'settings': { title: 'الإعدادات', icon: 'settings' }
             };
 

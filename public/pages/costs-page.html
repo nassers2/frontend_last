@@ -2,12 +2,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous"></script>
 
 <style>
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
-
     :root {
         --primary: #3b82f6;
         --primary-light: #dbeafe;
@@ -32,13 +26,6 @@
         --gray-700: #334155;
         --gray-800: #1e293b;
         --gray-900: #0f172a;
-    }
-
-    body {
-        font-family: 'Cairo', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-        background-color: var(--gray-50);
-        color: var(--gray-900);
-        line-height: 1.6;
     }
 
     /* Page Header */
@@ -829,58 +816,22 @@
     </div>
 </div>
 
-<script src="../assets/js/costs.js"></script>
+<script src="/assets/js/costs.js"></script>
 
 <script>
-    // Wait for jQuery and API to load
-    (function waitForDependencies() {
-        if (typeof jQuery === 'undefined' || typeof API === 'undefined') {
-            console.log('⏳ Waiting for dependencies...');
-            setTimeout(waitForDependencies, 100);
-            return;
+    // Initialize when content loads
+    (function() {
+        console.log('💰 [COSTS] Page content loaded');
+        
+        // Re-initialize Lucide icons
+        if (typeof lucide !== 'undefined' && lucide.createIcons) {
+            try {
+                lucide.createIcons();
+            } catch (e) {
+                console.warn('⚠️ Lucide icons error:', e);
+            }
         }
         
-        console.log('✅ Dependencies loaded');
-        
-        $(document).ready(function() {
-            console.log('✅ Document ready, initializing costs page...');
-            
-            // Initialize Lucide icons
-            if (typeof lucide !== 'undefined' && lucide.createIcons) {
-                try {
-                    lucide.createIcons();
-                } catch (e) {
-                    console.warn('⚠️ Lucide icons error:', e);
-                }
-            }
-            
-            // Initialize CostsApp
-            if (typeof CostsApp !== 'undefined' && CostsApp.init) {
-                CostsApp.init();
-            } else {
-                console.error('❌ CostsApp not found');
-            }
-            
-            // Re-initialize icons after dynamic content loads
-            let iconUpdateTimeout;
-            const observer = new MutationObserver(() => {
-                clearTimeout(iconUpdateTimeout);
-                iconUpdateTimeout = setTimeout(() => {
-                    if (typeof lucide !== 'undefined') {
-                        lucide.createIcons();
-                    }
-                }, 100);
-            });
-            
-            const container = document.getElementById('costsTableContainer');
-            if (container) {
-                observer.observe(container, {
-                    childList: true,
-                    subtree: false
-                });
-            }
-            
-            console.log('✅ Costs management page initialized');
-        });
+        // CostsApp will be initialized by navigation.js
     })();
 </script>

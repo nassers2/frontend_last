@@ -21,13 +21,35 @@ function showPage(pageName) {
         'reports': 'التقارير',
         'payroll': 'إدارة الرواتب',
         'cash-management': 'إدارة الكاش',
-        'advances': 'إدارة السلفه', 
+        'advances': 'إدارة السلفه',
+        'costs': 'إدارة التكاليف',
         'settings': 'الإعدادات'
     };
 
     const pageTitle = document.querySelector('.page-title');
     if (pageTitle) {
         pageTitle.textContent = titles[pageName] || 'FleetMaster';
+    }
+
+    // Update page icon
+    const icons = {
+        'dashboard': 'layout-dashboard',
+        'drivers': 'users',
+        'orders': 'package',
+        'reports': 'bar-chart-3',
+        'payroll': 'wallet',
+        'cash-management': 'banknote',
+        'advances': 'hand-coins',
+        'costs': 'calculator',
+        'settings': 'settings'
+    };
+
+    const pageIcon = document.getElementById('page-icon');
+    if (pageIcon) {
+        pageIcon.innerHTML = `<i data-lucide="${icons[pageName] || 'layout-dashboard'}"></i>`;
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
     }
 
     // Load page content
@@ -90,7 +112,7 @@ function loadPayrollScript() {
     } else {
         console.log('📥 [Payroll] Loading payroll script');
         const script = document.createElement('script');
-        script.src = '/assets/js/payroll.js'; // ✅ تم تصحيح المسار
+        script.src = '/assets/js/payroll.js';
         script.onload = () => {
             console.log('✅ [Payroll] Script loaded');
             if (typeof window.initPayroll === 'function') {
@@ -176,6 +198,17 @@ function executeScripts(container) {
 function initializePage(pageName) {
     console.log('🎬 [Init] Initializing page:', pageName);
     
+    // Re-initialize Lucide icons for all pages
+    setTimeout(() => {
+        if (typeof window.lucide !== 'undefined' && window.lucide.createIcons) {
+            try {
+                window.lucide.createIcons();
+            } catch (e) {
+                console.warn('⚠️ Lucide error (safe to ignore):', e.message);
+            }
+        }
+    }, 100);
+    
     if (pageName === 'dashboard') {
         console.log('📊 [Init] Starting dashboard...');
         setTimeout(() => {
@@ -209,86 +242,124 @@ function initializePage(pageName) {
     }
     
     if (pageName === 'cash-management') {
-    console.log('💵 [Init] Starting cash management page...');
-    
-    // Re-initialize Lucide icons
-    setTimeout(() => {
-        if (typeof window.lucide !== 'undefined' && window.lucide.createIcons) {
-    try {
-        window.lucide.createIcons();
-    } catch (e) {
-        console.warn('⚠️ Lucide error (safe to ignore):', e.message);
-    }
-}
-    }, 100);
-    
-    setTimeout(() => {
-        // Check if CashApp exists and has init method
-        if (typeof window.CashApp !== 'undefined' && typeof window.CashApp.init === 'function') {
-            console.log('🔄 [Init] Re-initializing existing CashApp');
-            window.CashApp.init();
-        } else {
-            // Check if script is already in DOM
-            const existingScript = document.querySelector('script[src="/assets/js/cash.js"]');
-            
-            if (existingScript) {
-                console.log('⏳ [Init] CashApp script already exists, waiting for load...');
-                // Wait for script to execute
-                const checkInterval = setInterval(() => {
-                    if (typeof window.CashApp !== 'undefined' && window.CashApp.init) {
-                        clearInterval(checkInterval);
-                        console.log('✅ [Init] CashApp now available, initializing');
-                        window.CashApp.init();
-                    }
-                }, 100);
-                
-                // Timeout after 3 seconds
-                setTimeout(() => clearInterval(checkInterval), 3000);
+        console.log('💵 [Init] Starting cash management page...');
+        
+        setTimeout(() => {
+            // Check if CashApp exists and has init method
+            if (typeof window.CashApp !== 'undefined' && typeof window.CashApp.init === 'function') {
+                console.log('🔄 [Init] Re-initializing existing CashApp');
+                window.CashApp.init();
             } else {
-                console.log('📥 [Init] Loading CashApp script for first time');
-                const script = document.createElement('script');
-                script.src = '/assets/js/cash.js'; // ✅ تم تصحيح المسار
-                script.onload = () => {
-                    console.log('✅ [Init] CashApp script loaded');
-                    if (typeof window.CashApp !== 'undefined' && window.CashApp.init) {
-                        window.CashApp.init();
-                    } else {
-                        console.error('❌ [Init] CashApp not defined after loading');
-                    }
-                };
-                script.onerror = () => {
-                    console.error('❌ [Init] Failed to load CashApp script');
-                };
-                document.body.appendChild(script);
+                // Check if script is already in DOM
+                const existingScript = document.querySelector('script[src="/assets/js/cash.js"]');
+                
+                if (existingScript) {
+                    console.log('⏳ [Init] CashApp script already exists, waiting for load...');
+                    // Wait for script to execute
+                    const checkInterval = setInterval(() => {
+                        if (typeof window.CashApp !== 'undefined' && window.CashApp.init) {
+                            clearInterval(checkInterval);
+                            console.log('✅ [Init] CashApp now available, initializing');
+                            window.CashApp.init();
+                        }
+                    }, 100);
+                    
+                    // Timeout after 3 seconds
+                    setTimeout(() => clearInterval(checkInterval), 3000);
+                } else {
+                    console.log('📥 [Init] Loading CashApp script for first time');
+                    const script = document.createElement('script');
+                    script.src = '/assets/js/cash.js';
+                    script.onload = () => {
+                        console.log('✅ [Init] CashApp script loaded');
+                        if (typeof window.CashApp !== 'undefined' && window.CashApp.init) {
+                            window.CashApp.init();
+                        } else {
+                            console.error('❌ [Init] CashApp not defined after loading');
+                        }
+                    };
+                    script.onerror = () => {
+                        console.error('❌ [Init] Failed to load CashApp script');
+                    };
+                    document.body.appendChild(script);
+                }
             }
-        }
-    }, 300);
-}
+        }, 300);
+    }
     
-if (pageName === 'advances') {
-    console.log('💰 [Init] Starting advances page...');
-    setTimeout(() => {
-        if (typeof window.AdvancesApp !== 'undefined' && window.AdvancesApp.init) {
-            console.log('🔄 [Init] Re-initializing existing AdvancesApp');
-            window.AdvancesApp.init();
-        } else {
-            const existingScript = document.querySelector('script[src="/assets/js/advances.js"]');
-            
-            if (!existingScript) {
-                console.log('📥 [Init] Loading AdvancesApp script');
-                const script = document.createElement('script');
-                script.src = '/assets/js/advances.js';
-                script.onload = () => {
-                    console.log('✅ [Init] AdvancesApp script loaded');
-                    if (typeof window.AdvancesApp !== 'undefined' && window.AdvancesApp.init) {
-                        window.AdvancesApp.init();
-                    }
-                };
-                document.body.appendChild(script);
+    if (pageName === 'advances') {
+        console.log('💰 [Init] Starting advances page...');
+        setTimeout(() => {
+            if (typeof window.AdvancesApp !== 'undefined' && window.AdvancesApp.init) {
+                console.log('🔄 [Init] Re-initializing existing AdvancesApp');
+                window.AdvancesApp.init();
+            } else {
+                const existingScript = document.querySelector('script[src="/assets/js/advances.js"]');
+                
+                if (!existingScript) {
+                    console.log('📥 [Init] Loading AdvancesApp script');
+                    const script = document.createElement('script');
+                    script.src = '/assets/js/advances.js';
+                    script.onload = () => {
+                        console.log('✅ [Init] AdvancesApp script loaded');
+                        if (typeof window.AdvancesApp !== 'undefined' && window.AdvancesApp.init) {
+                            window.AdvancesApp.init();
+                        }
+                    };
+                    document.body.appendChild(script);
+                }
             }
-        }
-    }, 300);
-}
+        }, 300);
+    }
+
+    // ========================================
+    // 💰 Costs Page - NEW
+    // ========================================
+    if (pageName === 'costs') {
+        console.log('💰 [Init] Starting costs page...');
+        
+        setTimeout(() => {
+            // Check if CostsApp exists and has init method
+            if (typeof window.CostsApp !== 'undefined' && typeof window.CostsApp.init === 'function') {
+                console.log('🔄 [Init] Re-initializing existing CostsApp');
+                window.CostsApp.init();
+            } else {
+                // Check if script is already in DOM
+                const existingScript = document.querySelector('script[src="/assets/js/costs.js"]');
+                
+                if (existingScript) {
+                    console.log('⏳ [Init] CostsApp script already exists, waiting for load...');
+                    // Wait for script to execute
+                    const checkInterval = setInterval(() => {
+                        if (typeof window.CostsApp !== 'undefined' && window.CostsApp.init) {
+                            clearInterval(checkInterval);
+                            console.log('✅ [Init] CostsApp now available, initializing');
+                            window.CostsApp.init();
+                        }
+                    }, 100);
+                    
+                    // Timeout after 3 seconds
+                    setTimeout(() => clearInterval(checkInterval), 3000);
+                } else {
+                    console.log('📥 [Init] Loading CostsApp script for first time');
+                    const script = document.createElement('script');
+                    script.src = '/assets/js/costs.js';
+                    script.onload = () => {
+                        console.log('✅ [Init] CostsApp script loaded');
+                        if (typeof window.CostsApp !== 'undefined' && window.CostsApp.init) {
+                            window.CostsApp.init();
+                        } else {
+                            console.error('❌ [Init] CostsApp not defined after loading');
+                        }
+                    };
+                    script.onerror = () => {
+                        console.error('❌ [Init] Failed to load CostsApp script');
+                    };
+                    document.body.appendChild(script);
+                }
+            }
+        }, 300);
+    }
 
     if (pageName === 'settings') {
         console.log('⚙️ [Init] Starting settings page...');
