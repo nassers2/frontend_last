@@ -582,7 +582,7 @@ const CostsApp = {
     // Utilities
     // ========================================
     formatCurrency: function(amount) {
-        return new Intl.NumberFormat('ar-SA', {
+        return new Intl.NumberFormat('en-US', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
         }).format(amount) + ' ر.س';
