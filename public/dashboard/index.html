@@ -1627,11 +1627,11 @@ if (logoutBtn) {
         let selectedDate = new Date().toISOString().split('T')[0];
 
         window.formatNumber = function(num) {
-            return new Intl.NumberFormat('ar-SA').format(num || 0);
+            return new Intl.NumberFormat('en-US').format(num || 0);
         };
 
         window.formatCurrency = function(amount) {
-            return new Intl.NumberFormat('ar-SA', { 
+            return new Intl.NumberFormat('en-US', { 
                 minimumFractionDigits: 0, 
                 maximumFractionDigits: 2 
             }).format(amount || 0) + ' ر.س';
@@ -1639,7 +1639,7 @@ if (logoutBtn) {
 
         window.formatDate = function(dateStr) {
             const date = new Date(dateStr);
-            return new Intl.DateTimeFormat('ar-SA', {
+            return new Intl.DateTimeFormat('en-US', {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric'
