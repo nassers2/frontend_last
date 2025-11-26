@@ -490,7 +490,7 @@ if (typeof window.CostsApp !== 'undefined') {
         // ========================================
         
         formatCurrency: function(amount) {
-            return new Intl.NumberFormat('ar-SA', {
+            return new Intl.NumberFormat('en-US', {
                 style: 'decimal',
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
