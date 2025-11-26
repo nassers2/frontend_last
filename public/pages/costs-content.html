@@ -118,7 +118,7 @@
     /* Stats Grid */
     .stats-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
         gap: 1.5rem;
         margin-bottom: 2rem;
     }
@@ -140,6 +140,7 @@
     .stat-card.primary { border-right: 4px solid var(--primary); }
     .stat-card.success { border-right: 4px solid var(--secondary); }
     .stat-card.warning { border-right: 4px solid var(--warning); }
+    .stat-card.danger { border-right: 4px solid var(--danger); }
 
     .stat-header {
         display: flex;
@@ -149,7 +150,7 @@
     }
 
     .stat-title {
-        font-size: 0.8rem;
+        font-size: 0.75rem;
         font-weight: 600;
         color: var(--gray-600);
         text-transform: uppercase;
@@ -169,16 +170,17 @@
     .stat-card.primary .stat-icon { background: var(--primary-light); color: var(--primary); }
     .stat-card.success .stat-icon { background: var(--secondary-light); color: var(--secondary); }
     .stat-card.warning .stat-icon { background: var(--warning-light); color: var(--warning); }
+    .stat-card.danger .stat-icon { background: var(--danger-light); color: var(--danger); }
 
     .stat-value {
-        font-size: 1.75rem;
+        font-size: 1.5rem;
         font-weight: 800;
         color: var(--gray-900);
         margin-bottom: 0.25rem;
     }
 
     .stat-label {
-        font-size: 0.8rem;
+        font-size: 0.75rem;
         color: var(--gray-500);
     }
 
@@ -267,6 +269,91 @@
         padding-left: 2.5rem;
     }
 
+    /* Checkbox Toggle */
+    .form-check {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem;
+        background: var(--gray-50);
+        border-radius: 8px;
+        border: 2px solid var(--gray-200);
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .form-check:hover {
+        border-color: var(--purple);
+        background: var(--purple-light);
+    }
+
+    .form-check.checked {
+        border-color: var(--secondary);
+        background: var(--secondary-light);
+    }
+
+    .form-check input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        accent-color: var(--secondary);
+        cursor: pointer;
+    }
+
+    .form-check-label {
+        flex: 1;
+        cursor: pointer;
+    }
+
+    .form-check-label strong {
+        display: block;
+        color: var(--gray-900);
+        font-size: 0.9rem;
+        margin-bottom: 2px;
+    }
+
+    .form-check-label span {
+        font-size: 0.8rem;
+        color: var(--gray-500);
+    }
+
+    /* VAT Preview */
+    .vat-preview {
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        border-radius: 8px;
+        padding: 1rem;
+        margin-top: 1rem;
+        display: none;
+    }
+
+    .vat-preview.show {
+        display: block;
+    }
+
+    .vat-preview-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 0;
+        border-bottom: 1px dashed rgba(0,0,0,0.1);
+    }
+
+    .vat-preview-row:last-child {
+        border-bottom: none;
+        padding-top: 0.75rem;
+        font-weight: 700;
+        color: var(--secondary);
+    }
+
+    .vat-preview-row span:first-child {
+        color: #92400e;
+        font-size: 0.875rem;
+    }
+
+    .vat-preview-row span:last-child {
+        font-weight: 600;
+        color: #78350f;
+    }
+
     /* Buttons */
     .btn {
         padding: 0.75rem 1.5rem;
@@ -344,20 +431,21 @@
     }
 
     th {
-        padding: 1rem;
+        padding: 0.875rem 0.75rem;
         text-align: right;
         font-weight: 700;
-        font-size: 0.8125rem;
+        font-size: 0.75rem;
         color: var(--gray-700);
         text-transform: uppercase;
         letter-spacing: 0.05em;
         border-bottom: 2px solid var(--gray-200);
+        white-space: nowrap;
     }
 
     td {
-        padding: 1rem;
+        padding: 0.875rem 0.75rem;
         border-bottom: 1px solid var(--gray-200);
-        font-size: 0.9375rem;
+        font-size: 0.875rem;
     }
 
     tbody tr:hover {
@@ -370,6 +458,16 @@
         font-family: 'Courier New', monospace;
     }
 
+    .amount-vat {
+        font-size: 0.75rem;
+        color: var(--danger);
+        display: block;
+    }
+
+    .amount-net {
+        color: var(--secondary);
+    }
+
     /* Badge */
     .badge {
         display: inline-flex;
@@ -377,7 +475,7 @@
         gap: 0.375rem;
         padding: 0.375rem 0.75rem;
         border-radius: 9999px;
-        font-size: 0.75rem;
+        font-size: 0.7rem;
         font-weight: 600;
     }
 
@@ -389,6 +487,16 @@
     .badge-yearly {
         background: var(--warning-light);
         color: #92400e;
+    }
+
+    .badge-vat {
+        background: var(--secondary-light);
+        color: #065f46;
+    }
+
+    .badge-no-vat {
+        background: var(--gray-100);
+        color: var(--gray-500);
     }
 
     /* Action buttons */
@@ -567,6 +675,14 @@
             width: 100%;
             justify-content: center;
         }
+
+        table {
+            font-size: 0.8rem;
+        }
+
+        th, td {
+            padding: 0.625rem 0.5rem;
+        }
     }
 </style>
 
@@ -576,7 +692,7 @@
         <i data-lucide="calculator"></i>
         إدارة التكاليف
     </h1>
-    <p>إضافة وإدارة تكاليف التشغيل وحساب التكلفة الشهرية لكل مندوب</p>
+    <p>إضافة وإدارة تكاليف التشغيل وحساب التكلفة الشهرية لكل مندوب (مع احتساب استرداد الضريبة)</p>
 </div>
 
 <!-- Driver Count Section -->
@@ -604,21 +720,32 @@
             </div>
         </div>
         <div class="stat-value" id="totalMonthly">0.00 ر.س</div>
-        <div class="stat-label">جميع التكاليف محولة للشهري</div>
+        <div class="stat-label">المبلغ الإجمالي قبل الضريبة</div>
     </div>
 
-    <div class="stat-card primary">
+    <div class="stat-card danger">
         <div class="stat-header">
-            <span class="stat-title">إجمالي سنوي</span>
+            <span class="stat-title">ضريبة مستردة</span>
             <div class="stat-icon">
-                <i data-lucide="trending-up"></i>
+                <i data-lucide="receipt"></i>
             </div>
         </div>
-        <div class="stat-value" id="totalYearly">0.00 ر.س</div>
-        <div class="stat-label">الإجمالي الشهري × 12</div>
+        <div class="stat-value" id="totalVat">0.00 ر.س</div>
+        <div class="stat-label">إجمالي الضريبة المستردة (15%)</div>
     </div>
 
     <div class="stat-card success">
+        <div class="stat-header">
+            <span class="stat-title">صافي التكلفة</span>
+            <div class="stat-icon">
+                <i data-lucide="wallet"></i>
+            </div>
+        </div>
+        <div class="stat-value" id="totalNet">0.00 ر.س</div>
+        <div class="stat-label">التكلفة بعد استرداد الضريبة</div>
+    </div>
+
+    <div class="stat-card primary">
         <div class="stat-header">
             <span class="stat-title">تكلفة المندوب</span>
             <div class="stat-icon">
@@ -670,7 +797,7 @@
                 <div class="form-group">
                     <label for="itemAmount">
                         <span class="required">*</span>
-                        المبلغ (ر.س)
+                        المبلغ (ر.س) - شامل الضريبة
                     </label>
                     <input 
                         type="number" 
@@ -692,6 +819,33 @@
                         <option value="monthly">شهري</option>
                         <option value="yearly">سنوي</option>
                     </select>
+                </div>
+
+                <div class="form-group">
+                    <label>استرداد الضريبة</label>
+                    <div class="form-check" id="vatCheckContainer">
+                        <input type="checkbox" id="hasVat" checked>
+                        <label class="form-check-label" for="hasVat">
+                            <strong>يشمل ضريبة قابلة للاسترداد</strong>
+                            <span>سيتم خصم 15% من المبلغ كضريبة مستردة</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- VAT Preview -->
+                <div class="vat-preview" id="vatPreview">
+                    <div class="vat-preview-row">
+                        <span>المبلغ المدخل:</span>
+                        <span id="previewAmount">0.00 ر.س</span>
+                    </div>
+                    <div class="vat-preview-row">
+                        <span>الضريبة المستردة (15%):</span>
+                        <span id="previewVat">- 0.00 ر.س</span>
+                    </div>
+                    <div class="vat-preview-row">
+                        <span>صافي التكلفة:</span>
+                        <span id="previewNet">0.00 ر.س</span>
+                    </div>
                 </div>
 
                 <div class="form-group">
@@ -781,7 +935,7 @@
                 <div class="form-group">
                     <label for="editItemAmount">
                         <span class="required">*</span>
-                        المبلغ (ر.س)
+                        المبلغ (ر.س) - شامل الضريبة
                     </label>
                     <input type="number" id="editItemAmount" class="form-control" step="0.01" min="0.01" required>
                 </div>
@@ -795,6 +949,17 @@
                         <option value="monthly">شهري</option>
                         <option value="yearly">سنوي</option>
                     </select>
+                </div>
+
+                <div class="form-group">
+                    <label>استرداد الضريبة</label>
+                    <div class="form-check" id="editVatCheckContainer">
+                        <input type="checkbox" id="editHasVat">
+                        <label class="form-check-label" for="editHasVat">
+                            <strong>يشمل ضريبة قابلة للاسترداد</strong>
+                            <span>سيتم خصم 15% من المبلغ كضريبة مستردة</span>
+                        </label>
+                    </div>
                 </div>
 
                 <div class="form-group">
@@ -816,7 +981,7 @@
     </div>
 </div>
 
-<script src="../assets/js/costs.js"></script>
+<script src="/assets/js/costs.js"></script>
 
 <script>
     // Initialize when content loads

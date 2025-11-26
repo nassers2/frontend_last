@@ -354,51 +354,83 @@ async changePassword(currentPassword, newPassword) {
 
   async getCostsSummary() {
     return await this.call('/costs/summary', 'GET');
-  },
+},
 
-  async getCostItems() {
+/**
+ * Get all cost items
+ */
+async getCostItems() {
     return await this.call('/costs/items', 'GET');
-  },
+},
 
-  async getCostItemById(itemId) {
+/**
+ * Get single cost item
+ */
+async getCostItemById(itemId) {
     return await this.call(`/costs/items/${itemId}`, 'GET');
-  },
+},
 
-  async createCostItem(name, amount, type, notes) {
+/**
+ * Create new cost item
+ * @param {string} name - Item name
+ * @param {number} amount - Amount (including VAT if applicable)
+ * @param {string} type - 'monthly' or 'yearly'
+ * @param {boolean} hasVat - Whether item has recoverable VAT
+ * @param {string} notes - Optional notes
+ */
+async createCostItem(name, amount, type, hasVat = true, notes = '') {
     return await this.call('/costs/items', 'POST', {
-      name: name,
-      amount: amount,
-      type: type,
-      notes: notes
+        name,
+        amount,
+        type,
+        has_vat: hasVat,
+        notes
     });
-  },
+},
 
-  async updateCostItem(itemId, name, amount, type, notes) {
+/**
+ * Update cost item
+ */
+async updateCostItem(itemId, name, amount, type, hasVat = true, notes = '') {
     return await this.call(`/costs/items/${itemId}`, 'PUT', {
-      name: name,
-      amount: amount,
-      type: type,
-      notes: notes
+        name,
+        amount,
+        type,
+        has_vat: hasVat,
+        notes
     });
-  },
+},
 
-  async deleteCostItem(itemId) {
+/**
+ * Delete cost item
+ */
+async deleteCostItem(itemId) {
     return await this.call(`/costs/items/${itemId}`, 'DELETE');
-  },
+},
 
-  async getCostsSettings() {
+/**
+ * Get costs settings
+ */
+async getCostsSettings() {
     return await this.call('/costs/settings', 'GET');
-  },
+},
 
-  async updateCostsSettings(driverCount) {
+/**
+ * Update costs settings
+ */
+async updateCostsSettings(driverCount) {
     return await this.call('/costs/settings', 'PUT', {
-      driver_count: driverCount
+        driver_count: driverCount
     });
-  },
+},
 
-  async getCostsBreakdown() {
+/**
+ * Get costs breakdown by type
+ */
+async getCostsBreakdown() {
     return await this.call('/costs/breakdown', 'GET');
-  },
+},
+
   // ========================================
   // 👥 Groups APIs
   // ========================================
