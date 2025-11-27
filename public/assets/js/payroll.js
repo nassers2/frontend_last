@@ -1,12 +1,4 @@
-/* =============================
-   Payroll Management JavaScript
-   Version: 9.0 - Preview Mode
-   
-   التغييرات:
-   ✅ حساب الرواتب = عرض فقط (بدون حفظ)
-   ✅ إصدار التقرير = حفظ في قاعدة البيانات
-   ✅ جميع التحسينات السابقة
-============================= */
+
 
 (function() {
   'use strict';
@@ -518,6 +510,11 @@
         currentRecords = result.records || [];
         isPreviewMode = true; // 🆕 نحن في وضع المعاينة
         
+        // 🆕 حفظ القيمة الأصلية للسلفة لكل سجل
+        currentRecords.forEach(record => {
+          record.original_advance_deduction = toNumber(record.advance_deduction);
+        });
+        
         console.log(`✅ [PREVIEW] Calculated ${currentRecords.length} records (NOT SAVED)`);
         
         if (currentRecords.length === 0) {
@@ -741,7 +738,7 @@
       const record = currentRecords[index];
       currentAdvanceModal = {
         driverIndex: index,
-        maxAmount: maxAmount,
+        maxAmount: record.original_advance_deduction || maxAmount,
         driverName: record?.driver_name || 'المندوب'
       };
       
@@ -751,10 +748,10 @@
       const modal = DOM.get('advanceModal');
       
       if (modalDriver) modalDriver.textContent = currentAdvanceModal.driverName;
-      if (modalMax) modalMax.textContent = formatCurrency(maxAmount);
+      if (modalMax) modalMax.textContent = formatCurrency(currentAdvanceModal.maxAmount);
       if (modalInput) {
-        modalInput.value = maxAmount;
-        modalInput.max = maxAmount;
+        modalInput.value = currentAdvanceModal.maxAmount;
+        modalInput.max = currentAdvanceModal.maxAmount;
       }
       if (modal) modal.classList.add('active');
       if (modalInput) modalInput.focus();
@@ -768,7 +765,8 @@
     
     const record = currentRecords[index];
     const grossSalary = toNumber(record.gross_salary);
-    const originalAdvance = toNumber(record.advance_deduction);
+    // 🆕 استخدام القيمة الأصلية بدلاً من الحالية
+    const originalAdvance = toNumber(record.original_advance_deduction);
     
     let newAdvanceAmount = originalAdvance;
     
