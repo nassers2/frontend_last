@@ -698,13 +698,9 @@
         }
 
         .pricing-cards {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 3rem;
+            display: flex;
+            justify-content: center;
             margin-top: 4rem;
-            max-width: 900px;
-            margin-left: auto;
-            margin-right: auto;
         }
 
         .pricing-card {
@@ -714,6 +710,8 @@
             padding: 3rem;
             transition: all 0.4s ease;
             position: relative;
+            max-width: 450px;
+            width: 100%;
         }
 
         .pricing-card:hover {
@@ -729,20 +727,20 @@
         }
 
         .pricing-card.featured * {
-    color: white !important;
-}
+            color: white !important;
+        }
 
 
-.pricing-card.featured .btn-white {
-    color: var(--primary) !important;
-    background: white !important;
-}
+        .pricing-card.featured .btn-white {
+            color: var(--primary) !important;
+            background: white !important;
+        }
 
-.pricing-card.featured .btn-white:hover {
-    color: white !important;
-    background: rgba(255, 255, 255, 0.2) !important;
-    border: 2px solid white;
-}
+        .pricing-card.featured .btn-white:hover {
+            color: white !important;
+            background: rgba(255, 255, 255, 0.2) !important;
+            border: 2px solid white;
+        }
 
         .pricing-badge {
             position: absolute;
@@ -761,6 +759,7 @@
             font-size: 1.8rem;
             margin-bottom: 1rem;
             color: var(--dark);
+            text-align: center;
         }
 
         .pricing-price {
@@ -768,6 +767,7 @@
             font-weight: 900;
             margin: 1.5rem 0;
             color: var(--dark);
+            text-align: center;
         }
 
         .pricing-price span {
@@ -798,6 +798,12 @@
 
         .pricing-card.featured .pricing-features li {
             border-bottom-color: rgba(255,255,255,0.2);
+        }
+
+        .pricing-card .btn-primary {
+            display: block;
+            text-align: center;
+            width: 100%;
         }
 
         /* CTA Section */
@@ -986,7 +992,8 @@
             }
 
             .pricing-cards {
-                grid-template-columns: 1fr;
+                flex-direction: column;
+                align-items: center;
             }
 
             .footer-container {
@@ -1021,100 +1028,101 @@
         .animate-on-scroll:nth-child(3) { animation-delay: 0.3s; }
         .animate-on-scroll:nth-child(4) { animation-delay: 0.4s; }
         /* Pricing Toggle */
-.pricing-toggle {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 1rem;
-    margin-top: 2rem;
-    padding: 1rem;
-    background: #f8fafc;
-    border-radius: 50px;
-    display: inline-flex;
-}
+        .pricing-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 50px;
+            display: inline-flex;
+        }
 
-.toggle-label {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: var(--dark);
-    transition: all 0.3s ease;
-}
+        .toggle-label {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--dark);
+            transition: all 0.3s ease;
+        }
 
-.toggle-label.active {
-    color: var(--primary);
-}
+        .toggle-label.active {
+            color: var(--primary);
+        }
 
-.discount-badge {
-    display: inline-block;
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    color: white;
-    padding: 0.3rem 0.8rem;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 800;
-    margin-right: 0.5rem;
-}
+        .discount-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            margin-right: 0.5rem;
+        }
 
-/* Switch Toggle */
-.switch {
-    position: relative;
-    display: inline-block;
-    width: 60px;
-    height: 30px;
-}
+        /* Switch Toggle */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 30px;
+        }
 
-.switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
 
-.slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #cbd5e1;
-    transition: 0.4s;
-    border-radius: 34px;
-}
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #cbd5e1;
+            transition: 0.4s;
+            border-radius: 34px;
+        }
 
-.slider:before {
-    position: absolute;
-    content: "";
-    height: 22px;
-    width: 22px;
-    left: 4px;
-    bottom: 4px;
-    background-color: white;
-    transition: 0.4s;
-    border-radius: 50%;
-}
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+        }
 
-input:checked + .slider {
-    background: var(--gradient);
-}
+        input:checked + .slider {
+            background: var(--gradient);
+        }
 
-input:checked + .slider:before {
-    transform: translateX(30px);
-}
+        input:checked + .slider:before {
+            transform: translateX(30px);
+        }
 
-.price-note {
-    min-height: 30px;
-    margin-top: 0.5rem;
-}
+        .price-note {
+            min-height: 30px;
+            margin-top: 0.5rem;
+            text-align: center;
+        }
 
-.quarterly-note {
-    font-size: 0.9rem;
-    color: #10b981;
-    font-weight: 600;
-}
+        .quarterly-note {
+            font-size: 0.9rem;
+            color: #10b981;
+            font-weight: 600;
+        }
 
-.pricing-card.featured .quarterly-note {
-    color: rgba(255, 255, 255, 0.9);
-}
+        .pricing-card.featured .quarterly-note {
+            color: rgba(255, 255, 255, 0.9);
+        }
     </style>
 </head>
 <body>
@@ -1343,55 +1351,53 @@ input:checked + .slider:before {
     </section>
 
     <!-- Pricing Section -->
-<section class="pricing" id="pricing">
-    <div class="pricing-container">
-        <div class="section-header">
-            <span class="section-tag">الأسعار</span>
-            <h2>خطط مرنة تناسب احتياجاتك</h2>
-            <p>اختر الخطة المناسبة لحجم أسطولك وابدأ فوراً</p>
+    <section class="pricing" id="pricing">
+        <div class="pricing-container">
+            <div class="section-header">
+                <span class="section-tag">الأسعار</span>
+                <h2>خطط مرنة تناسب احتياجاتك</h2>
+                <p>اختر الخطة المناسبة لحجم أسطولك وابدأ فوراً</p>
+                
+                <!-- Toggle شهري/3 أشهر -->
+                <div class="pricing-toggle">
+                    <span class="toggle-label" id="monthly-label">شهري</span>
+                    <label class="switch">
+                        <input type="checkbox" id="pricing-switch" onchange="togglePricing()">
+                        <span class="slider"></span>
+                    </label>
+                    <span class="toggle-label" id="quarterly-label">
+                        3 أشهر
+                        <span class="discount-badge">وفّر 15%</span>
+                    </span>
+                </div>
+            </div>
             
-            <!-- Toggle شهري/3 أشهر -->
-            <div class="pricing-toggle">
-                <span class="toggle-label" id="monthly-label">شهري</span>
-                <label class="switch">
-                    <input type="checkbox" id="pricing-switch" onchange="togglePricing()">
-                    <span class="slider"></span>
-                </label>
-                <span class="toggle-label" id="quarterly-label">
-                    3 أشهر
-                    <span class="discount-badge">وفّر 15%</span>
-                </span>
+            <div class="pricing-cards">
+                <!-- الباقة الأساسية -->
+                <div class="pricing-card">
+                    <h3>الباقة الأساسية</h3>
+                    <div class="pricing-price">
+                        <span class="price-amount" data-monthly="299" data-quarterly="762">299</span>
+                        <span class="price-currency">ر.س</span>
+                        <span class="price-period">/شهرياً</span>
+                    </div>
+                    <div class="price-note">
+                        <span class="quarterly-note" style="display: none;">762 ر.س لـ 3 أشهر (وفّر 135 ر.س)</span>
+                    </div>
+                    <ul class="pricing-features">
+                        <li>حتى 200 مندوب</li>
+                        <li>مزامنة تلقائية مع جاهز</li>
+                        <li>نظام رواتب متقدم</li>
+                        <li>نظام ادارة التكاليف</li>
+                        <li>نظام ادارة السلفه</li>
+                        <li>تقارير شهرية</li>
+                        <li>دعم فني عبر الواتساب</li>
+                    </ul>
+                    <a href="./payment-details.html?plan=basic&type=monthly" class="btn btn-primary pricing-btn" data-plan="basic">اشترك الآن</a>
+                </div>
             </div>
         </div>
-        
-        <div class="pricing-cards">
-            <!-- الباقة الأساسية -->
-            <div class="pricing-card">
-                <h3>الباقة الأساسية</h3>
-                <div class="pricing-price">
-                    <span class="price-amount" data-monthly="299" data-quarterly="762">299</span>
-                    <span class="price-currency">ر.س</span>
-                    <span class="price-period">/شهرياً</span>
-                </div>
-                <div class="price-note">
-                    <span class="quarterly-note" style="display: none;">762 ر.س لـ 3 أشهر (وفّر 135 ر.س)</span>
-                </div>
-                <ul class="pricing-features">
-                    <li>حتى 200 مندوب</li>
-                    <li>مزامنة تلقائية مع جاهز</li>
-                    <li>نظام رواتب متقدم</li>
-                    <li>نظام ادارة التكاليف</li>
-                    <li>نظام ادارة السلفه</li>
-                    <li>تقارير شهرية</li>
-                    <li>دعم فني عبر الواتساب</li>
-                </ul>
-                <a href="./payment-details.html?plan=basic&type=monthly" class="btn btn-primary pricing-btn" data-plan="basic">اشترك الآن</a>
-            </div>
-
-            
-        </div>
-    </div>
-</section>
+    </section>
 
     <!-- CTA Section -->
     <section class="cta">
@@ -1500,41 +1506,41 @@ input:checked + .slider:before {
         });
 
        
-function togglePricing() {
-    const isQuarterly = document.getElementById('pricing-switch').checked;
-    const priceAmounts = document.querySelectorAll('.price-amount');
-    const pricePeriods = document.querySelectorAll('.price-period');
-    const quarterlyNotes = document.querySelectorAll('.quarterly-note');
-    const pricingBtns = document.querySelectorAll('.pricing-btn');
-    
-    priceAmounts.forEach(amount => {
-        const monthly = amount.getAttribute('data-monthly');
-        const quarterly = amount.getAttribute('data-quarterly');
-        amount.textContent = isQuarterly ? quarterly : monthly;
-    });
-    
-    pricePeriods.forEach(period => {
-        period.textContent = isQuarterly ? '/3 أشهر' : '/شهرياً';
-    });
-    
-    quarterlyNotes.forEach(note => {
-        note.style.display = isQuarterly ? 'block' : 'none';
-    });
-    
-    
-    pricingBtns.forEach(btn => {
-        const plan = btn.getAttribute('data-plan');
-        const type = isQuarterly ? 'quarterly' : 'monthly';
-        btn.href = `./payment-details.html?plan=${plan}&type=${type}`;
-    });
-    
-    
-    document.getElementById('monthly-label').classList.toggle('active', !isQuarterly);
-    document.getElementById('quarterly-label').classList.toggle('active', isQuarterly);
-}
+        function togglePricing() {
+            const isQuarterly = document.getElementById('pricing-switch').checked;
+            const priceAmounts = document.querySelectorAll('.price-amount');
+            const pricePeriods = document.querySelectorAll('.price-period');
+            const quarterlyNotes = document.querySelectorAll('.quarterly-note');
+            const pricingBtns = document.querySelectorAll('.pricing-btn');
+            
+            priceAmounts.forEach(amount => {
+                const monthly = amount.getAttribute('data-monthly');
+                const quarterly = amount.getAttribute('data-quarterly');
+                amount.textContent = isQuarterly ? quarterly : monthly;
+            });
+            
+            pricePeriods.forEach(period => {
+                period.textContent = isQuarterly ? '/3 أشهر' : '/شهرياً';
+            });
+            
+            quarterlyNotes.forEach(note => {
+                note.style.display = isQuarterly ? 'block' : 'none';
+            });
+            
+            
+            pricingBtns.forEach(btn => {
+                const plan = btn.getAttribute('data-plan');
+                const type = isQuarterly ? 'quarterly' : 'monthly';
+                btn.href = `./payment-details.html?plan=${plan}&type=${type}`;
+            });
+            
+            
+            document.getElementById('monthly-label').classList.toggle('active', !isQuarterly);
+            document.getElementById('quarterly-label').classList.toggle('active', isQuarterly);
+        }
 
 
-document.getElementById('monthly-label').classList.add('active');
+        document.getElementById('monthly-label').classList.add('active');
     </script>
 
 </body>
